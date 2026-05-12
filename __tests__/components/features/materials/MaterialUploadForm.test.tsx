@@ -68,7 +68,7 @@ describe('UploadMaterialPage', () => {
   }, 15000)
 
   it('shows error toast for disallowed file type', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ applyAccept: false })
     render(<UploadMaterialPage />)
 
     const badFile = makeFile('virus.exe', 1024, 'application/octet-stream')
