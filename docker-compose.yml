@@ -1,5 +1,8 @@
+name: classmate
+
 services:
   db:
+    profiles: ["local"]
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: classmate
@@ -8,39 +11,64 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  app:
+  db-schema-sync:
+    profiles: ["migrate"]
     build:
       context: .
+      dockerfile: Dockerfile
+      target: migrator
+    env_file:
+      - .env.production
+    restart: "no"
+
+  app:
+    image: ${DOCKER_USERNAME:-local}/classmate:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
       args:
+        NEXT_PUBLIC_BETTER_AUTH_URL: ${NEXT_PUBLIC_BETTER_AUTH_URL:-https://e2526-wads-b4ac.csbihub.id}
         NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
         NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
         NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
         NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
         NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
         NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
-        NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
-    ports:
-      - "3000:3000"
-    depends_on:
-      db:
-        condition: service_healthy
     env_file:
-      - .env
-    environment:
-      # Points app to the Docker db service (overrides .env DATABASE_URL)
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/classmate
-      BETTER_AUTH_URL: http://localhost:3000
-      NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+      - .env.production
+    ports:
+      - "3010:3010"
     volumes:
       - uploads_data:/app/public/uploads
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm start"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3010/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+        reservations:
+          memory: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    init: true
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   postgres_data:
