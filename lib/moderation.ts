@@ -24,19 +24,13 @@ export async function moderateContent(content: string): Promise<ModerationResult
   const trimmedContent = content.slice(0, MAX_CONTENT_LENGTH)
 
   try {
-    const apiKey = process.env.GROQ_API_KEY
-    if (!apiKey) {
-      return FAIL_CLOSED
-    }
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('https://ollama.csbihub.id/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama3.1:8b',
         messages: [
           {
             role: 'system',

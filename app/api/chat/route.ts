@@ -86,14 +86,13 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('https://ollama.csbihub.id/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama3.1:8b',
         stream: true,
         messages: [
           {
@@ -116,7 +115,7 @@ Your goal is to help students understand concepts deeply, not just give answers.
     })
 
     if (!response.ok) {
-      console.error('[POST /api/chat] Groq API error:', response.status, await response.text())
+      console.error('[POST /api/chat] Ollama API error:', response.status, await response.text())
       return NextResponse.json({ error: 'AI service error' }, { status: response.status })
     }
 

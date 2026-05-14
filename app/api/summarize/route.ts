@@ -22,15 +22,14 @@ export async function POST(req: NextRequest) {
     }
     const { thread } = parsed.data
 
-    // Use Groq to summarize discussion thread
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Use Ollama to summarize discussion thread
+    const response = await fetch('https://ollama.csbihub.id/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama3.1:8b',
         messages: [
           {
             role: 'system',
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       return NextResponse.json(
-        { error: `Groq API error: ${errorText}` },
+        { error: `Ollama API error: ${errorText}` },
         { status: response.status }
       )
     }
