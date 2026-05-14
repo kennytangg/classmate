@@ -39,7 +39,9 @@ export function middleware(request: NextRequest) {
 
   if (isProtected) {
     const firebaseSession = request.cookies.get('session')
-    const betterAuthSession = request.cookies.get('better-auth.session_token')
+    const betterAuthSession =
+      request.cookies.get('better-auth.session_token') ??
+      request.cookies.get('__Secure-better-auth.session_token')
 
     if (!firebaseSession && !betterAuthSession) {
       return NextResponse.rewrite(new URL('/_not-found', request.url))
