@@ -1,6 +1,6 @@
 /**
  * AI Tutor Feature — Structured AI Testing
- * Covers: POST /api/chat (Groq llama-3.3-70b-versatile, streaming SSE)
+ * Covers: POST /api/chat (Ollama llama3.1:8b, streaming SSE)
  *
  * Test Categories (per Appendix B §10.4):
  *  1. Valid input tests
@@ -105,13 +105,13 @@ describe('AI Tutor — Valid Inputs', () => {
     expect(callBody.messages).toHaveLength(4)
   })
 
-  it('TC-AI-T-03: Groq model is llama-3.3-70b-versatile', async () => {
+  it('TC-AI-T-03: Ollama model is llama3.1:8b', async () => {
     mockFetch.mockResolvedValueOnce(makeSSEResponse('ok'))
 
     await POST(makeChatRequest([{ role: 'user', content: 'hi' }]))
 
     const callBody = JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string)
-    expect(callBody.model).toBe('llama-3.3-70b-versatile')
+    expect(callBody.model).toBe('llama3.1:8b')
   })
 
   it('TC-AI-T-04: stream flag is true in Groq request', async () => {

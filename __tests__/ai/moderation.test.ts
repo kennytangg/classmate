@@ -250,7 +250,7 @@ describe('AI Moderation — Consistency', () => {
     // Both calls must target the same Groq endpoint
     const url1 = (mockFetch.mock.calls[0][0] as string) || ''
     const url2 = (mockFetch.mock.calls[1][0] as string) || ''
-    expect(url1).toContain('groq.com')
+    expect(url1).toContain('ollama.csbihub.id')
     expect(url1).toBe(url2)
   })
 

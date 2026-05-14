@@ -172,7 +172,7 @@ describe('POST /api/chat', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1)
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('groq.com'),
+      expect.stringContaining('ollama.csbihub.id'),
       expect.objectContaining({ method: 'POST' })
     )
   })

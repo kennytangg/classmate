@@ -1,6 +1,6 @@
 /**
  * AI Summarization Feature — Structured AI Testing
- * Covers: POST /api/summarize (Groq llama-3.3-70b-versatile, non-streaming)
+ * Covers: POST /api/summarize (Ollama llama3.1:8b, non-streaming)
  *
  * Test Categories (per Appendix B §10.4):
  *  1. Valid input tests
@@ -87,14 +87,14 @@ describe('AI Summarization — Valid Inputs', () => {
     expect(data.summary).toBe(summaryText)
   })
 
-  it('TC-AI-S-03: Groq is called with correct model', async () => {
+  it('TC-AI-S-03: Ollama is called with correct model', async () => {
     mockAuth()
     mockGroqSummary('Summary text.')
 
     await POST(makeRequest('Short thread.'))
 
     const callBody = JSON.parse(mockFetch.mock.calls[0][1].body as string)
-    expect(callBody.model).toBe('llama-3.3-70b-versatile')
+    expect(callBody.model).toBe('llama3.1:8b')
   })
 
   it('TC-AI-S-04: Groq is called with temperature 0.5 for consistent output', async () => {
@@ -224,7 +224,7 @@ describe('AI Summarization — Consistency', () => {
 
     const url1 = mockFetch.mock.calls[0][0] as string
     const url2 = mockFetch.mock.calls[1][0] as string
-    expect(url1).toContain('groq.com')
+    expect(url1).toContain('ollama.csbihub.id')
     expect(url1).toBe(url2)
   })
 

@@ -5,8 +5,8 @@
  * - Clean content → approve
  * - Toxic content → block
  * - Borderline content → warn
- * - Groq API failure → fail-closed (block)
- * - Missing GROQ_API_KEY → fail-closed (block)
+ * - Ollama API failure → fail-closed (block)
+ * - Network error → fail-closed (block)
  * - Malformed JSON response → fail-closed (block)
  * - JSON wrapped in markdown code block → parses correctly
  */
@@ -20,7 +20,7 @@ const ORIGINAL_ENV = process.env
 
 beforeEach(() => {
   jest.resetModules()
-  process.env = { ...ORIGINAL_ENV, GROQ_API_KEY: 'test-key' }
+  process.env = { ...ORIGINAL_ENV }
   mockFetch.mockReset()
 })
 
@@ -170,12 +170,11 @@ describe('moderateContent — fail-closed on error', () => {
     expect(result.action).toBe('block')
   })
 
-  it('returns block when GROQ_API_KEY is missing', async () => {
-    delete process.env.GROQ_API_KEY
+  it('returns block when Ollama is unreachable (network error)', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network failure'))
 
     const result = await moderateContent('Normal content')
     expect(result.action).toBe('block')
-    expect(mockFetch).not.toHaveBeenCalled()
   })
 })
 
@@ -255,9 +254,8 @@ describe('moderateContent — Groq API call', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1)
     const [url, options] = mockFetch.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('https://api.groq.com/openai/v1/chat/completions')
-    expect(options.headers).toMatchObject({ Authorization: 'Bearer test-key' })
+    expect(url).toBe('https://ollama.csbihub.id/v1/chat/completions')
     const body = JSON.parse(options.body as string) as { model: string }
-    expect(body.model).toBe('llama-3.3-70b-versatile')
+    expect(body.model).toBe('llama3.1:8b')
   })
 })
