@@ -122,7 +122,7 @@ export function ForumList() {
         <div>
           <h2 className="text-foreground text-2xl font-bold">Discussion Forums</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Ask questions, share knowledge, and learn together.
+            Ask questions, discuss topics, and share knowledge with your classmates.
           </p>
         </div>
 

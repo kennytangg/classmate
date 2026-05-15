@@ -17,10 +17,9 @@ export const navigationItems: NavigationItem[] = [
   { href: '/forums', label: 'Forums', group: 'core', icon: 'MessageSquare', section: 'Main' },
   { href: '/groups', label: 'Study Groups', group: 'core', icon: 'Users', section: 'Main' },
   { href: '/chat', label: 'Chat', group: 'core', icon: 'MessageCircle', section: 'Main' },
-  { href: '/materials', label: 'Materials', group: 'core', icon: 'BookOpen', section: 'Learning' },
+  { href: '/materials', label: 'Materials', group: 'core', icon: 'BookOpen', section: 'Main' },
   { href: '/schedule', label: 'Schedule', group: 'core', icon: 'Calendar', section: 'Learning' },
   { href: '/ai-tutor', label: 'Learn with AI', group: 'core', icon: 'Bot', section: 'Learning' },
-  { href: '/discover', label: 'Discover', group: 'core', icon: 'Compass', section: 'Main' },
   { href: '/profile', label: 'Profile', group: 'core', icon: 'User', section: 'Account' },
   // Moderation — visible to MODERATOR and ADMIN (logs section shown only to ADMIN within the page)
   {

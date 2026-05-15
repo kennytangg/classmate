@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { toast } from 'sonner'
-import { Loader2, LogIn, LogOut, Trash2 } from 'lucide-react'
+import { ExternalLink, Loader2, LogIn, LogOut, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -102,6 +103,14 @@ export function GroupActions({
   if (isCurrentUserOwner) {
     return (
       <div className="border-border border-t px-4 py-3 sm:px-6 sm:py-4">
+        <Link
+          href={`/chat/group/${groupId}`}
+          className="border-primary text-primary hover:bg-primary/10 mb-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border bg-transparent text-sm font-semibold transition"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Open Group Chat →
+        </Link>
+
         <button
           onClick={() => setDeleteOpen(true)}
           disabled={loading}
@@ -143,6 +152,14 @@ export function GroupActions({
   if (isCurrentUserMember) {
     return (
       <div className="border-border border-t px-4 py-3 sm:px-6 sm:py-4">
+        <Link
+          href={`/chat/group/${groupId}`}
+          className="border-primary text-primary hover:bg-primary/10 mb-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border bg-transparent text-sm font-semibold transition"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Open Group Chat →
+        </Link>
+
         <button
           onClick={handleLeave}
           disabled={loading}
