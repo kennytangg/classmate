@@ -1,7 +1,7 @@
 export type UserRole = 'STUDENT' | 'MODERATOR' | 'ADMIN' | 'OWNER'
 
 type NavigationGroup = 'core' | 'more'
-export type SidebarSection = 'Main' | 'Learning' | 'Account'
+export type SidebarSection = 'Main' | 'Learning' | 'Secondary' | 'Account'
 
 export interface NavigationItem {
   href: string
@@ -18,8 +18,8 @@ export const navigationItems: NavigationItem[] = [
   { href: '/groups', label: 'Study Groups', group: 'core', icon: 'Users', section: 'Main' },
   { href: '/chat', label: 'Chat', group: 'core', icon: 'MessageCircle', section: 'Main' },
   { href: '/materials', label: 'Materials', group: 'core', icon: 'BookOpen', section: 'Main' },
-  { href: '/schedule', label: 'Schedule', group: 'core', icon: 'Calendar', section: 'Learning' },
-  { href: '/ai-tutor', label: 'Learn with AI', group: 'core', icon: 'Bot', section: 'Learning' },
+  { href: '/schedule', label: 'Schedule', group: 'core', icon: 'Calendar', section: 'Secondary' },
+  { href: '/ai-tutor', label: 'Learn with AI', group: 'core', icon: 'Bot', section: 'Secondary' },
   { href: '/profile', label: 'Profile', group: 'core', icon: 'User', section: 'Account' },
   // Moderation — visible to MODERATOR and ADMIN (logs section shown only to ADMIN within the page)
   {
@@ -65,6 +65,7 @@ export function getNavigationBySection(
   return {
     Main: visibleItems.filter((item) => item.section === 'Main'),
     Learning: visibleItems.filter((item) => item.section === 'Learning'),
+    Secondary: visibleItems.filter((item) => item.section === 'Secondary'),
     Account: visibleItems.filter((item) => item.section === 'Account'),
   }
 }

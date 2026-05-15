@@ -5,15 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  MapPin,
-  GraduationCap,
-  PenTool,
-  Loader2,
-  Users,
-  MessageSquare,
-  BookOpen,
-} from 'lucide-react'
+import { MapPin, GraduationCap, PenTool, Loader2, MessageSquare, BookOpen } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -59,7 +51,6 @@ export default function ProfilePage() {
   const [me, setMe] = useState<MeData | null>(null)
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [connectionCount, setConnectionCount] = useState(0)
   const [forumPostCount, setForumPostCount] = useState(0)
   const [studyGroupCount, setStudyGroupCount] = useState(0)
   const [recentGroups, setRecentGroups] = useState<StudyGroup[]>([])
@@ -80,15 +71,13 @@ export default function ProfilePage() {
         if (!meData) return
         setMe(meData)
         const id = meData.id
-        const [profileData, countData, statsData, groupsData, postsData] = await Promise.all([
+        const [profileData, statsData, groupsData, postsData] = await Promise.all([
           fetch(`/api/user/profile?userId=${id}`).then((r) => r.json()),
-          fetch('/api/connections/count').then((r) => r.json()),
           fetch(`/api/user/stats?userId=${id}`).then((r) => r.json()),
           fetch(`/api/study-groups?myGroups=true&userId=${id}&limit=3`).then((r) => r.json()),
           fetch(`/api/forums/posts?userId=${id}&limit=5`).then((r) => r.json()),
         ])
         if (profileData.profile) setProfile(profileData.profile as ProfileData)
-        if (typeof countData.count === 'number') setConnectionCount(countData.count)
         if (typeof statsData.forumPostCount === 'number')
           setForumPostCount(statsData.forumPostCount)
         if (typeof statsData.studyGroupCount === 'number')
@@ -277,9 +266,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {[
-            { icon: Users, label: 'Connections', value: connectionCount },
             { icon: MessageSquare, label: 'Forum Posts', value: forumPostCount },
             { icon: BookOpen, label: 'Study Groups', value: studyGroupCount },
           ].map(({ icon: Icon, label, value }) => (
