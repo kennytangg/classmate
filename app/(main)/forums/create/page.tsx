@@ -90,11 +90,15 @@ export default function CreateForumPostPage() {
         className="text-muted-foreground hover:text-primary mb-6 inline-flex items-center"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Forums
+        Back to Discussions
       </Link>
 
       <div className="border-border bg-card rounded-xl border p-8 shadow-sm">
-        <h1 className="text-foreground mb-6 text-2xl font-bold">Create New Discussion</h1>
+        <h1 className="text-foreground mb-2 text-2xl font-bold">Ask a Question</h1>
+        <p className="text-muted-foreground mb-6 text-sm">
+          Your question will stay searchable — others with the same question can find the answer
+          later.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {moderationBlock && (

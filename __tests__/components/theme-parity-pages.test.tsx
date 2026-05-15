@@ -12,11 +12,12 @@ describe('Theme parity component guards', () => {
       <ForumCard
         id="post-1"
         title="Need help with calculus"
+        content="I'm stuck on derivatives and integrals."
         author="Alice"
-        category="math"
         replies={2}
         views={10}
         upvotes={3}
+        hasUpvoted={false}
         tags={['calculus']}
         createdAt="today"
       />

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, Calendar, Bot } from 'lucide-react'
+import { Loader2, Calendar } from 'lucide-react'
 import { GroupDetailHeader } from './_components/GroupDetailHeader'
 import { GroupActions } from './_components/GroupActions'
 import { MembersSection } from './_components/MembersSection'
@@ -117,7 +117,7 @@ export default function GroupDetailPage() {
 
           <div className="border-border mx-4 mb-6 rounded-xl border p-4">
             <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-widest uppercase">
-              Group Tools
+              Quick Links
             </p>
             <div className="flex flex-col gap-2">
               <Link
@@ -125,14 +125,7 @@ export default function GroupDetailPage() {
                 className="text-foreground hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
               >
                 <Calendar className="text-muted-foreground h-4 w-4 shrink-0" />
-                Schedule a session
-              </Link>
-              <Link
-                href="/ai-tutor"
-                className="text-foreground hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
-              >
-                <Bot className="text-muted-foreground h-4 w-4 shrink-0" />
-                Get AI help
+                My Schedule
               </Link>
             </div>
           </div>

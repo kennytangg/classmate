@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button'
 import { PaginationControls } from '@/components/ui/pagination-controls'
 import { formatDate } from '@/lib/format'
 
+const PAGE_LIMIT = 10
+
+type FilterTab = 'all' | 'active' | 'unanswered'
+
 interface ForumPost {
   id: string
   title: string
@@ -40,10 +44,10 @@ export function ForumList() {
   const [posts, setPosts] = useState<ForumPost[]>([])
   const [recommendations, setRecommendations] = useState<RecommendedThread[]>([])
   const [recommendationsLoading, setRecommendationsLoading] = useState(true)
-  const [recommendationsError, setRecommendationsError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
@@ -55,7 +59,10 @@ export function ForumList() {
       try {
         const params = new URLSearchParams()
         params.set('page', String(page))
-        params.set('limit', '10')
+        params.set('limit', String(PAGE_LIMIT))
+        if (activeTab === 'active') params.set('hasReplies', 'true')
+        if (activeTab === 'unanswered') params.set('hasReplies', 'false')
+
         const response = await fetch(`/api/forums/posts?${params.toString()}`)
 
         if (!response.ok) {
@@ -76,27 +83,20 @@ export function ForumList() {
     }
 
     fetchPosts()
-  }, [page])
+  }, [page, activeTab])
 
   useEffect(() => {
     async function fetchRecommendations() {
       setRecommendationsLoading(true)
-      setRecommendationsError(null)
       try {
         const response = await fetch('/api/recommendations/threads')
         const data = (await response.json()) as {
           recommendations?: RecommendedThread[]
           error?: string
         }
-
-        if (!response.ok) {
-          throw new Error(data.error ?? 'Failed to load recommendations')
-        }
-
         setRecommendations(data.recommendations ?? [])
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load recommendations'
-        setRecommendationsError(message)
+      } catch {
+        // silently skip — recommendations are non-critical
       } finally {
         setRecommendationsLoading(false)
       }
@@ -105,24 +105,61 @@ export function ForumList() {
     fetchRecommendations()
   }, [])
 
-  const filteredPosts = posts.filter((post) => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    return (
-      post.title.toLowerCase().includes(query) ||
-      post.content.toLowerCase().includes(query) ||
-      post.tags.some((tag) => tag.name.toLowerCase().includes(query))
-    )
-  })
+  const filteredPosts = searchQuery
+    ? posts.filter((post) => {
+        const query = searchQuery.toLowerCase()
+        return (
+          post.title.toLowerCase().includes(query) ||
+          post.content.toLowerCase().includes(query) ||
+          post.tags.some((tag) => tag.name.toLowerCase().includes(query))
+        )
+      })
+    : posts
+
+  const recommendationMap = new Map(recommendations.map((r) => [r.id, r.reason]))
+
+  // Extract topic from AI reason text ("Matches your recent cs activity" → "cs")
+  // Returns null for "general" since it adds no information to the user
+  function extractTopic(reason: string): string | null {
+    const match = reason.match(/recent (\w+) activity/i)
+    if (!match || !match[1] || match[1].toLowerCase() === 'general') return null
+    return match[1]
+  }
+
+  const tabs: { key: FilterTab; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'active', label: 'Active' },
+    { key: 'unanswered', label: 'Unanswered' },
+  ]
+
+  const emptyState = (() => {
+    if (searchQuery)
+      return { title: 'No results for that search', sub: 'Try different keywords.', cta: false }
+    if (activeTab === 'unanswered')
+      return {
+        title: 'Every question has been answered',
+        sub: 'Check back later or ask something new.',
+        cta: true,
+      }
+    if (activeTab === 'active')
+      return {
+        title: 'No active discussions yet',
+        sub: 'Be the first to ask a question.',
+        cta: true,
+      }
+    return { title: 'No discussions yet', sub: 'Be the first to ask a question.', cta: true }
+  })()
+
+  const showSidebar = recommendationsLoading || recommendations.length > 0
 
   return (
     <div>
       {/* Header */}
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <h2 className="text-foreground text-2xl font-bold">Discussion Forums</h2>
+          <h2 className="text-foreground text-2xl font-bold">Discussions</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Ask questions, discuss topics, and share knowledge with your classmates.
+            Ask questions and get answers — everything stays searchable for everyone.
           </p>
         </div>
 
@@ -142,53 +179,36 @@ export function ForumList() {
           </div>
           <Link href="/forums/create" className="w-full sm:w-auto">
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto">
-              <MessageSquarePlus className="mr-2 h-4 w-4" /> New Discussion
+              <MessageSquarePlus className="mr-2 h-4 w-4" /> Ask a Question
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-col-reverse gap-6 lg:flex-row">
-        {/* Recommended Threads — below on mobile, left column on desktop */}
-        <div className="w-full lg:w-1/4 lg:shrink-0">
-          <div className="border-border bg-card rounded-xl border p-4">
-            <h3 className="text-foreground text-sm font-semibold">Recommended Threads</h3>
-            {recommendationsLoading && (
-              <div className="text-muted-foreground mt-3 flex items-center text-sm">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
-              </div>
-            )}
+      {/* Filter tabs */}
+      <div className="border-border mb-6 flex gap-1 border-b">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => {
+              setActiveTab(tab.key)
+              setPage(1)
+            }}
+            className={`-mb-px border-b-2 px-4 pb-3 text-sm font-medium transition-colors ${
+              activeTab === tab.key
+                ? 'border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground border-transparent'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-            {!recommendationsLoading && recommendationsError && (
-              <p className="text-semantic-error mt-3 text-sm">{recommendationsError}</p>
-            )}
-
-            {!recommendationsLoading && !recommendationsError && recommendations.length === 0 && (
-              <p className="text-muted-foreground mt-3 text-sm">
-                No recommendations yet. Start posting to personalize this list.
-              </p>
-            )}
-
-            {!recommendationsLoading && !recommendationsError && recommendations.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {recommendations.slice(0, 5).map((recommendation) => (
-                  <Link
-                    key={recommendation.id}
-                    href={`/forums/${recommendation.id}`}
-                    className="border-border hover:border-primary block rounded-lg border px-3 py-2 transition-colors"
-                  >
-                    <p className="text-foreground text-sm font-medium">{recommendation.title}</p>
-                    <p className="text-muted-foreground text-xs">{recommendation.reason}</p>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Forum Posts — top on mobile, right column on desktop */}
-        <div className="w-full lg:w-3/4">
-          {/* Loading State */}
+      {/* Content: posts (left/main) + recommendations sidebar (right) */}
+      <div className={`flex flex-col gap-6 ${showSidebar ? 'lg:flex-row' : ''}`}>
+        {/* Posts — main column */}
+        <div className="min-w-0 flex-1">
           {loading && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="text-primary h-8 w-8 animate-spin" />
@@ -196,7 +216,6 @@ export function ForumList() {
             </div>
           )}
 
-          {/* Error State */}
           {error && !loading && (
             <div className="border-semantic-error/30 bg-semantic-error/10 flex flex-col items-center justify-center rounded-xl border py-12">
               <AlertCircle className="text-semantic-error h-12 w-12" />
@@ -207,40 +226,29 @@ export function ForumList() {
             </div>
           )}
 
-          {/* Empty State */}
           {!loading && !error && filteredPosts.length === 0 && (
-            <div className="border-border bg-muted flex flex-col items-center justify-center rounded-xl border py-12">
+            <div className="border-border bg-muted flex flex-col items-center justify-center rounded-xl border py-16">
               <MessageSquarePlus className="text-muted-foreground h-12 w-12" />
-              <p className="text-foreground mt-4 text-lg font-medium">
-                {searchQuery
-                  ? 'No discussions match your search'
-                  : page > 1
-                    ? 'No discussions on this page'
-                    : 'No discussions yet'}
-              </p>
-              <p className="text-muted-foreground mt-2 text-sm">
-                {searchQuery
-                  ? 'Try a different search term'
-                  : 'Be the first to start a discussion!'}
-              </p>
-              {!searchQuery && (
+              <p className="text-foreground mt-4 text-lg font-medium">{emptyState.title}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{emptyState.sub}</p>
+              {emptyState.cta && (
                 <Link href="/forums/create">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4">
-                    Start a Discussion
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 mt-5">
+                    Ask a Question
                   </Button>
                 </Link>
               )}
             </div>
           )}
 
-          {/* Posts List */}
           {!loading && !error && filteredPosts.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredPosts.map((post) => (
                 <ForumCard
                   key={post.id}
                   id={post.id}
                   title={post.title}
+                  content={post.content}
                   author={
                     post.user.profile?.displayName ?? post.user.email.split('@')[0] ?? 'Anonymous'
                   }
@@ -250,19 +258,66 @@ export function ForumList() {
                   hasUpvoted={post.hasUpvoted}
                   tags={post.tags.map((t) => t.name)}
                   createdAt={formatDate(post.createdAt)}
+                  isRecommended={recommendationMap.has(post.id)}
                 />
               ))}
             </div>
           )}
 
-          <PaginationControls
-            currentPage={page}
-            totalPages={totalPages}
-            onPrevious={() => setPage((p) => p - 1)}
-            onNext={() => setPage((p) => p + 1)}
-            isLoading={loading}
-          />
+          {totalPages > 1 && (
+            <PaginationControls
+              currentPage={page}
+              totalPages={totalPages}
+              onPrevious={() => setPage((p) => p - 1)}
+              onNext={() => setPage((p) => p + 1)}
+              isLoading={loading}
+            />
+          )}
         </div>
+
+        {/* Recommendations sidebar — right, only when there's something to show */}
+        {showSidebar && (
+          <aside className="w-full lg:w-64 lg:shrink-0">
+            <div className="border-border bg-card sticky top-4 rounded-xl border p-4">
+              <h3 className="text-foreground mb-0.5 text-sm font-semibold">Trending discussions</h3>
+              <p className="text-muted-foreground mb-3 text-xs">
+                Popular threads in your community
+              </p>
+
+              {recommendationsLoading && (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-muted h-14 animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              )}
+
+              {!recommendationsLoading && recommendations.length > 0 && (
+                <div className="space-y-2">
+                  {recommendations.slice(0, 5).map((rec) => {
+                    const topic = extractTopic(rec.reason)
+                    return (
+                      <Link
+                        key={rec.id}
+                        href={`/forums/${rec.id}`}
+                        className="border-border hover:border-primary hover:bg-muted block rounded-lg border px-3 py-2 transition-colors"
+                      >
+                        <p className="text-foreground line-clamp-2 text-xs leading-snug font-medium">
+                          {rec.title}
+                        </p>
+                        {topic && (
+                          <span className="text-muted-foreground mt-1 inline-block text-xs">
+                            #{topic}
+                          </span>
+                        )}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   )

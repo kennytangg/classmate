@@ -25,8 +25,11 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get('userId') ?? undefined
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '10', 10) || 10))
+    const hasRepliesParam = searchParams.get('hasReplies')
+    const hasReplies =
+      hasRepliesParam === 'true' ? true : hasRepliesParam === 'false' ? false : undefined
 
-    const { posts, total } = await listForumPosts(category, page, limit, userId)
+    const { posts, total } = await listForumPosts(category, page, limit, userId, hasReplies)
     const postsWithUpvoted = await enrichPostsWithUpvotes(posts, session.id)
 
     return NextResponse.json(

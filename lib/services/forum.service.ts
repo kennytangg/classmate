@@ -73,11 +73,14 @@ export async function listForumPosts(
   category?: string,
   page = 1,
   limit = 10,
-  userId?: string
+  userId?: string,
+  hasReplies?: boolean
 ): Promise<{ posts: Awaited<ReturnType<typeof prisma.forumPost.findMany>>; total: number }> {
   const where = {
     ...(category && category !== 'all' ? { category } : {}),
     ...(userId ? { userId } : {}),
+    ...(hasReplies === true ? { replies: { some: {} } } : {}),
+    ...(hasReplies === false ? { replies: { none: {} } } : {}),
   }
 
   const total = await prisma.forumPost.count({ where })
