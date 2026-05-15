@@ -297,6 +297,7 @@ model StudyGroup {
 
   members  StudyGroupMember[]
   messages StudyGroupMessage[]
+  events   Event[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -367,6 +368,9 @@ model Event {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  studyGroupId String?
+  studyGroup   StudyGroup? @relation(fields: [studyGroupId], references: [id], onDelete: SetNull)
+
   title       String
   description String?
   date        DateTime
@@ -378,6 +382,7 @@ model Event {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([studyGroupId])
   @@index([date])
   @@index([createdAt])
 }

@@ -31,8 +31,25 @@ export async function GET() {
     const limited = await checkRateLimit(session.id, generalLimiter)
     if (limited) return limited
 
-    const events = await prisma.event.findMany({
+    // Find group IDs the user belongs to
+    const memberships = await prisma.studyGroupMember.findMany({
       where: { userId: session.id },
+      select: { groupId: true },
+    })
+    const memberGroupIds = memberships.map((m) => m.groupId)
+
+    // Return personal events + events shared with groups the user is in
+    const events = await prisma.event.findMany({
+      where: {
+        OR: [
+          { userId: session.id },
+          ...(memberGroupIds.length > 0 ? [{ studyGroupId: { in: memberGroupIds } }] : []),
+        ],
+      },
+      include: {
+        studyGroup: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true } },
+      },
       orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
     })
 
@@ -79,15 +96,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate group membership if sharing with a group
+    if (body.studyGroupId) {
+      const membership = await prisma.studyGroupMember.findUnique({
+        where: { groupId_userId: { groupId: body.studyGroupId, userId: session.id } },
+      })
+      if (!membership) {
+        return NextResponse.json({ error: 'You are not a member of this group' }, { status: 403 })
+      }
+    }
+
     const event = await prisma.event.create({
       data: {
         userId: session.id,
+        studyGroupId: body.studyGroupId ?? null,
         title: sanitizedTitle,
         description: normalizeOptionalText(body.description),
         date: parsedDate,
         startTime,
         endTime,
         category: normalizeOptionalText(body.category),
+      },
+      include: {
+        studyGroup: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true } },
       },
     })
 

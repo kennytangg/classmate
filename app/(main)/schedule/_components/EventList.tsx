@@ -1,18 +1,19 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { CalendarDays, Clock, Pencil, Trash2 } from 'lucide-react'
+import { CalendarDays, Clock, Pencil, Trash2, Users } from 'lucide-react'
 import { formatEventTime } from './types'
 import type { EventItem } from './types'
 
 interface EventListProps {
   events: EventItem[]
   loading: boolean
+  currentUserId?: string
   onEdit: (event: EventItem) => void
   onDelete: (id: string) => void
 }
 
-export function EventList({ events, loading, onEdit, onDelete }: EventListProps) {
+export function EventList({ events, loading, currentUserId, onEdit, onDelete }: EventListProps) {
   const sorted = events.slice().sort((a, b) => a.date.localeCompare(b.date))
 
   return (
@@ -49,25 +50,36 @@ export function EventList({ events, loading, onEdit, onDelete }: EventListProps)
                     ? ` · ${formatEventTime(e.startTime, e.endTime)}`
                     : ''}
                 </div>
+                {e.studyGroupName && (
+                  <div className="text-primary mt-0.5 flex items-center gap-1 text-xs">
+                    <Users className="h-2.5 w-2.5" />
+                    {e.studyGroupName}
+                  </div>
+                )}
               </div>
             </div>
             <div className="ml-2 flex shrink-0 items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 rounded-lg"
-                onClick={() => onEdit(e)}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive h-7 w-7 rounded-lg"
-                onClick={() => onDelete(e.id)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {/* Only creator can edit/delete */}
+              {(!e.creatorId || e.creatorId === currentUserId) && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg"
+                    onClick={() => onEdit(e)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive h-7 w-7 rounded-lg"
+                    onClick={() => onDelete(e.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         ))}

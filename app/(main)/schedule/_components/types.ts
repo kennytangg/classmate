@@ -7,6 +7,10 @@ export type EventItem = {
   endTime?: string | null
   category?: string | null
   color: string
+  studyGroupId?: string | null
+  studyGroupName?: string | null
+  creatorId?: string | null
+  creatorName?: string | null
 }
 
 export type ApiEvent = {
@@ -17,6 +21,10 @@ export type ApiEvent = {
   startTime: string | null
   endTime: string | null
   category: string | null
+  studyGroupId?: string | null
+  studyGroup?: { id: string; name: string } | null
+  userId?: string
+  user?: { id: string; name: string | null } | null
 }
 
 const CATEGORY_TO_COLOR: Record<string, string> = {
@@ -48,5 +56,9 @@ export function mapApiEvent(event: ApiEvent): EventItem {
     endTime: event.endTime,
     category: event.category,
     color: isStoredColor ? event.category! : colorFromCategory(event.category),
+    studyGroupId: event.studyGroupId ?? null,
+    studyGroupName: event.studyGroup?.name ?? null,
+    creatorId: event.userId ?? null,
+    creatorName: event.user?.name ?? null,
   }
 }

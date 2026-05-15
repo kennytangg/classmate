@@ -7,6 +7,7 @@ import { CalendarHeader } from './_components/CalendarHeader'
 import { CalendarGrid } from './_components/CalendarGrid'
 import { EventList } from './_components/EventList'
 import { EventDialog } from './_components/EventDialog'
+import type { StudyGroupOption } from './_components/EventDialog'
 import { mapApiEvent } from './_components/types'
 import type { EventItem, ApiEvent } from './_components/types'
 
@@ -16,6 +17,8 @@ export default function MySchedulePage() {
     return { year: d.getFullYear(), month: d.getMonth() }
   })
   const [events, setEvents] = useState<EventItem[]>([])
+  const [studyGroups, setStudyGroups] = useState<StudyGroupOption[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,6 +29,7 @@ export default function MySchedulePage() {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [color, setColor] = useState('bg-primary')
+  const [studyGroupId, setStudyGroupId] = useState<string | null>(null)
 
   const monthMatrix = useMemo(() => buildMonthMatrix(current.year, current.month), [current])
   const monthLabel = useMemo(
@@ -52,8 +56,34 @@ export default function MySchedulePage() {
     }
   }
 
+  async function loadStudyGroups() {
+    try {
+      const res = await fetch('/api/study-groups?myGroups=true&limit=50', { cache: 'no-store' })
+      if (!res.ok) return
+      const data = (await res.json()) as {
+        groups?: { id: string; name: string }[]
+        studyGroups?: { id: string; name: string }[]
+      }
+      const groups = data.groups ?? data.studyGroups ?? []
+      setStudyGroups(groups.map((g) => ({ id: g.id, name: g.name })))
+    } catch {
+      // non-critical, silently ignore
+    }
+  }
+
+  async function loadCurrentUser() {
+    try {
+      const res = await fetch('/api/user/me', { cache: 'no-store' })
+      if (!res.ok) return
+      const data = (await res.json()) as { user?: { id: string } }
+      if (data.user?.id) setCurrentUserId(data.user.id)
+    } catch {
+      // non-critical
+    }
+  }
+
   useEffect(() => {
-    void loadEvents()
+    void Promise.all([loadEvents(), loadStudyGroups(), loadCurrentUser()])
   }, [])
 
   function openNew(dateISO: string) {
@@ -63,6 +93,7 @@ export default function MySchedulePage() {
     setStartTime('')
     setEndTime('')
     setColor('bg-primary')
+    setStudyGroupId(null)
     setOpen(true)
   }
 
@@ -73,6 +104,7 @@ export default function MySchedulePage() {
     setStartTime(event.startTime ?? '')
     setEndTime(event.endTime ?? '')
     setColor(event.color)
+    setStudyGroupId(event.studyGroupId ?? null)
     setOpen(true)
   }
 
@@ -101,6 +133,7 @@ export default function MySchedulePage() {
       startTime: normalizedStartTime || null,
       endTime: normalizedEndTime || null,
       category: color,
+      studyGroupId: studyGroupId || null,
     }
 
     try {
@@ -179,7 +212,6 @@ export default function MySchedulePage() {
         )}
 
         <div className="flex flex-col lg:flex-row lg:items-start lg:gap-6">
-          {/* Calendar — takes up remaining width */}
           <div className="min-w-0 flex-1">
             {loading ? (
               <div className="border-border bg-card text-muted-foreground flex items-center justify-center rounded-xl border p-8">
@@ -196,11 +228,11 @@ export default function MySchedulePage() {
             )}
           </div>
 
-          {/* Sidebar — event list */}
           <aside className="mt-6 w-full shrink-0 lg:mt-0 lg:w-80 xl:w-96">
             <EventList
               events={events}
               loading={loading}
+              currentUserId={currentUserId}
               onEdit={openEdit}
               onDelete={(id) => void deleteEvent(id)}
             />
@@ -217,10 +249,13 @@ export default function MySchedulePage() {
           endTime={endTime}
           color={color}
           saving={saving}
+          studyGroupId={studyGroupId}
+          studyGroups={studyGroups}
           onTitleChange={setTitle}
           onStartTimeChange={setStartTime}
           onEndTimeChange={setEndTime}
           onColorChange={setColor}
+          onStudyGroupChange={setStudyGroupId}
           onSave={() => void saveEvent()}
         />
       </div>

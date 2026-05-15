@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Users } from 'lucide-react'
 
 const COLOR_OPTIONS = [
   'bg-primary',
@@ -10,6 +11,11 @@ const COLOR_OPTIONS = [
   'bg-semantic-warning',
   'bg-semantic-error',
 ]
+
+export type StudyGroupOption = {
+  id: string
+  name: string
+}
 
 interface EventDialogProps {
   open: boolean
@@ -21,10 +27,13 @@ interface EventDialogProps {
   endTime: string
   color: string
   saving: boolean
+  studyGroupId: string | null
+  studyGroups: StudyGroupOption[]
   onTitleChange: (v: string) => void
   onStartTimeChange: (v: string) => void
   onEndTimeChange: (v: string) => void
   onColorChange: (v: string) => void
+  onStudyGroupChange: (v: string | null) => void
   onSave: () => void
 }
 
@@ -40,7 +49,6 @@ function clampTime(raw: string): string {
 }
 
 function formatTimeInput(prev: string, next: string): string {
-  // Strip non-digits
   const digits = next.replace(/\D/g, '')
   if (digits.length === 0) return ''
   if (digits.length <= 2) return digits
@@ -83,17 +91,20 @@ export function EventDialog({
   endTime,
   color,
   saving,
+  studyGroupId,
+  studyGroups,
   onTitleChange,
   onStartTimeChange,
   onEndTimeChange,
   onColorChange,
+  onStudyGroupChange,
   onSave,
 }: EventDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="border-border bg-card border">
         <DialogHeader>
-          <DialogTitle>{editingId ? 'Edit Schedule' : 'Add Schedule'}</DialogTitle>
+          <DialogTitle>{editingId ? 'Edit Event' : 'New Event'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="text-muted-foreground text-sm">
@@ -109,6 +120,29 @@ export function EventDialog({
             <TimeInput value={startTime} onChange={onStartTimeChange} label="Start time" />
             <TimeInput value={endTime} onChange={onEndTimeChange} label="End time" />
           </div>
+
+          {/* Study group selector */}
+          {studyGroups.length > 0 && (
+            <div>
+              <label className="text-muted-foreground mb-1 flex items-center gap-1 text-xs">
+                <Users className="h-3 w-3" />
+                Share with study group
+              </label>
+              <select
+                value={studyGroupId ?? ''}
+                onChange={(e) => onStudyGroupChange(e.target.value || null)}
+                className={`${inputClass} cursor-pointer`}
+              >
+                <option value="">Personal event only</option>
+                {studyGroups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             {COLOR_OPTIONS.map((c) => (
               <button
