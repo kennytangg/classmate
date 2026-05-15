@@ -31,6 +31,7 @@ export const createStudyGroupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   subject: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
+  isPrivate: z.boolean().optional().default(false),
 })
 
 export const studyGroupMessageSchema = z.object({

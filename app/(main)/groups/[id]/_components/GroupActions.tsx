@@ -17,7 +17,6 @@ interface GroupActionsProps {
   groupId: string
   isCurrentUserMember: boolean
   isCurrentUserOwner: boolean
-  isFull: boolean
   onJoined: () => void
   onLeft: () => void
   onDeleted: () => void
@@ -27,7 +26,6 @@ export function GroupActions({
   groupId,
   isCurrentUserMember,
   isCurrentUserOwner,
-  isFull,
   onJoined,
   onLeft,
   onDeleted,
@@ -167,19 +165,6 @@ export function GroupActions({
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
           Leave Group
-        </button>
-      </div>
-    )
-  }
-
-  if (isFull) {
-    return (
-      <div className="border-border border-t px-4 py-3 sm:px-6 sm:py-4">
-        <button
-          disabled
-          className="border-border text-muted-foreground h-10 w-full cursor-not-allowed rounded-lg border bg-transparent text-sm"
-        >
-          Group Full
         </button>
       </div>
     )

@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Loader2, Calendar } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { GroupDetailHeader } from './_components/GroupDetailHeader'
 import { GroupActions } from './_components/GroupActions'
 import { MembersSection } from './_components/MembersSection'
@@ -21,7 +20,6 @@ interface GroupDetail {
   name: string
   subject: string
   description: string | null
-  maxMembers: number | null
   memberCount: number
   isPrivate: boolean
   ownerId: string
@@ -88,8 +86,6 @@ export default function GroupDetailPage() {
     )
   }
 
-  const isFull = group.maxMembers != null && group.memberCount >= group.maxMembers
-
   return (
     <div className="bg-background text-foreground flex h-full flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto">
@@ -99,7 +95,6 @@ export default function GroupDetailPage() {
             subject={group.subject}
             description={group.description}
             memberCount={group.memberCount}
-            maxMembers={group.maxMembers}
             onBack={() => router.push('/groups')}
           />
 
@@ -107,28 +102,12 @@ export default function GroupDetailPage() {
             groupId={group.id}
             isCurrentUserMember={group.isCurrentUserMember}
             isCurrentUserOwner={group.isCurrentUserOwner}
-            isFull={isFull}
             onJoined={fetchGroup}
             onLeft={fetchGroup}
             onDeleted={() => router.push('/groups')}
           />
 
           <MembersSection members={group.members} ownerId={group.ownerId} />
-
-          <div className="border-border mx-4 mb-6 rounded-xl border p-4">
-            <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-widest uppercase">
-              Quick Links
-            </p>
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/schedule"
-                className="text-foreground hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
-              >
-                <Calendar className="text-muted-foreground h-4 w-4 shrink-0" />
-                My Schedule
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

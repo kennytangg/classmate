@@ -5,7 +5,6 @@ interface GroupDetailHeaderProps {
   subject: string
   description: string | null
   memberCount: number
-  maxMembers: number | null
   onBack: () => void
 }
 
@@ -14,7 +13,6 @@ export function GroupDetailHeader({
   subject,
   description,
   memberCount,
-  maxMembers,
   onBack,
 }: GroupDetailHeaderProps) {
   return (
@@ -41,8 +39,7 @@ export function GroupDetailHeader({
         <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
           <Users className="h-4 w-4" />
           <span>
-            {memberCount}
-            {maxMembers ? ` / ${maxMembers}` : ''} member{memberCount !== 1 ? 's' : ''}
+            {memberCount} member{memberCount !== 1 ? 's' : ''}
           </span>
         </div>
       </div>

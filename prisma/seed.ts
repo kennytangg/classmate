@@ -909,7 +909,7 @@ async function main() {
         name: 'TypeScript Deep Dive',
         description:
           'For developers who know basic TypeScript and want to go further: generics, conditional types, decorators, and building type-safe APIs. Project-driven learning.',
-        subject: 'TypeScript',
+        subject: 'Web Development',
         maxMembers: 8,
         memberCount: 3,
         inviteCode: 'TS26',

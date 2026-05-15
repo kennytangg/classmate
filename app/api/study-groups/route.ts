@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: zodErrorToString(parsed.error) }, { status: 400 })
   }
-  const { name, subject, description } = parsed.data
+  const { name, subject, description, isPrivate } = parsed.data
 
   const sanitizedName = sanitizeText(name)
   const sanitizedSubject = sanitizeText(subject)
@@ -116,8 +116,7 @@ export async function POST(req: NextRequest) {
           description: sanitizedDescription ?? null,
           subject: sanitizedSubject,
           ownerId,
-          maxMembers: 10,
-          isPrivate: false,
+          isPrivate: isPrivate ?? false,
           inviteCode,
         },
       })

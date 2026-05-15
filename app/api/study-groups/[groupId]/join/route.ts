@@ -33,13 +33,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ groupI
     })
     if (existing) return NextResponse.json({ error: 'Already a member' }, { status: 400 })
 
-    // Check max members
-    if (group.maxMembers) {
-      const count = await prisma.studyGroupMember.count({ where: { groupId } })
-      if (count >= group.maxMembers)
-        return NextResponse.json({ error: 'Group is full' }, { status: 400 })
-    }
-
     await prisma.$transaction(async (tx) => {
       await tx.studyGroupMember.create({
         data: { groupId, userId, role: 'member' },

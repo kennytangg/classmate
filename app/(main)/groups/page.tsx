@@ -16,7 +16,18 @@ import {
   BookOpen,
   Code,
   Loader2,
-  CheckCircle2,
+  Crown,
+  Database,
+  Calculator,
+  Brain,
+  ShieldCheck,
+  GitBranch,
+  Terminal,
+  Wrench,
+  Globe,
+  Monitor,
+  Atom,
+  type LucideIcon,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -37,9 +48,8 @@ type Group = {
   name: string
   subject: string
   capacity: number
-  max: number
-  isFull: boolean
   desc: string
+  isOwner: boolean
 }
 
 type ApiGroup = {
@@ -47,31 +57,68 @@ type ApiGroup = {
   name: string
   description: string | null
   subject: string | null
-  maxMembers: number | null
   isPrivate: boolean
+  ownerId: string
   _count: { members: number }
 }
 
-function mapApiGroup(g: ApiGroup): Group {
-  const capacity = g._count.members
-  const max = g.maxMembers ?? 99
+function mapApiGroup(g: ApiGroup, currentUserId?: string): Group {
   return {
     id: g.id,
     name: g.name,
     subject: g.subject ?? 'General',
-    capacity,
-    max,
-    isFull: capacity >= max && max > 0,
+    capacity: g._count.members,
     desc: g.description ?? 'No description provided.',
+    isOwner: !!currentUserId && g.ownerId === currentUserId,
+  }
+}
+
+function getSubjectIcon(subject: string): LucideIcon {
+  switch (subject) {
+    case 'Database':
+      return Database
+    case 'Mathematics':
+      return Calculator
+    case 'Machine Learning':
+      return Brain
+    case 'Security':
+      return ShieldCheck
+    case 'Algorithms':
+      return GitBranch
+    case 'Python':
+      return Terminal
+    case 'Software Engineering':
+      return Wrench
+    case 'Web Development':
+      return Globe
+    case 'Computer Science':
+      return Monitor
+    case 'Data Structures':
+      return GitBranch
+    case 'Physics':
+      return Atom
+    case 'Science':
+      return FlaskConical
+    case 'History':
+      return BookOpen
+    case 'TypeScript':
+      return Code
+    default:
+      return BookOpen
   }
 }
 
 const createSubjects = [
   'Mathematics',
   'Computer Science',
-  'Web Development',
+  'Data Structures',
   'Algorithms',
+  'Web Development',
   'Database',
+  'Machine Learning',
+  'Python',
+  'Security',
+  'Software Engineering',
   'Physics',
   'Science',
   'History',
@@ -81,9 +128,15 @@ const sortOptions = ['Most Popular', 'Newest', 'Soonest']
 
 export default function StudyGroupsPage() {
   const [discoverGroups, setDiscoverGroups] = useState<Group[]>([])
-  const [joinedGroups, setJoinedGroups] = useState<Group[]>([])
+  const [rawJoinedGroups, setRawJoinedGroups] = useState<ApiGroup[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
   const [loadingDiscover, setLoadingDiscover] = useState(true)
   const [loadingJoined, setLoadingJoined] = useState(true)
+
+  const joinedGroups = useMemo(
+    () => rawJoinedGroups.map((g) => mapApiGroup(g, currentUserId)),
+    [rawJoinedGroups, currentUserId]
+  )
 
   const [discoverPage, setDiscoverPage] = useState(1)
   const [discoverTotalPages, setDiscoverTotalPages] = useState(1)
@@ -98,8 +151,14 @@ export default function StudyGroupsPage() {
   const [formName, setFormName] = useState('')
   const [formSubject, setFormSubject] = useState('Mathematics')
   const [formDesc, setFormDesc] = useState('')
-  const [formMax, setFormMax] = useState(12)
   const [formNameError, setFormNameError] = useState('')
+
+  useEffect(() => {
+    fetch('/api/user/me')
+      .then((r) => r.json())
+      .then((data: { id?: string }) => setCurrentUserId(data.id))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     async function fetchDiscover() {
@@ -133,8 +192,7 @@ export default function StudyGroupsPage() {
         params.set('limit', '12')
         const res = await fetch(`/api/study-groups?${params.toString()}`)
         const data = await res.json()
-        const mapped: Group[] = (data.groups ?? []).map((g: ApiGroup) => mapApiGroup(g))
-        setJoinedGroups(mapped)
+        setRawJoinedGroups(data.groups ?? [])
         setYourGroupsTotalPages(data.meta?.pages ?? 1)
       } catch (err) {
         console.error(err)
@@ -150,7 +208,7 @@ export default function StudyGroupsPage() {
       (g) => query.trim().length === 0 || g.name.toLowerCase().includes(query.toLowerCase())
     )
     if (activeSort === 'Most Popular') {
-      list = [...list].sort((a, b) => b.capacity / b.max - a.capacity / a.max)
+      list = [...list].sort((a, b) => b.capacity - a.capacity)
     } else if (activeSort === 'Newest') {
       list = [...list].reverse()
     }
@@ -162,7 +220,7 @@ export default function StudyGroupsPage() {
       (g) => query.trim().length === 0 || g.name.toLowerCase().includes(query.toLowerCase())
     )
     if (activeSort === 'Most Popular') {
-      list = [...list].sort((a, b) => b.capacity / b.max - a.capacity / a.max)
+      list = [...list].sort((a, b) => b.capacity - a.capacity)
     } else if (activeSort === 'Newest') {
       list = [...list].reverse()
     }
@@ -171,15 +229,17 @@ export default function StudyGroupsPage() {
 
   async function handleCreate() {
     const trimmedName = formName.trim()
+
     if (trimmedName.length < 2) {
       setFormNameError('Group name must be at least 2 characters')
       return
-    }
-    if (trimmedName.length > 100) {
+    } else if (trimmedName.length > 100) {
       setFormNameError('Group name must be at most 100 characters')
       return
+    } else {
+      setFormNameError('')
     }
-    setFormNameError('')
+
     setCreating(true)
     try {
       const res = await fetch('/api/study-groups', {
@@ -187,9 +247,8 @@ export default function StudyGroupsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: trimmedName,
-          description: formDesc || null,
+          description: formDesc.trim() || undefined,
           subject: formSubject,
-          maxMembers: formMax,
           isPrivate: false,
         }),
       })
@@ -199,13 +258,13 @@ export default function StudyGroupsPage() {
         return
       }
       if (data.group) {
-        const newGroup = mapApiGroup({ ...data.group, _count: { members: 1 } })
-        setJoinedGroups((prev) => [newGroup, ...prev])
+        const rawGroup: ApiGroup = { ...data.group, _count: { members: 1 } }
+        setRawJoinedGroups((prev) => [rawGroup, ...prev])
+        toast.success(`"${data.group.name}" created successfully!`)
       }
       setCreateOpen(false)
       setFormName('')
       setFormDesc('')
-      setFormMax(12)
       setFormSubject('Mathematics')
     } catch (err) {
       console.error(err)
@@ -337,7 +396,9 @@ export default function StudyGroupsPage() {
         open={createOpen}
         onOpenChange={(open) => {
           setCreateOpen(open)
-          if (!open) setFormNameError('')
+          if (!open) {
+            setFormNameError('')
+          }
         }}
       >
         <DialogContent className="sm:max-w-[520px]">
@@ -361,32 +422,19 @@ export default function StudyGroupsPage() {
               />
               {formNameError && <p className="text-xs text-red-500">{formNameError}</p>}
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-xs">Subject</label>
-                <select
-                  value={formSubject}
-                  onChange={(e) => setFormSubject(e.target.value)}
-                  className="border-border bg-card text-foreground h-10 w-full rounded-lg border px-3 text-sm"
-                >
-                  {createSubjects.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs">Max Members</label>
-                <input
-                  type="number"
-                  min={2}
-                  max={200}
-                  value={formMax}
-                  onChange={(e) => setFormMax(parseInt(e.target.value || '12'))}
-                  className="border-border bg-card text-foreground h-10 w-full rounded-lg border px-3 text-sm"
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs">Subject</label>
+              <select
+                value={formSubject}
+                onChange={(e) => setFormSubject(e.target.value)}
+                className="border-border bg-card text-foreground h-10 w-full rounded-lg border px-3 text-sm"
+              >
+                {createSubjects.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-xs">Description</label>
@@ -419,69 +467,46 @@ export default function StudyGroupsPage() {
 
 function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
   const router = useRouter()
-  const isFull = g.isFull
-  const fillPercent = Math.min(100, Math.round((g.capacity / g.max) * 100))
-
-  const SubjectIcon = (() => {
-    if (g.subject === 'Science') return FlaskConical
-    if (g.subject === 'Computer Science' || g.subject === 'Web Development') return Code
-    if (g.subject === 'History') return BookOpen
-    return BookOpen
-  })()
+  const SubjectIcon = getSubjectIcon(g.subject)
 
   return (
     <div
-      className={`overflow-hidden rounded-xl border transition-shadow hover:shadow-md ${
+      className={`flex flex-col overflow-hidden rounded-xl border transition-shadow hover:shadow-md ${
         joined ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-border bg-card'
       }`}
     >
       {/* Banner */}
-      <div className={`relative h-20 ${joined ? 'bg-primary' : 'bg-muted'}`}>
+      <div className={`relative h-20 flex-shrink-0 ${joined ? 'bg-primary' : 'bg-muted'}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#ffffff22_1px,transparent_1px)] [background-size:20px_20px]" />
         <div className="absolute top-1/2 left-4 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">
-          <SubjectIcon className={`h-5 w-5 ${joined ? 'text-white' : 'text-muted-foreground'}`} />
+          {SubjectIcon({ className: `h-5 w-5 ${joined ? 'text-white' : 'text-muted-foreground'}` })}
         </div>
-        {joined && (
+        {joined && g.isOwner && (
           <div className="absolute top-2.5 right-3 flex items-center gap-1 rounded-full border border-white/20 bg-white/15 px-2 py-0.5 backdrop-blur-sm">
-            <CheckCircle2 className="h-2.5 w-2.5 text-white" />
-            <span className="text-[10px] font-semibold text-white">MEMBER</span>
+            <Crown className="h-2.5 w-2.5 text-white" />
+            <span className="text-[10px] font-semibold text-white">OWNER</span>
           </div>
         )}
       </div>
 
       {/* Body */}
-      <div className="p-4">
-        <div className="mb-1">
-          <span className="text-muted-foreground text-[10px] font-bold tracking-wider">
-            {g.subject.toUpperCase()}
-          </span>
-        </div>
-        <h3 className="text-foreground mb-1 leading-tight font-semibold">{g.name}</h3>
-        <p className="text-muted-foreground mb-3 line-clamp-2 text-xs">{g.desc}</p>
-
-        {/* Member count with progress bar */}
-        <div className="mb-3">
-          <div className="mb-1 flex items-center justify-between">
-            <span className="text-muted-foreground flex items-center gap-1 text-xs">
-              <Users className="h-3 w-3" />
-              {g.capacity}/{g.max}
+      <div className="flex flex-1 flex-col p-4">
+        <div className="flex-1">
+          <div className="mb-1">
+            <span className="text-muted-foreground text-[10px] font-bold tracking-wider">
+              {g.subject.toUpperCase()}
             </span>
-            {isFull && <span className="text-xs font-semibold text-red-400">FULL</span>}
           </div>
-          <div className="h-1 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-            <div
-              className={`h-full rounded-full transition-all ${
-                fillPercent >= 90
-                  ? 'bg-red-400'
-                  : fillPercent >= 70
-                    ? 'bg-amber-400'
-                    : joined
-                      ? 'bg-white/60'
-                      : 'bg-primary'
-              }`}
-              style={{ width: `${fillPercent}%` }}
-            />
-          </div>
+          <h3 className="text-foreground mb-1 leading-tight font-semibold">{g.name}</h3>
+          <p className="text-muted-foreground mb-3 line-clamp-2 text-xs">{g.desc}</p>
+        </div>
+
+        {/* Member count */}
+        <div className="mb-3">
+          <span className="text-muted-foreground flex items-center gap-1 text-xs">
+            <Users className="h-3 w-3" />
+            {g.capacity} member{g.capacity !== 1 ? 's' : ''}
+          </span>
         </div>
 
         {/* Action */}
@@ -491,19 +516,12 @@ function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
               Open Group <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </button>
           </Link>
-        ) : isFull ? (
-          <button
-            disabled
-            className="border-border text-muted-foreground h-9 w-full cursor-not-allowed rounded-lg border bg-transparent text-sm"
-          >
-            Group Full
-          </button>
         ) : (
           <button
             onClick={() => router.push(`/groups/${g.id}`)}
             className="border-primary text-primary hover:bg-primary/10 flex h-9 w-full items-center justify-center rounded-lg border bg-transparent text-sm font-semibold transition-colors"
           >
-            Join Group <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            View Group <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
           </button>
         )}
       </div>
