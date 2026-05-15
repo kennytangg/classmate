@@ -80,6 +80,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         senderId: true,
         recipientId: true,
         content: true,
+        fileUrl: true,
+        fileName: true,
+        fileType: true,
+        fileSize: true,
         isRead: true,
         createdAt: true,
       },
@@ -144,8 +148,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ use
       return NextResponse.json({ error: zodErrorToString(msgParsed.error) }, { status: 400 })
     }
     const sanitizedContent = sanitizeMarkdown(msgParsed.data.content).trim()
-    if (!sanitizedContent) {
-      return NextResponse.json({ error: 'content must contain valid text' }, { status: 400 })
+    const { fileUrl, fileName, fileType, fileSize } = msgParsed.data
+
+    if (!sanitizedContent && !fileUrl) {
+      return NextResponse.json({ error: 'Message must have text or a file' }, { status: 400 })
     }
 
     const message = await prisma.chatMessage.create({
@@ -154,14 +160,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ use
         recipientId: userId,
         content: sanitizedContent,
         role: 'user',
-        messageType: 'text',
+        messageType: fileUrl ? 'file' : 'text',
         isRead: false,
+        fileUrl,
+        fileName,
+        fileType,
+        fileSize,
       },
       select: {
         id: true,
         senderId: true,
         recipientId: true,
         content: true,
+        fileUrl: true,
+        fileName: true,
+        fileType: true,
+        fileSize: true,
         isRead: true,
         createdAt: true,
       },

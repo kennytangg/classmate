@@ -63,10 +63,12 @@ LABEL org.opencontainers.image.url="https://e2526-wads-b4ac.csbihub.id"
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 --ingroup nodejs nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/generated ./generated
+
+RUN mkdir -p ./public/uploads/chat
 
 USER nextjs
 

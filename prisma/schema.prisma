@@ -227,6 +227,10 @@ model ChatMessage {
   role        String  @default("user")
   messageType String  @default("text")
   isRead      Boolean @default(false)
+  fileUrl     String?
+  fileName    String?
+  fileType    String?
+  fileSize    Int?
 
   createdAt DateTime @default(now())
 
@@ -325,7 +329,11 @@ model StudyGroupMessage {
   senderId String
   sender   User       @relation(fields: [senderId], references: [id])
 
-  content String
+  content  String
+  fileUrl  String?
+  fileName String?
+  fileType String?
+  fileSize Int?
 
   createdAt DateTime @default(now())
 

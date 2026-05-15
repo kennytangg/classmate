@@ -34,7 +34,16 @@ export const createStudyGroupSchema = z.object({
 })
 
 export const studyGroupMessageSchema = z.object({
-  content: z.string().min(1).max(5000),
+  content: z.string().max(5000).default(''),
+  fileUrl: z.string().min(1).max(2048).optional(),
+  fileName: z.string().max(255).optional(),
+  fileType: z.string().max(100).optional(),
+  fileSize: z
+    .number()
+    .int()
+    .positive()
+    .max(10 * 1024 * 1024)
+    .optional(),
 })
 
 export const joinGroupSchema = z.object({
@@ -54,7 +63,16 @@ export const updateConnectionSchema = z.object({
 
 // ── Messages ───────────────────────────────────────────────────────────────
 export const sendMessageSchema = z.object({
-  content: z.string().min(1).max(5000),
+  content: z.string().max(5000).default(''),
+  fileUrl: z.string().min(1).max(2048).optional(),
+  fileName: z.string().max(255).optional(),
+  fileType: z.string().max(100).optional(),
+  fileSize: z
+    .number()
+    .int()
+    .positive()
+    .max(10 * 1024 * 1024)
+    .optional(),
 })
 
 // ── Events ─────────────────────────────────────────────────────────────────

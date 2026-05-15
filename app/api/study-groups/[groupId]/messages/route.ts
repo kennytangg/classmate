@@ -70,6 +70,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ grou
         id: true,
         senderId: true,
         content: true,
+        fileUrl: true,
+        fileName: true,
+        fileType: true,
+        fileSize: true,
         createdAt: true,
         sender: {
           select: {
@@ -96,6 +100,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ grou
         id: m.id,
         senderId: m.senderId,
         content: m.content,
+        fileUrl: m.fileUrl ?? null,
+        fileName: m.fileName ?? null,
+        fileType: m.fileType ?? null,
+        fileSize: m.fileSize ?? null,
         createdAt: m.createdAt,
         sender: {
           id: m.sender.id,
@@ -139,8 +147,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
       return NextResponse.json({ error: zodErrorToString(msgParsed.error) }, { status: 400 })
     }
     const sanitizedContent = sanitizeMarkdown(msgParsed.data.content).trim()
-    if (!sanitizedContent) {
-      return NextResponse.json({ error: 'content must contain valid text' }, { status: 400 })
+    const { fileUrl, fileName, fileType, fileSize } = msgParsed.data
+
+    if (!sanitizedContent && !fileUrl) {
+      return NextResponse.json({ error: 'Message must have text or a file' }, { status: 400 })
     }
 
     const message = await prisma.studyGroupMessage.create({
@@ -148,11 +158,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
         groupId,
         senderId: session.id,
         content: sanitizedContent,
+        fileUrl,
+        fileName,
+        fileType,
+        fileSize,
       },
       select: {
         id: true,
         senderId: true,
         content: true,
+        fileUrl: true,
+        fileName: true,
+        fileType: true,
+        fileSize: true,
         createdAt: true,
         sender: {
           select: {
@@ -173,6 +191,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
           id: message.id,
           senderId: message.senderId,
           content: message.content,
+          fileUrl: message.fileUrl ?? null,
+          fileName: message.fileName ?? null,
+          fileType: message.fileType ?? null,
+          fileSize: message.fileSize ?? null,
           createdAt: message.createdAt,
           sender: {
             id: message.sender.id,
