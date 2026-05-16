@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { X } from 'lucide-react'
 import { ChatInterface } from 'components/features/ai-tutor/ChatInterface'
@@ -11,7 +11,7 @@ interface ChatSession {
   id: string
 }
 
-export default function AITutorPage() {
+function AITutorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') ?? ''
@@ -123,5 +123,13 @@ export default function AITutorPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function AITutorPage() {
+  return (
+    <Suspense>
+      <AITutorContent />
+    </Suspense>
   )
 }

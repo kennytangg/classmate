@@ -1,8 +1,17 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'TUTOR', 'ADMIN');
+CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'MODERATOR', 'ADMIN', 'OWNER');
 
 -- CreateEnum
-CREATE TYPE "PointActionType" AS ENUM ('FORUM_POST_CREATED', 'FORUM_REPLY_CREATED', 'FORUM_UPVOTE_RECEIVED', 'MATERIAL_UPLOADED', 'STUDY_GROUP_CREATED', 'STUDY_GROUP_JOINED', 'REVIEW_POSTED', 'STUDY_GROUP_MESSAGE_SENT');
+CREATE TYPE "ConnectionStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
+
+-- CreateEnum
+CREATE TYPE "ModerationAction" AS ENUM ('FLAG_CREATED', 'FLAG_RESOLVED', 'CONTENT_DELETED');
+
+-- CreateEnum
+CREATE TYPE "FlagStatus" AS ENUM ('pending', 'dismissed', 'resolved');
+
+-- CreateEnum
+CREATE TYPE "ModerationTargetType" AS ENUM ('post', 'reply', 'material', 'ForumPost', 'ForumReply', 'StudyMaterial', 'FlaggedContent');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -12,8 +21,6 @@ CREATE TABLE "User" (
     "image" TEXT,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "role" "UserRole" NOT NULL DEFAULT 'STUDENT',
-    "xp" INTEGER NOT NULL DEFAULT 0,
-    "level" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -131,6 +138,10 @@ CREATE TABLE "ChatMessage" (
     "role" TEXT NOT NULL DEFAULT 'user',
     "messageType" TEXT NOT NULL DEFAULT 'text',
     "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "fileUrl" TEXT,
+    "fileName" TEXT,
+    "fileType" TEXT,
+    "fileSize" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
@@ -159,8 +170,6 @@ CREATE TABLE "StudyMaterial" (
     "subject" TEXT NOT NULL,
     "fileType" TEXT,
     "downloads" INTEGER NOT NULL DEFAULT 0,
-    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "reviewCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -196,17 +205,18 @@ CREATE TABLE "StudyGroupMember" (
 );
 
 -- CreateTable
-CREATE TABLE "PointTransaction" (
+CREATE TABLE "StudyGroupMessage" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "actionType" "PointActionType" NOT NULL,
-    "points" INTEGER NOT NULL,
-    "description" TEXT,
-    "forumPostId" TEXT,
-    "forumReplyId" TEXT,
+    "groupId" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "fileUrl" TEXT,
+    "fileName" TEXT,
+    "fileType" TEXT,
+    "fileSize" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "PointTransaction_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "StudyGroupMessage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -216,7 +226,7 @@ CREATE TABLE "FlaggedContent" (
     "contentType" TEXT NOT NULL,
     "contentId" TEXT NOT NULL,
     "reason" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'pending',
+    "status" "FlagStatus" NOT NULL DEFAULT 'pending',
     "resolvedBy" TEXT,
     "resolution" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -229,6 +239,7 @@ CREATE TABLE "FlaggedContent" (
 CREATE TABLE "Event" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "studyGroupId" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "date" TIMESTAMP(3) NOT NULL,
@@ -242,6 +253,44 @@ CREATE TABLE "Event" (
 );
 
 -- CreateTable
+CREATE TABLE "Connection" (
+    "id" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "recipientId" TEXT NOT NULL,
+    "status" "ConnectionStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Connection_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ModerationLog" (
+    "id" TEXT NOT NULL,
+    "actorId" TEXT NOT NULL,
+    "action" "ModerationAction" NOT NULL,
+    "targetId" TEXT NOT NULL,
+    "targetType" "ModerationTargetType" NOT NULL,
+    "reason" TEXT,
+    "metadata" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ModerationLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_ForumPostToForumTag" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -250,11 +299,19 @@ CREATE TABLE "_ForumPostToForumTag" (
 );
 
 -- CreateTable
-CREATE TABLE "_upvoters" (
+CREATE TABLE "_postUpvoters" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
 
-    CONSTRAINT "_upvoters_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "_postUpvoters_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
+CREATE TABLE "_replyUpvoters" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_replyUpvoters_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateIndex
@@ -265,12 +322,6 @@ CREATE INDEX "User_email_idx" ON "User"("email");
 
 -- CreateIndex
 CREATE INDEX "User_role_idx" ON "User"("role");
-
--- CreateIndex
-CREATE INDEX "User_level_idx" ON "User"("level");
-
--- CreateIndex
-CREATE INDEX "User_xp_idx" ON "User"("xp");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserProfile_userId_key" ON "UserProfile"("userId");
@@ -357,9 +408,6 @@ CREATE INDEX "StudyMaterial_subject_idx" ON "StudyMaterial"("subject");
 CREATE INDEX "StudyMaterial_createdAt_idx" ON "StudyMaterial"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "StudyMaterial_rating_idx" ON "StudyMaterial"("rating");
-
--- CreateIndex
 CREATE INDEX "StudyGroup_ownerId_idx" ON "StudyGroup"("ownerId");
 
 -- CreateIndex
@@ -381,22 +429,16 @@ CREATE INDEX "StudyGroupMember_userId_idx" ON "StudyGroupMember"("userId");
 CREATE UNIQUE INDEX "StudyGroupMember_groupId_userId_key" ON "StudyGroupMember"("groupId", "userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PointTransaction_forumPostId_key" ON "PointTransaction"("forumPostId");
+CREATE INDEX "StudyGroupMessage_groupId_createdAt_idx" ON "StudyGroupMessage"("groupId", "createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PointTransaction_forumReplyId_key" ON "PointTransaction"("forumReplyId");
-
--- CreateIndex
-CREATE INDEX "PointTransaction_userId_idx" ON "PointTransaction"("userId");
-
--- CreateIndex
-CREATE INDEX "PointTransaction_actionType_idx" ON "PointTransaction"("actionType");
-
--- CreateIndex
-CREATE INDEX "PointTransaction_createdAt_idx" ON "PointTransaction"("createdAt");
+CREATE INDEX "StudyGroupMessage_senderId_idx" ON "StudyGroupMessage"("senderId");
 
 -- CreateIndex
 CREATE INDEX "FlaggedContent_reporterId_idx" ON "FlaggedContent"("reporterId");
+
+-- CreateIndex
+CREATE INDEX "FlaggedContent_resolvedBy_idx" ON "FlaggedContent"("resolvedBy");
 
 -- CreateIndex
 CREATE INDEX "FlaggedContent_contentType_contentId_idx" ON "FlaggedContent"("contentType", "contentId");
@@ -411,16 +453,43 @@ CREATE INDEX "FlaggedContent_createdAt_idx" ON "FlaggedContent"("createdAt");
 CREATE INDEX "Event_userId_idx" ON "Event"("userId");
 
 -- CreateIndex
+CREATE INDEX "Event_studyGroupId_idx" ON "Event"("studyGroupId");
+
+-- CreateIndex
 CREATE INDEX "Event_date_idx" ON "Event"("date");
 
 -- CreateIndex
 CREATE INDEX "Event_createdAt_idx" ON "Event"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "Connection_senderId_idx" ON "Connection"("senderId");
+
+-- CreateIndex
+CREATE INDEX "Connection_recipientId_idx" ON "Connection"("recipientId");
+
+-- CreateIndex
+CREATE INDEX "Connection_status_idx" ON "Connection"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Connection_senderId_recipientId_key" ON "Connection"("senderId", "recipientId");
+
+-- CreateIndex
+CREATE INDEX "ModerationLog_actorId_action_createdAt_idx" ON "ModerationLog"("actorId", "action", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Notification_userId_isRead_idx" ON "Notification"("userId", "isRead");
+
+-- CreateIndex
+CREATE INDEX "Notification_createdAt_idx" ON "Notification"("createdAt");
+
+-- CreateIndex
 CREATE INDEX "_ForumPostToForumTag_B_index" ON "_ForumPostToForumTag"("B");
 
 -- CreateIndex
-CREATE INDEX "_upvoters_B_index" ON "_upvoters"("B");
+CREATE INDEX "_postUpvoters_B_index" ON "_postUpvoters"("B");
+
+-- CreateIndex
+CREATE INDEX "_replyUpvoters_B_index" ON "_replyUpvoters"("B");
 
 -- AddForeignKey
 ALTER TABLE "UserProfile" ADD CONSTRAINT "UserProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -465,19 +534,34 @@ ALTER TABLE "StudyGroupMember" ADD CONSTRAINT "StudyGroupMember_groupId_fkey" FO
 ALTER TABLE "StudyGroupMember" ADD CONSTRAINT "StudyGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PointTransaction" ADD CONSTRAINT "PointTransaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "StudyGroupMessage" ADD CONSTRAINT "StudyGroupMessage_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "StudyGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PointTransaction" ADD CONSTRAINT "PointTransaction_forumPostId_fkey" FOREIGN KEY ("forumPostId") REFERENCES "ForumPost"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "PointTransaction" ADD CONSTRAINT "PointTransaction_forumReplyId_fkey" FOREIGN KEY ("forumReplyId") REFERENCES "ForumReply"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "StudyGroupMessage" ADD CONSTRAINT "StudyGroupMessage_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "FlaggedContent" ADD CONSTRAINT "FlaggedContent_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "FlaggedContent" ADD CONSTRAINT "FlaggedContent_resolvedBy_fkey" FOREIGN KEY ("resolvedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Event" ADD CONSTRAINT "Event_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Event" ADD CONSTRAINT "Event_studyGroupId_fkey" FOREIGN KEY ("studyGroupId") REFERENCES "StudyGroup"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Connection" ADD CONSTRAINT "Connection_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Connection" ADD CONSTRAINT "Connection_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ModerationLog" ADD CONSTRAINT "ModerationLog_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_ForumPostToForumTag" ADD CONSTRAINT "_ForumPostToForumTag_A_fkey" FOREIGN KEY ("A") REFERENCES "ForumPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -486,7 +570,13 @@ ALTER TABLE "_ForumPostToForumTag" ADD CONSTRAINT "_ForumPostToForumTag_A_fkey" 
 ALTER TABLE "_ForumPostToForumTag" ADD CONSTRAINT "_ForumPostToForumTag_B_fkey" FOREIGN KEY ("B") REFERENCES "ForumTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_upvoters" ADD CONSTRAINT "_upvoters_A_fkey" FOREIGN KEY ("A") REFERENCES "ForumReply"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_postUpvoters" ADD CONSTRAINT "_postUpvoters_A_fkey" FOREIGN KEY ("A") REFERENCES "ForumPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_upvoters" ADD CONSTRAINT "_upvoters_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_postUpvoters" ADD CONSTRAINT "_postUpvoters_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_replyUpvoters" ADD CONSTRAINT "_replyUpvoters_A_fkey" FOREIGN KEY ("A") REFERENCES "ForumReply"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_replyUpvoters" ADD CONSTRAINT "_replyUpvoters_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
