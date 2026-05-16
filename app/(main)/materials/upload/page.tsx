@@ -12,15 +12,15 @@ const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024
 
 const SUBJECTS = [
   'Mathematics',
+  'Sciences',
   'Computer Science',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'History',
-  'Literature',
-  'Languages',
   'Engineering',
-  'Economics',
+  'Humanities & Languages',
+  'History & Social Studies',
+  'Literature & Arts',
+  'Economics & Business',
+  'Law',
+  'Health & Medicine',
   'Other',
 ]
 

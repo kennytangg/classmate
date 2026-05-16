@@ -14,19 +14,14 @@ import {
   ArrowRight,
   FlaskConical,
   BookOpen,
-  Code,
   Loader2,
   Crown,
-  Database,
   Calculator,
   Brain,
   ShieldCheck,
-  GitBranch,
-  Terminal,
   Wrench,
   Globe,
   Monitor,
-  Atom,
   type LucideIcon,
 } from 'lucide-react'
 import {
@@ -75,34 +70,26 @@ function mapApiGroup(g: ApiGroup, currentUserId?: string): Group {
 
 function getSubjectIcon(subject: string): LucideIcon {
   switch (subject) {
-    case 'Database':
-      return Database
     case 'Mathematics':
       return Calculator
-    case 'Machine Learning':
-      return Brain
-    case 'Security':
-      return ShieldCheck
-    case 'Algorithms':
-      return GitBranch
-    case 'Python':
-      return Terminal
-    case 'Software Engineering':
-      return Wrench
-    case 'Web Development':
-      return Globe
+    case 'Sciences':
+      return FlaskConical
     case 'Computer Science':
       return Monitor
-    case 'Data Structures':
-      return GitBranch
-    case 'Physics':
-      return Atom
-    case 'Science':
-      return FlaskConical
-    case 'History':
+    case 'Engineering':
+      return Wrench
+    case 'Humanities & Languages':
       return BookOpen
-    case 'TypeScript':
-      return Code
+    case 'History & Social Studies':
+      return BookOpen
+    case 'Literature & Arts':
+      return BookOpen
+    case 'Economics & Business':
+      return Globe
+    case 'Law':
+      return ShieldCheck
+    case 'Health & Medicine':
+      return Brain
     default:
       return BookOpen
   }
@@ -110,18 +97,15 @@ function getSubjectIcon(subject: string): LucideIcon {
 
 const createSubjects = [
   'Mathematics',
+  'Sciences',
   'Computer Science',
-  'Data Structures',
-  'Algorithms',
-  'Web Development',
-  'Database',
-  'Machine Learning',
-  'Python',
-  'Security',
-  'Software Engineering',
-  'Physics',
-  'Science',
-  'History',
+  'Engineering',
+  'Humanities & Languages',
+  'History & Social Studies',
+  'Literature & Arts',
+  'Economics & Business',
+  'Law',
+  'Health & Medicine',
   'Other',
 ]
 const sortOptions = ['Most Popular', 'Newest', 'Soonest']
