@@ -60,3 +60,41 @@ export async function getConnectionCount(userId: string): Promise<number> {
     },
   })
 }
+
+/**
+ * Count pending connection requests received by a user (not yet accepted/rejected).
+ */
+export async function getPendingConnectionCount(userId: string): Promise<number> {
+  return prisma.connection.count({
+    where: { recipientId: userId, status: 'PENDING' },
+  })
+}
+
+/**
+ * Count mutual connections between two users.
+ */
+export async function getMutualConnectionCount(userIdA: string, userIdB: string): Promise<number> {
+  const [aConnections, bConnections] = await Promise.all([
+    prisma.connection.findMany({
+      where: {
+        status: 'ACCEPTED',
+        OR: [{ senderId: userIdA }, { recipientId: userIdA }],
+      },
+      select: { senderId: true, recipientId: true },
+    }),
+    prisma.connection.findMany({
+      where: {
+        status: 'ACCEPTED',
+        OR: [{ senderId: userIdB }, { recipientId: userIdB }],
+      },
+      select: { senderId: true, recipientId: true },
+    }),
+  ])
+
+  const aIds = new Set(
+    aConnections.map((c) => (c.senderId === userIdA ? c.recipientId : c.senderId))
+  )
+  const bIds = bConnections.map((c) => (c.senderId === userIdB ? c.recipientId : c.senderId))
+
+  return bIds.filter((id) => aIds.has(id) && id !== userIdA && id !== userIdB).length
+}

@@ -18,7 +18,7 @@ import {
   LogOut,
   type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { getNavigationBySection, type NavigationItem, type SidebarSection } from '@/lib/navigation'
 import { useUserRole } from '@/lib/contexts/user-role-context'
@@ -53,12 +53,16 @@ function NavGroup({
   isActive,
   collapsed,
   onNavigate,
+  badgeHref,
+  badgeCount,
 }: {
   section: SidebarSection
   items: NavigationItem[]
   isActive: (href: string) => boolean
   collapsed: boolean
   onNavigate?: () => void
+  badgeHref?: string
+  badgeCount?: number
 }) {
   if (items.length === 0) return null
 
@@ -78,6 +82,7 @@ function NavGroup({
         {items.map((item) => {
           const Icon = ICON_MAP[item.icon] ?? User
           const active = isActive(item.href)
+          const hasDot = badgeHref === item.href && typeof badgeCount === 'number' && badgeCount > 0
           return (
             <Link
               key={item.href}
@@ -95,13 +100,16 @@ function NavGroup({
               >
                 <span
                   className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-xl transition-colors duration-150',
+                    'relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors duration-150',
                     active
                       ? 'bg-sidebar-accent text-sidebar-primary'
                       : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                   )}
                 >
                   <Icon className="h-5 w-5" />
+                  {hasDot && (
+                    <span className="bg-primary absolute top-1.5 right-1.5 h-2 w-2 rounded-full" />
+                  )}
                 </span>
               </span>
 
@@ -117,6 +125,7 @@ function NavGroup({
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="truncate">{item.label}</span>
+                {hasDot && <span className="bg-primary ml-auto h-2 w-2 rounded-full" />}
               </span>
             </Link>
           )
@@ -177,6 +186,16 @@ function SidebarContent({
 }) {
   const { role } = useUserRole()
   const sections = getNavigationBySection(role)
+  const [pendingCount, setPendingCount] = useState(0)
+
+  useEffect(() => {
+    fetch('/api/connections/count')
+      .then((r) => r.json())
+      .then((data: { pending?: number }) => {
+        if (typeof data.pending === 'number') setPendingCount(data.pending)
+      })
+      .catch(() => undefined)
+  }, [])
 
   return (
     <div className="flex h-full flex-col">
@@ -203,6 +222,8 @@ function SidebarContent({
             isActive={isActive}
             collapsed={collapsed}
             onNavigate={onNavigate}
+            badgeHref={section === 'Connect' ? '/discover' : undefined}
+            badgeCount={section === 'Connect' ? pendingCount : undefined}
           />
         ))}
       </nav>

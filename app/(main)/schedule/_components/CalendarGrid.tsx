@@ -52,7 +52,7 @@ export function CalendarGrid({
             <button
               key={dateISO}
               onClick={() => onCellClick(dateISO)}
-              className={`h-16 rounded-xl border p-1.5 text-left transition-colors sm:h-20 lg:h-24 ${
+              className={`group relative h-16 rounded-xl border p-1.5 text-left transition-colors sm:h-20 lg:h-24 ${
                 inCurrent
                   ? isToday
                     ? 'border-primary bg-card ring-primary hover:border-primary ring-2'
@@ -99,6 +99,12 @@ export function CalendarGrid({
                   </div>
                 )}
               </div>
+
+              {inCurrent && cellEvents.length === 0 && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="text-muted-foreground/50 text-lg leading-none">+</span>
+                </div>
+              )}
             </button>
           )
         })}

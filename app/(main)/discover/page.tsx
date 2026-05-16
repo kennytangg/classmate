@@ -16,6 +16,7 @@ import {
   Compass,
   MessageCircle,
   Clock,
+  UserRound,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -57,6 +58,7 @@ interface DiscoverUser {
   } | null
   connectionStatus: ConnectionStatus
   connectionId: string | null
+  mutualConnectionCount: number
 }
 
 interface Meta {
@@ -123,7 +125,10 @@ export default function DiscoverPage() {
         const res = await fetch(`/api/users/discover?${params}`)
         const data = await res.json()
         if (res.ok) {
-          setUsers(data.users as DiscoverUser[])
+          const sorted = (data.users as DiscoverUser[]).sort(
+            (a, b) => (b.mutualConnectionCount ?? 0) - (a.mutualConnectionCount ?? 0)
+          )
+          setUsers(sorted)
           setMeta(data.meta as Meta)
         }
       } catch {
@@ -333,6 +338,16 @@ export default function DiscoverPage() {
                   {/* Bio */}
                   {user.profile?.bio && (
                     <p className="text-muted-foreground line-clamp-2 text-xs">{user.profile.bio}</p>
+                  )}
+
+                  {/* Mutual connections */}
+                  {user.mutualConnectionCount > 0 && (
+                    <p className="text-muted-foreground flex items-center gap-1 text-xs">
+                      <UserRound className="h-3 w-3 shrink-0" />
+                      {user.mutualConnectionCount === 1
+                        ? '1 connection in common'
+                        : `${user.mutualConnectionCount} connections in common`}
+                    </p>
                   )}
 
                   {/* Actions */}

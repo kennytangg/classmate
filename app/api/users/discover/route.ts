@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getConnectionStatus } from '@/lib/connections'
+import { getConnectionStatus, getMutualConnectionCount } from '@/lib/connections'
 import { checkRateLimit, generalLimiter } from '@/lib/rate-limit'
 
 const PAGE_SIZE = 20
@@ -101,11 +101,16 @@ export async function GET(req: NextRequest) {
       prisma.user.count({ where }),
     ])
 
-    // Attach connection status for each user
+    // Attach connection status and mutual connection count for each user
     const usersWithStatus = await Promise.all(
       users.map(async (user) => {
-        const { status, connectionId } = await getConnectionStatus(session.id, user.id)
-        return { ...user, connectionStatus: status, connectionId }
+        const [{ status, connectionId }, mutualConnectionCount] = await Promise.all([
+          getConnectionStatus(session.id, user.id),
+          filter === 'discover'
+            ? getMutualConnectionCount(session.id, user.id)
+            : Promise.resolve(0),
+        ])
+        return { ...user, connectionStatus: status, connectionId, mutualConnectionCount }
       })
     )
 

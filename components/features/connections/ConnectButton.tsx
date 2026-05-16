@@ -2,7 +2,15 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { UserPlus, UserCheck, UserX, Clock, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export type ConnectionStatus = 'connected' | 'pending_sent' | 'pending_received' | 'not_connected'
 
@@ -25,6 +33,7 @@ export function ConnectButton({
   const [status, setStatus] = useState<ConnectionStatus>(initialStatus)
   const [connectionId, setConnectionId] = useState<string | null>(initialConnectionId)
   const [loading, setLoading] = useState(false)
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false)
 
   function update(newStatus: ConnectionStatus, newConnectionId: string | null) {
     setStatus(newStatus)
@@ -40,13 +49,23 @@ export function ConnectButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientId: targetUserId }),
       })
-      const data = (await res.json()) as { connection?: { id: string; status: string } }
+      const data = (await res.json()) as {
+        connection?: { id: string; status: string }
+        error?: string
+      }
       if (res.ok && data.connection) {
         const newStatus = data.connection.status === 'ACCEPTED' ? 'connected' : 'pending_sent'
         update(newStatus, data.connection.id)
+        if (newStatus === 'connected') {
+          toast.success('Connected! You can now chat with this person.')
+        } else {
+          toast.success('Connection request sent.')
+        }
+      } else {
+        toast.error(data.error ?? 'Could not send connection request.')
       }
     } catch {
-      // ignore network error
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -66,9 +85,16 @@ export function ConnectButton({
           newStatus === 'ACCEPTED' ? 'connected' : 'not_connected',
           newStatus === 'ACCEPTED' ? connectionId : null
         )
+        if (newStatus === 'ACCEPTED') {
+          toast.success('Connected! You can now chat.')
+        } else {
+          toast('Request declined.')
+        }
+      } else {
+        toast.error('Could not respond to request. Please try again.')
       }
     } catch {
-      // ignore
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -76,14 +102,18 @@ export function ConnectButton({
 
   async function handleRemove() {
     if (!connectionId) return
+    setShowDisconnectDialog(false)
     setLoading(true)
     try {
       const res = await fetch(`/api/connections/${connectionId}`, { method: 'DELETE' })
       if (res.ok) {
         update('not_connected', null)
+        toast('Connection removed.')
+      } else {
+        toast.error('Could not remove connection. Please try again.')
       }
     } catch {
-      // ignore
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -110,9 +140,25 @@ export function ConnectButton({
         size="sm"
         variant="outline"
         className="border-border rounded-full"
-        onClick={handleRemove}
+        onClick={async () => {
+          setLoading(true)
+          try {
+            const res = await fetch(`/api/connections/${connectionId}`, { method: 'DELETE' })
+            if (res.ok) {
+              update('not_connected', null)
+              toast('Connection request withdrawn.')
+            } else {
+              toast.error('Could not withdraw request. Please try again.')
+            }
+          } catch {
+            toast.error('Something went wrong. Please try again.')
+          } finally {
+            setLoading(false)
+          }
+        }}
         disabled={loading}
         aria-label="Cancel request"
+        title="Click to withdraw this request"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}
         <span className="ml-1.5">Request Sent</span>
@@ -154,16 +200,39 @@ export function ConnectButton({
 
   // connected
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="border-border rounded-full"
-      onClick={handleRemove}
-      disabled={loading}
-      aria-label="Disconnect"
-    >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
-      <span className="ml-1.5">Connected</span>
-    </Button>
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        className="border-border rounded-full"
+        onClick={() => setShowDisconnectDialog(true)}
+        disabled={loading}
+        aria-label="Disconnect"
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
+        <span className="ml-1.5">Connected</span>
+      </Button>
+
+      <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Remove connection?</DialogTitle>
+            <DialogDescription>
+              You&apos;ll lose access to direct messages with this person. You can send a new
+              request later to reconnect.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setShowDisconnectDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleRemove} disabled={loading}>
+              {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+              Remove
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

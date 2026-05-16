@@ -5,11 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Users } from 'lucide-react'
 
 const COLOR_OPTIONS = [
-  'bg-primary',
-  'bg-semantic-success',
-  'bg-secondary',
-  'bg-semantic-warning',
-  'bg-semantic-error',
+  { value: 'bg-violet-500', label: 'Violet' },
+  { value: 'bg-blue-500', label: 'Blue' },
+  { value: 'bg-emerald-500', label: 'Green' },
+  { value: 'bg-amber-500', label: 'Amber' },
+  { value: 'bg-rose-500', label: 'Red' },
+  { value: 'bg-sky-400', label: 'Sky' },
 ]
 
 export type StudyGroupOption = {
@@ -39,47 +40,6 @@ interface EventDialogProps {
 
 const inputClass =
   'w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground'
-
-function clampTime(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-  if (digits.length < 4) return raw
-  const hh = Math.min(parseInt(digits.slice(0, 2), 10), 23)
-  const mm = Math.min(parseInt(digits.slice(2, 4), 10), 59)
-  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
-}
-
-function formatTimeInput(prev: string, next: string): string {
-  const digits = next.replace(/\D/g, '')
-  if (digits.length === 0) return ''
-  if (digits.length <= 2) return digits
-  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`
-}
-
-interface TimeInputProps {
-  value: string
-  onChange: (v: string) => void
-  label: string
-}
-
-function TimeInput({ value, onChange, label }: TimeInputProps) {
-  return (
-    <div className="relative flex-1">
-      <input
-        type="text"
-        inputMode="numeric"
-        placeholder="HH:MM"
-        value={value}
-        onChange={(e) => onChange(formatTimeInput(value, e.target.value))}
-        onBlur={() => {
-          if (value && value.length > 0) onChange(clampTime(value))
-        }}
-        maxLength={5}
-        className={`${inputClass} w-full`}
-        aria-label={label}
-      />
-    </div>
-  )
-}
 
 export function EventDialog({
   open,
@@ -116,9 +76,25 @@ export function EventDialog({
             onChange={(e) => onTitleChange(e.target.value)}
             className={inputClass}
           />
-          <div className="flex gap-2">
-            <TimeInput value={startTime} onChange={onStartTimeChange} label="Start time" />
-            <TimeInput value={endTime} onChange={onEndTimeChange} label="End time" />
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="text-muted-foreground mb-1 block text-xs">Start time</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => onStartTimeChange(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-muted-foreground mb-1 block text-xs">End time</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => onEndTimeChange(e.target.value)}
+                className={inputClass}
+              />
+            </div>
           </div>
 
           {/* Study group selector */}
@@ -143,15 +119,19 @@ export function EventDialog({
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            {COLOR_OPTIONS.map((c) => (
-              <button
-                key={c}
-                onClick={() => onColorChange(c)}
-                className={`h-6 w-6 rounded ${c} ${color === c ? 'ring-ring ring-offset-card ring-2 ring-offset-2' : ''}`}
-                aria-label={c}
-              />
-            ))}
+          <div>
+            <label className="text-muted-foreground mb-2 block text-xs">Color</label>
+            <div className="flex items-center gap-2">
+              {COLOR_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => onColorChange(value)}
+                  className={`h-7 w-7 rounded-full ${value} transition-transform hover:scale-110 ${color === value ? 'ring-offset-card scale-110 ring-2 ring-white/70 ring-offset-2' : ''}`}
+                  aria-label={label}
+                  title={label}
+                />
+              ))}
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" className="rounded-lg" onClick={() => onOpenChange(false)}>

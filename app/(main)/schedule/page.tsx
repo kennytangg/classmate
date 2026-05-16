@@ -28,7 +28,7 @@ export default function MySchedulePage() {
   const [title, setTitle] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
-  const [color, setColor] = useState('bg-primary')
+  const [color, setColor] = useState('bg-violet-500')
   const [studyGroupId, setStudyGroupId] = useState<string | null>(null)
 
   const monthMatrix = useMemo(() => buildMonthMatrix(current.year, current.month), [current])
@@ -92,7 +92,7 @@ export default function MySchedulePage() {
     setTitle('')
     setStartTime('')
     setEndTime('')
-    setColor('bg-primary')
+    setColor('bg-violet-500')
     setStudyGroupId(null)
     setOpen(true)
   }
@@ -166,15 +166,15 @@ export default function MySchedulePage() {
   }
 
   async function deleteEvent(id: string) {
-    setError(null)
-    try {
-      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' })
-      const data = (await res.json()) as { success?: boolean; error?: string }
-      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to delete event')
-      setEvents((prev) => prev.filter((e) => e.id !== id))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete event')
+    const res = await fetch(`/api/events/${id}`, { method: 'DELETE' })
+    const data = (await res.json()) as { success?: boolean; error?: string }
+    if (!res.ok || !data.success) {
+      const err = Object.assign(new Error(data.error ?? 'Failed to delete event'), {
+        status: res.status,
+      })
+      throw err
     }
+    setEvents((prev) => prev.filter((e) => e.id !== id))
   }
 
   function prevMonth() {
@@ -234,7 +234,7 @@ export default function MySchedulePage() {
               loading={loading}
               currentUserId={currentUserId}
               onEdit={openEdit}
-              onDelete={(id) => void deleteEvent(id)}
+              onDelete={deleteEvent}
             />
           </aside>
         </div>

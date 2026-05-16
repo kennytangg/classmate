@@ -62,26 +62,24 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+            className="mb-10"
           >
-            <div>
-              <div className="text-primary mb-2 flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
-                <Sparkles className="h-4 w-4" />
-                Welcome back
-              </div>
-              <h1 className="text-foreground text-3xl leading-tight font-bold sm:text-4xl md:text-5xl">
-                Your Academic
-                <br />
-                <span className="text-primary">Community Hub</span>
-              </h1>
-              <p className="text-muted-foreground mt-3 max-w-xl text-base leading-relaxed md:text-lg">
-                Connect with fellow students, join study groups, share materials, and get AI-powered
-                help — all in one place.
-              </p>
+            <div className="text-primary mb-2 flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
+              <Sparkles className="h-4 w-4" />
+              Welcome back
             </div>
+            <h1 className="text-foreground text-3xl leading-tight font-bold sm:text-4xl md:text-5xl">
+              Your Academic
+              <br />
+              <span className="text-primary">Community Hub</span>
+            </h1>
+            <p className="text-muted-foreground mt-3 max-w-xl text-base leading-relaxed md:text-lg">
+              Connect with fellow students, join study groups, share materials, and get AI-powered
+              help — all in one place.
+            </p>
             <Link
               href="/ai-tutor"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
             >
               <Bot className="h-4 w-4" />
               Ask AI Tutor
@@ -95,10 +93,10 @@ export default function Dashboard() {
             </div>
             <h2 className="text-xl font-bold">Featured & Trending</h2>
             <Link
-              href="/groups"
+              href="/discover"
               className="group text-primary ml-auto flex items-center gap-1 text-sm font-medium hover:underline"
             >
-              View all groups
+              Explore all
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
