@@ -160,12 +160,22 @@ export default function Dashboard() {
         transition={{ duration: 0.4, delay: 0.2 }}
         className="mx-auto max-w-7xl px-5 py-8 sm:px-8 md:px-12"
       >
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <ScheduleWidget />
-          <AiTutorInput />
+        <div className="mb-5 flex items-center gap-2">
+          <span className="text-foreground text-base font-semibold">Your workspace</span>
+          <div className="bg-border h-px flex-1" />
         </div>
-        <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
-          <ActiveGroupsWidget />
+
+        <div className="grid grid-cols-1 gap-5">
+          {/* AI Tutor — full width, most prominent */}
+          <AiTutorInput />
+
+          {/* Schedule + Groups — side by side */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <ScheduleWidget />
+            <ActiveGroupsWidget />
+          </div>
+
+          {/* Recent Activity — full width */}
           <RecentActivityWidget />
         </div>
       </motion.div>

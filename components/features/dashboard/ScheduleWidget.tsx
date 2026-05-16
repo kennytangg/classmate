@@ -50,9 +50,10 @@ export function ScheduleWidget() {
     fetch('/api/events')
       .then((r) => r.json())
       .then((data) => {
-        const now = new Date()
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
         const upcoming = (data.events ?? [])
-          .filter((e: Event) => new Date(e.date) >= now)
+          .filter((e: Event) => new Date(e.date) >= today)
           .slice(0, 3)
         setEvents(upcoming)
       })
@@ -84,12 +85,23 @@ export function ScheduleWidget() {
           <SkeletonRow />
         </div>
       ) : events.length === 0 ? (
-        <p className="text-muted-foreground py-4 text-sm">
-          No upcoming sessions.{' '}
-          <Link href="/schedule" className="text-primary hover:underline">
-            Add one on the Schedule page.
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-2xl">
+            <Calendar className="text-muted-foreground h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-foreground text-sm font-medium">Nothing scheduled yet</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              Plan your study sessions to stay on track
+            </p>
+          </div>
+          <Link
+            href="/schedule"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 py-1.5 text-xs font-medium transition-colors"
+          >
+            Add a session
           </Link>
-        </p>
+        </div>
       ) : (
         <ul className="divide-border divide-y">
           {events.map((event) => (

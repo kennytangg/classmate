@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, use } from 'react'
 import { Button } from '@/components/ui/button'
-import { Send, ArrowLeft, Loader2, Paperclip, X, FileText, Download } from 'lucide-react'
+import { Send, ArrowLeft, Loader2, Paperclip, X, FileText, Download, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 
 const AVATAR_COLORS = [
@@ -121,6 +121,7 @@ export default function ChatConversationPage({ params }: { params: Promise<{ use
   const [participant, setParticipant] = useState<Participant | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [notConnected, setNotConnected] = useState(false)
   const [sending, setSending] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -151,7 +152,11 @@ export default function ChatConversationPage({ params }: { params: Promise<{ use
         }
 
         if (!res.ok) {
-          setError(data.error ?? 'Unable to load messages.')
+          if (res.status === 403 && data.error === 'not_connected') {
+            setNotConnected(true)
+          } else {
+            setError(data.error ?? 'Unable to load messages.')
+          }
           return
         }
 
@@ -287,6 +292,30 @@ export default function ChatConversationPage({ params }: { params: Promise<{ use
         <p className="text-muted-foreground">
           Invalid conversation. Please select a user to chat with.
         </p>
+      </div>
+    )
+  }
+
+  if (notConnected) {
+    return (
+      <div className="bg-card flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
+        <div className="bg-primary/10 rounded-full p-4">
+          <UserPlus className="text-primary h-8 w-8" />
+        </div>
+        <div>
+          <h3 className="text-foreground mb-1 font-semibold">You&apos;re not connected yet</h3>
+          <p className="text-muted-foreground max-w-xs text-sm">
+            You can only send direct messages to people you are connected with. Connect with them
+            first, and once they accept, you can start chatting.
+          </p>
+        </div>
+        <Link
+          href="/discover"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-colors"
+        >
+          <UserPlus className="h-4 w-4" />
+          Find &amp; Connect with People
+        </Link>
       </div>
     )
   }

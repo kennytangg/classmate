@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { X } from 'lucide-react'
 import { ChatInterface } from 'components/features/ai-tutor/ChatInterface'
 import { SessionSidebar } from 'components/features/ai-tutor/SessionSidebar'
@@ -11,9 +12,18 @@ interface ChatSession {
 }
 
 export default function AITutorPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get('q') ?? ''
+  const autoSentRef = useRef(false)
+
   const [latestSessionId, setLatestSessionId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
+    // When arriving from the dashboard with a pre-filled query, start a fresh
+    // chat instead of continuing the last session.
+    if (initialQuery) return
+
     fetch('/api/sessions')
       .then((r) => (r.ok ? (r.json() as Promise<{ sessions: ChatSession[] }>) : null))
       .then((data) => {
@@ -22,7 +32,7 @@ export default function AITutorPage() {
         }
       })
       .catch(() => {})
-  }, [])
+  }, [initialQuery])
 
   const {
     messages,
@@ -34,6 +44,15 @@ export default function AITutorPage() {
     switchSession,
     newChat,
   } = useChat({ sessionId: latestSessionId })
+
+  // Auto-send the query typed on the dashboard
+  useEffect(() => {
+    if (!initialQuery || autoSentRef.current || isLoadingHistory) return
+    autoSentRef.current = true
+    void sendMessage(initialQuery)
+    // Clean the URL so a page refresh doesn't re-send the message
+    router.replace('/ai-tutor', { scroll: false })
+  }, [initialQuery, isLoadingHistory, sendMessage, router])
 
   const [showMobileSessions, setShowMobileSessions] = useState(false)
 

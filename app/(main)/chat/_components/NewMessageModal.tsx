@@ -1,8 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Search, Loader2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Search, Loader2, UserPlus } from 'lucide-react'
+import Link from 'next/link'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
 const AVATAR_COLORS = [
   'bg-violet-500',
@@ -87,14 +94,15 @@ export function NewMessageModal({ open, onClose, onSelectUser }: NewMessageModal
     >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New Message</DialogTitle>
+          <DialogTitle>Message a Connection</DialogTitle>
+          <DialogDescription>You can only message people you are connected with.</DialogDescription>
         </DialogHeader>
 
         <div className="relative">
           <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search your connections..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="bg-muted text-foreground focus:bg-card focus:ring-ring w-full rounded-full border border-transparent py-2 pr-4 pl-9 text-sm transition-colors focus:ring-2 focus:outline-none"
@@ -115,9 +123,23 @@ export function NewMessageModal({ open, onClose, onSelectUser }: NewMessageModal
           )}
 
           {!loading && !error && filtered.length === 0 && (
-            <p className="text-muted-foreground py-8 text-center text-sm">
-              {contacts.length === 0 ? 'No other users found.' : 'No results match your search.'}
-            </p>
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              {contacts.length === 0 ? (
+                <>
+                  <UserPlus className="text-muted-foreground h-8 w-8" />
+                  <p className="text-muted-foreground text-sm">You have no connections yet.</p>
+                  <Link
+                    href="/discover"
+                    onClick={onClose}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
+                  >
+                    Find People to Connect With
+                  </Link>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm">No connections match your search.</p>
+              )}
+            </div>
           )}
 
           {!loading &&

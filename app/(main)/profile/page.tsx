@@ -5,7 +5,15 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, GraduationCap, PenTool, Loader2, MessageSquare, BookOpen } from 'lucide-react'
+import {
+  MapPin,
+  GraduationCap,
+  PenTool,
+  Loader2,
+  MessageSquare,
+  BookOpen,
+  Users,
+} from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -55,6 +63,7 @@ export default function ProfilePage() {
   const [studyGroupCount, setStudyGroupCount] = useState(0)
   const [recentGroups, setRecentGroups] = useState<StudyGroup[]>([])
   const [recentPosts, setRecentPosts] = useState<ForumPost[]>([])
+  const [connectionCount, setConnectionCount] = useState(0)
   const [editOpen, setEditOpen] = useState(false)
   const [editName, setEditName] = useState('')
   const [editBio, setEditBio] = useState('')
@@ -71,11 +80,12 @@ export default function ProfilePage() {
         if (!meData) return
         setMe(meData)
         const id = meData.id
-        const [profileData, statsData, groupsData, postsData] = await Promise.all([
+        const [profileData, statsData, groupsData, postsData, connectionsData] = await Promise.all([
           fetch(`/api/user/profile?userId=${id}`).then((r) => r.json()),
           fetch(`/api/user/stats?userId=${id}`).then((r) => r.json()),
           fetch(`/api/study-groups?myGroups=true&userId=${id}&limit=3`).then((r) => r.json()),
           fetch(`/api/forums/posts?userId=${id}&limit=5`).then((r) => r.json()),
+          fetch(`/api/connections/count?userId=${id}`).then((r) => r.json()),
         ])
         if (profileData.profile) setProfile(profileData.profile as ProfileData)
         if (typeof statsData.forumPostCount === 'number')
@@ -86,6 +96,7 @@ export default function ProfilePage() {
           setRecentGroups(groupsData.groups.slice(0, 3) as StudyGroup[])
         if (Array.isArray(postsData.posts))
           setRecentPosts(postsData.posts.slice(0, 5) as ForumPost[])
+        if (typeof connectionsData.count === 'number') setConnectionCount(connectionsData.count)
       } catch (err) {
         console.error('[ProfilePage] Failed to load profile data:', err)
       } finally {
@@ -266,10 +277,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {[
             { icon: MessageSquare, label: 'Forum Posts', value: forumPostCount },
             { icon: BookOpen, label: 'Study Groups', value: studyGroupCount },
+            { icon: Users, label: 'Connections', value: connectionCount },
           ].map(({ icon: Icon, label, value }) => (
             <div
               key={label}

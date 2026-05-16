@@ -13,6 +13,9 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
+  Compass,
+  MessageCircle,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,10 +25,22 @@ import {
 
 type DiscoverFilter = 'discover' | 'connected' | 'pending'
 
-const FILTER_TABS: { value: DiscoverFilter; label: string }[] = [
-  { value: 'discover', label: 'Discover' },
-  { value: 'connected', label: 'Connected' },
-  { value: 'pending', label: 'Pending' },
+const FILTER_TABS: { value: DiscoverFilter; label: string; description: string }[] = [
+  {
+    value: 'discover',
+    label: 'Find People',
+    description: "Students you haven't connected with yet",
+  },
+  {
+    value: 'connected',
+    label: 'My Connections',
+    description: 'People you are already connected with',
+  },
+  {
+    value: 'pending',
+    label: 'Invitations',
+    description: 'Connection requests waiting for a reply',
+  },
 ]
 
 interface DiscoverUser {
@@ -48,6 +63,44 @@ interface Meta {
   total: number
   page: number
   pages: number
+}
+
+function EmptyState({ filter }: { filter: DiscoverFilter }) {
+  if (filter === 'discover') {
+    return (
+      <div className="border-border rounded-2xl border border-dashed p-12 text-center">
+        <Users className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
+        <p className="text-foreground mb-1 font-medium">No students found</p>
+        <p className="text-muted-foreground text-sm">
+          Try a different search term, or clear the search box to see everyone.
+        </p>
+      </div>
+    )
+  }
+
+  if (filter === 'connected') {
+    return (
+      <div className="border-border rounded-2xl border border-dashed p-12 text-center">
+        <UserCheck className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
+        <p className="text-foreground mb-1 font-medium">No connections yet</p>
+        <p className="text-muted-foreground text-sm">
+          Switch to the <span className="text-foreground font-medium">&quot;Find People&quot;</span>{' '}
+          tab to discover classmates and send them a connection request.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="border-border rounded-2xl border border-dashed p-12 text-center">
+      <Clock className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
+      <p className="text-foreground mb-1 font-medium">No pending invitations</p>
+      <p className="text-muted-foreground text-sm">
+        When someone sends you a connection request, or when you&apos;re waiting for someone to
+        accept yours, it will appear here.
+      </p>
+    </div>
+  )
 }
 
 export default function DiscoverPage() {
@@ -107,15 +160,25 @@ export default function DiscoverPage() {
     )
   }
 
+  const activeTab = FILTER_TABS.find((t) => t.value === filter)!
+
   return (
-    <div className="bg-background text-foreground min-h-screen px-6 py-4 transition-colors duration-300 md:px-8 md:py-8">
+    <div className="bg-background text-foreground px-6 py-4 transition-colors duration-300 md:px-8 md:py-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-foreground mb-1 text-2xl font-bold">Discover People</h1>
-          <p className="text-muted-foreground text-sm">
-            Find and connect with other students on ClassMate.
-          </p>
+        {/* Hero intro */}
+        <div className="bg-card border-border flex items-start gap-4 rounded-2xl border p-5 shadow-sm">
+          <div className="bg-primary/10 shrink-0 rounded-xl p-3">
+            <Compass className="text-primary h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-foreground mb-1 text-xl font-bold">
+              Find &amp; Connect with Classmates
+            </h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Search for fellow students by name, university, or field of study. Send them a
+              connection request — once they accept, you can chat and study together.
+            </p>
+          </div>
         </div>
 
         {/* Search */}
@@ -125,8 +188,8 @@ export default function DiscoverPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, university, or major…"
-              className="border-border bg-card text-foreground h-10 w-full rounded-lg border py-2 pr-4 pl-9 text-sm"
+              placeholder="Type a name, university, or subject to search…"
+              className="border-border bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border py-2 pr-4 pl-9 text-sm"
             />
           </div>
           <Button type="submit" className="bg-primary text-primary-foreground rounded-lg px-4">
@@ -135,66 +198,62 @@ export default function DiscoverPage() {
         </form>
 
         {/* Filter tabs */}
-        <div className="flex gap-2">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => handleFilterChange(tab.value)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                filter === tab.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border-border text-muted-foreground hover:text-foreground border'
-              }`}
-            >
-              {tab.label}
-              {!loading && filter === tab.value && meta.total > 0 && (
-                <span
-                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${
-                    filter === tab.value
-                      ? 'bg-primary-foreground/20 text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {meta.total}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="border-border flex flex-wrap gap-2">
+          {FILTER_TABS.map((tab) => {
+            const isActive = filter === tab.value
+            return (
+              <button
+                key={tab.value}
+                onClick={() => handleFilterChange(tab.value)}
+                title={tab.description}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border-border text-muted-foreground hover:text-foreground border'
+                }`}
+              >
+                {tab.label}
+                {!loading && isActive && meta.total > 0 && (
+                  <span className="bg-primary-foreground/20 text-primary-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs">
+                    {meta.total}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
 
-        {/* Results count */}
+        {/* Context line */}
         {!loading && (
           <p className="text-muted-foreground text-sm">
-            {filter === 'discover' &&
-              `${meta.total} new ${meta.total === 1 ? 'person' : 'people'} to connect with`}
-            {filter === 'connected' &&
-              `${meta.total} ${meta.total === 1 ? 'connection' : 'connections'}`}
-            {filter === 'pending' &&
-              `${meta.total} pending ${meta.total === 1 ? 'request' : 'requests'}`}
+            {meta.total === 0
+              ? activeTab.description
+              : filter === 'discover'
+                ? `${meta.total} ${meta.total === 1 ? 'student' : 'students'} you can connect with`
+                : filter === 'connected'
+                  ? `You have ${meta.total} ${meta.total === 1 ? 'connection' : 'connections'}`
+                  : `${meta.total} ${meta.total === 1 ? 'invitation' : 'invitations'} waiting`}
           </p>
         )}
 
-        {/* User grid */}
+        {/* Results */}
         {loading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="text-primary h-8 w-8 animate-spin" />
           </div>
         ) : users.length === 0 ? (
-          <div className="border-border rounded-2xl border border-dashed p-12 text-center">
-            <Users className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
-            <p className="text-muted-foreground text-sm">No users found.</p>
-          </div>
+          <EmptyState filter={filter} />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {users.map((user) => {
               const displayName = user.profile?.displayName ?? user.name ?? 'Unknown'
               const avatarSeed = encodeURIComponent(displayName)
-              // Prefer manually set profile avatar, then Google OAuth photo, then generated fallback
               const avatarSrc =
                 user.profile?.avatarUrl ??
                 user.image ??
                 `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`
               const isPendingReceived = user.connectionStatus === 'pending_received'
+              const isPendingSent = user.connectionStatus === 'pending_sent'
               const isConnected = user.connectionStatus === 'connected'
 
               return (
@@ -208,17 +267,23 @@ export default function DiscoverPage() {
                         : 'border-border'
                   }`}
                 >
-                  {/* Status banners */}
+                  {/* Status banners — plain-language, action-oriented */}
                   {isPendingReceived && (
                     <div className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium">
                       <UserPlus className="h-3.5 w-3.5 shrink-0" />
-                      <span>Wants to connect with you</span>
+                      <span>This person wants to connect with you — accept or decline below</span>
+                    </div>
+                  )}
+                  {isPendingSent && (
+                    <div className="bg-muted text-muted-foreground flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium">
+                      <Clock className="h-3.5 w-3.5 shrink-0" />
+                      <span>You sent a request — waiting for their reply</span>
                     </div>
                   )}
                   {isConnected && (
                     <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                       <UserCheck className="h-3.5 w-3.5 shrink-0" />
-                      <span>Connected</span>
+                      <span>Connected — you can chat with this person</span>
                     </div>
                   )}
 
@@ -265,14 +330,14 @@ export default function DiscoverPage() {
                     </div>
                   </div>
 
-                  {/* Bio — always shown when present */}
+                  {/* Bio */}
                   {user.profile?.bio && (
                     <p className="text-muted-foreground line-clamp-2 text-xs">{user.profile.bio}</p>
                   )}
 
-                  {/* Action area — varies by connection state */}
+                  {/* Actions */}
                   {isPendingReceived ? (
-                    <div className="mt-auto flex flex-col gap-2 pt-1">
+                    <div className="mt-auto pt-1">
                       <ConnectButton
                         targetUserId={user.id}
                         initialStatus={user.connectionStatus}
@@ -282,64 +347,35 @@ export default function DiscoverPage() {
                         }
                         fullWidth
                       />
-                      <Link
-                        href={`/profile/${user.id}`}
-                        className="text-muted-foreground hover:text-primary text-center text-xs"
-                      >
-                        View profile →
-                      </Link>
                     </div>
                   ) : isConnected ? (
-                    /* Connected: prominent Message CTA + subtle disconnect */
-                    <div className="mt-auto flex flex-col gap-2 pt-1">
-                      <Link
-                        href={`/chat/${user.id}`}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-                      >
-                        Send a message
-                      </Link>
-                      <div className="flex items-center justify-between">
-                        <Link
-                          href={`/profile/${user.id}`}
-                          className="text-muted-foreground hover:text-primary text-xs"
-                        >
-                          View profile →
-                        </Link>
-                        <ConnectButton
-                          targetUserId={user.id}
-                          initialStatus={user.connectionStatus}
-                          initialConnectionId={user.connectionId}
-                          onStatusChange={(status, connectionId) =>
-                            handleStatusChange(user.id, status, connectionId)
-                          }
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    /* Default: Message link + Connect button */
                     <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                       <Link
-                        href={`/profile/${user.id}`}
-                        className="text-muted-foreground hover:text-primary text-xs"
+                        href={`/chat/${user.id}`}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition-colors"
                       >
-                        View profile →
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        Send a message
                       </Link>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/chat/${user.id}`}
-                          className="border-border text-foreground hover:bg-accent rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
-                        >
-                          Message
-                        </Link>
-                        <ConnectButton
-                          targetUserId={user.id}
-                          initialStatus={user.connectionStatus}
-                          initialConnectionId={user.connectionId}
-                          onStatusChange={(status, connectionId) =>
-                            handleStatusChange(user.id, status, connectionId)
-                          }
-                        />
-                      </div>
+                      <ConnectButton
+                        targetUserId={user.id}
+                        initialStatus={user.connectionStatus}
+                        initialConnectionId={user.connectionId}
+                        onStatusChange={(status, connectionId) =>
+                          handleStatusChange(user.id, status, connectionId)
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-auto flex items-center justify-end gap-2 pt-1">
+                      <ConnectButton
+                        targetUserId={user.id}
+                        initialStatus={user.connectionStatus}
+                        initialConnectionId={user.connectionId}
+                        onStatusChange={(status, connectionId) =>
+                          handleStatusChange(user.id, status, connectionId)
+                        }
+                      />
                     </div>
                   )}
                 </div>
@@ -350,7 +386,7 @@ export default function DiscoverPage() {
 
         {/* Pagination */}
         {!loading && meta.pages >= 1 && (
-          <div className="flex items-center justify-center gap-2 pt-4">
+          <div className="flex items-center justify-center gap-3 pt-4">
             <Button
               variant="outline"
               size="sm"
@@ -359,6 +395,7 @@ export default function DiscoverPage() {
               onClick={() => setPage((p) => p - 1)}
             >
               <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Previous page</span>
             </Button>
             <span className="text-muted-foreground text-sm">
               Page {meta.page} of {Math.max(1, meta.pages)}
@@ -371,6 +408,7 @@ export default function DiscoverPage() {
               onClick={() => setPage((p) => p + 1)}
             >
               <ChevronRight className="h-4 w-4" />
+              <span className="sr-only">Next page</span>
             </Button>
           </div>
         )}

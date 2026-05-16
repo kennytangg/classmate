@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { checkRateLimit, generalLimiter } from '@/lib/rate-limit'
 
 // GET /api/messages/contacts
-// Returns all users except the current user (max 200, sorted by email).
+// Returns only users the current user is connected with (accepted connections).
 export async function GET(_req: NextRequest) {
   try {
     const session = await getSession()
@@ -16,26 +16,41 @@ export async function GET(_req: NextRequest) {
     const limited = await checkRateLimit(session.id, generalLimiter)
     if (limited) return limited
 
-    const users = await prisma.user.findMany({
-      where: { id: { not: session.id } },
+    const connections = await prisma.connection.findMany({
+      where: {
+        status: 'ACCEPTED',
+        OR: [{ senderId: session.id }, { recipientId: session.id }],
+      },
       select: {
-        id: true,
-        email: true,
-        name: true,
-        profile: {
-          select: { displayName: true, avatarUrl: true },
+        sender: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            profile: { select: { displayName: true, avatarUrl: true } },
+          },
+        },
+        recipient: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            profile: { select: { displayName: true, avatarUrl: true } },
+          },
         },
       },
-      orderBy: { email: 'asc' },
-      take: 200,
+      orderBy: { updatedAt: 'desc' },
     })
 
-    const contacts = users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      displayName: u.profile?.displayName ?? u.name ?? null,
-      avatarUrl: u.profile?.avatarUrl ?? null,
-    }))
+    const contacts = connections.map((conn) => {
+      const user = conn.sender.id === session.id ? conn.recipient : conn.sender
+      return {
+        id: user.id,
+        email: user.email,
+        displayName: user.profile?.displayName ?? user.name ?? null,
+        avatarUrl: user.profile?.avatarUrl ?? null,
+      }
+    })
 
     return NextResponse.json({ contacts })
   } catch (error) {

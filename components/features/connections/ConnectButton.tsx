@@ -115,7 +115,7 @@ export function ConnectButton({
         aria-label="Cancel request"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}
-        <span className="ml-1.5">Pending</span>
+        <span className="ml-1.5">Request Sent</span>
       </Button>
     )
   }
@@ -143,10 +143,10 @@ export function ConnectButton({
           className={`border-border rounded-full ${fullWidth ? 'flex-1' : ''}`}
           onClick={() => handleRespond('REJECTED')}
           disabled={loading}
-          aria-label="Reject connection"
+          aria-label="Decline connection"
         >
           <UserX className="h-4 w-4" />
-          <span className="ml-1.5">Reject</span>
+          <span className="ml-1.5">Decline</span>
         </Button>
       </div>
     )

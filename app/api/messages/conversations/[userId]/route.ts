@@ -5,6 +5,7 @@ import { sanitizeMarkdown } from '@/lib/sanitize'
 import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
 import { sendMessageSchema } from '@/lib/schemas'
 import { zodErrorToString } from '@/lib/errors'
+import { getConnectionStatus } from '@/lib/connections'
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 100
@@ -50,6 +51,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     if (!targetUser) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 })
+    }
+
+    const { status: connStatus } = await getConnectionStatus(session.id, userId)
+    if (connStatus !== 'connected') {
+      return NextResponse.json({ error: 'not_connected' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -141,6 +147,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ use
 
     if (!targetUser) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 })
+    }
+
+    const { status: connStatus } = await getConnectionStatus(session.id, userId)
+    if (connStatus !== 'connected') {
+      return NextResponse.json({ error: 'not_connected' }, { status: 403 })
     }
 
     const msgParsed = sendMessageSchema.safeParse(await request.json())

@@ -92,7 +92,7 @@ export function RecentActivityWidget() {
       ) : items.length === 0 ? (
         <p className="text-muted-foreground py-4 text-sm">No recent activity yet.</p>
       ) : (
-        <ul className="divide-border divide-y">
+        <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
           {items.map((item) => {
             const Icon = item.kind === 'material' ? FileText : MessageSquare
             const iconColor =
@@ -100,10 +100,13 @@ export function RecentActivityWidget() {
                 ? 'text-amber-500 bg-amber-500/10'
                 : 'text-blue-500 bg-blue-500/10'
             return (
-              <li key={`${item.kind}-${item.id}`}>
+              <li
+                key={`${item.kind}-${item.id}`}
+                className="border-border border-b last:border-0 sm:[&:nth-last-child(-n+2)]:border-0"
+              >
                 <a
                   href={item.href}
-                  className="flex items-center gap-3 py-3 transition-opacity first:pt-0 last:pb-0 hover:opacity-80"
+                  className="flex items-center gap-3 py-3 transition-opacity hover:opacity-80"
                 >
                   <div
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${iconColor}`}

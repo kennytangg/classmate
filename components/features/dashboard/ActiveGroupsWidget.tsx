@@ -60,12 +60,23 @@ export function ActiveGroupsWidget() {
           <SkeletonRow />
         </div>
       ) : groups.length === 0 ? (
-        <p className="text-muted-foreground py-4 text-sm">
-          You haven&apos;t joined any groups yet.{' '}
-          <Link href="/groups" className="text-primary hover:underline">
-            Browse groups.
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10">
+            <Users className="h-6 w-6 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-foreground text-sm font-medium">No groups yet</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              Find classmates studying the same subjects
+            </p>
+          </div>
+          <Link
+            href="/groups"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 py-1.5 text-xs font-medium transition-colors"
+          >
+            Browse groups
           </Link>
-        </p>
+        </div>
       ) : (
         <ul className="divide-border divide-y">
           {groups.map((group) => (

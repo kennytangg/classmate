@@ -1,7 +1,7 @@
 export type UserRole = 'STUDENT' | 'MODERATOR' | 'ADMIN' | 'OWNER'
 
 type NavigationGroup = 'core' | 'more'
-export type SidebarSection = 'Main' | 'Learning' | 'Secondary' | 'Account'
+export type SidebarSection = 'Learn' | 'Connect' | 'Account'
 
 export interface NavigationItem {
   href: string
@@ -13,13 +13,17 @@ export interface NavigationItem {
 }
 
 export const navigationItems: NavigationItem[] = [
-  { href: '/dashboard', label: 'Home', group: 'core', icon: 'LayoutDashboard', section: 'Main' },
-  { href: '/forums', label: 'Forums', group: 'core', icon: 'MessageSquare', section: 'Main' },
-  { href: '/groups', label: 'Study Groups', group: 'core', icon: 'Users', section: 'Main' },
-  { href: '/chat', label: 'Chat', group: 'core', icon: 'MessageCircle', section: 'Main' },
-  { href: '/materials', label: 'Materials', group: 'core', icon: 'BookOpen', section: 'Main' },
-  { href: '/schedule', label: 'Schedule', group: 'core', icon: 'Calendar', section: 'Secondary' },
-  { href: '/ai-tutor', label: 'Learn with AI', group: 'core', icon: 'Bot', section: 'Secondary' },
+  // Learn — primary purpose of the app
+  { href: '/dashboard', label: 'Home', group: 'core', icon: 'LayoutDashboard', section: 'Learn' },
+  { href: '/materials', label: 'Materials', group: 'core', icon: 'BookOpen', section: 'Learn' },
+  { href: '/ai-tutor', label: 'Learn with AI', group: 'core', icon: 'Bot', section: 'Learn' },
+  { href: '/schedule', label: 'Schedule', group: 'core', icon: 'Calendar', section: 'Learn' },
+  // Connect — social and collaboration
+  { href: '/groups', label: 'Study Groups', group: 'core', icon: 'Users', section: 'Connect' },
+  { href: '/chat', label: 'Chat', group: 'core', icon: 'MessageCircle', section: 'Connect' },
+  { href: '/forums', label: 'Forums', group: 'core', icon: 'MessageSquare', section: 'Connect' },
+  { href: '/discover', label: 'Find People', group: 'core', icon: 'Compass', section: 'Connect' },
+  // Account
   { href: '/profile', label: 'Profile', group: 'core', icon: 'User', section: 'Account' },
   // Moderation — visible to MODERATOR and ADMIN (logs section shown only to ADMIN within the page)
   {
@@ -63,9 +67,8 @@ export function getNavigationBySection(
 ): Record<SidebarSection, NavigationItem[]> {
   const visibleItems = navigationItems.filter((item) => isNavigationItemVisible(item, role))
   return {
-    Main: visibleItems.filter((item) => item.section === 'Main'),
-    Learning: visibleItems.filter((item) => item.section === 'Learning'),
-    Secondary: visibleItems.filter((item) => item.section === 'Secondary'),
+    Learn: visibleItems.filter((item) => item.section === 'Learn'),
+    Connect: visibleItems.filter((item) => item.section === 'Connect'),
     Account: visibleItems.filter((item) => item.section === 'Account'),
   }
 }

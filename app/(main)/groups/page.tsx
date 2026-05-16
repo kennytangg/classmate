@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState, useEffect } from 'react'
+import { createElement, useMemo, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { PaginationControls } from '@/components/ui/pagination-controls'
@@ -467,7 +467,6 @@ export default function StudyGroupsPage() {
 
 function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
   const router = useRouter()
-  const SubjectIcon = getSubjectIcon(g.subject)
 
   return (
     <div
@@ -479,7 +478,9 @@ function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
       <div className={`relative h-20 flex-shrink-0 ${joined ? 'bg-primary' : 'bg-muted'}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#ffffff22_1px,transparent_1px)] [background-size:20px_20px]" />
         <div className="absolute top-1/2 left-4 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">
-          {SubjectIcon({ className: `h-5 w-5 ${joined ? 'text-white' : 'text-muted-foreground'}` })}
+          {createElement(getSubjectIcon(g.subject), {
+            className: `h-5 w-5 ${joined ? 'text-white' : 'text-muted-foreground'}`,
+          })}
         </div>
         {joined && g.isOwner && (
           <div className="absolute top-2.5 right-3 flex items-center gap-1 rounded-full border border-white/20 bg-white/15 px-2 py-0.5 backdrop-blur-sm">
