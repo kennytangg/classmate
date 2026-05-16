@@ -837,7 +837,7 @@ async function main() {
         name: 'React Fundamentals',
         description:
           'A group for students learning React and modern front-end development. We hold weekly code reviews and share resources.',
-        subject: 'Web Development',
+        subject: 'Computer Science',
         maxMembers: 10,
         memberCount: 4,
         inviteCode: 'REACT26',
@@ -849,7 +849,7 @@ async function main() {
         name: 'Algorithm Prep',
         description:
           'Focused on data structures and algorithms for technical interviews. We solve LeetCode problems together twice a week.',
-        subject: 'Algorithms',
+        subject: 'Mathematics',
         maxMembers: 8,
         memberCount: 3,
         inviteCode: 'ALGO26',
@@ -861,7 +861,7 @@ async function main() {
         name: 'Database Design',
         description:
           'Covering SQL, normalisation, query optimisation, and PostgreSQL best practices. Open to all levels.',
-        subject: 'Database',
+        subject: 'Sciences',
         maxMembers: 12,
         memberCount: 5,
         inviteCode: 'DB26',
@@ -873,7 +873,7 @@ async function main() {
         name: 'Python Basics',
         description:
           'A beginner-friendly group for students learning Python from scratch. We work through problems together and share tips for writing clean, Pythonic code.',
-        subject: 'Python',
+        subject: 'Computer Science',
         maxMembers: 15,
         memberCount: 4,
         inviteCode: 'PY26',
@@ -885,7 +885,7 @@ async function main() {
         name: 'Machine Learning Study Circle',
         description:
           "Reading group working through Andrew Ng's ML Specialisation and building small projects. We meet weekly to discuss concepts and code together.",
-        subject: 'Machine Learning',
+        subject: 'Computer Science',
         maxMembers: 8,
         memberCount: 3,
         inviteCode: 'ML26',
@@ -897,7 +897,7 @@ async function main() {
         name: 'Web Security & OWASP',
         description:
           'Learning web application security: XSS, CSRF, SQL injection, authentication flaws, and how to defend against them. We review real CVEs and run CTF-style exercises.',
-        subject: 'Security',
+        subject: 'Computer Science',
         maxMembers: 10,
         memberCount: 3,
         inviteCode: 'SEC26',
@@ -909,7 +909,7 @@ async function main() {
         name: 'TypeScript Deep Dive',
         description:
           'For developers who know basic TypeScript and want to go further: generics, conditional types, decorators, and building type-safe APIs. Project-driven learning.',
-        subject: 'Web Development',
+        subject: 'Computer Science',
         maxMembers: 8,
         memberCount: 3,
         inviteCode: 'TS26',
@@ -933,7 +933,7 @@ async function main() {
         name: 'Full-Stack Web Development',
         description:
           'Building complete web applications from database to UI. Current stack: Next.js + Prisma + PostgreSQL. Weekly project builds and code reviews.',
-        subject: 'Web Development',
+        subject: 'Engineering',
         maxMembers: 12,
         memberCount: 5,
         inviteCode: 'FULL26',
@@ -945,7 +945,7 @@ async function main() {
         name: 'Open Source Contributors',
         description:
           'Finding and contributing to open-source projects. Learn git collaboration, PR workflows, and how to navigate large codebases.',
-        subject: 'Software Engineering',
+        subject: 'Engineering',
         maxMembers: 20,
         memberCount: 3,
         inviteCode: 'OSS26',

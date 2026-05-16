@@ -1,0 +1,1534 @@
+{
+  "info": {
+    "name": "ClassMate API",
+    "description": "Manual API testing collection for ClassMate — Student Community & Collaboration Platform.\n\nBase URL is stored in the `baseUrl` environment variable.\n\nHow to use:\n1. Import this collection into Postman\n2. Create an environment with `baseUrl` = https://e2526-wads-b4ac.csbihub.id\n3. Run `POST /api/auth/firebase` first, then copy the `session` cookie — Postman handles this automatically when 'Automatically follow redirects' is on\n4. For endpoints that require auth, the session cookie is sent automatically by Postman after login",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://e2526-wads-b4ac.csbihub.id", "type": "string" },
+    { "key": "postId", "value": "", "type": "string" },
+    { "key": "replyId", "value": "", "type": "string" },
+    { "key": "materialId", "value": "", "type": "string" },
+    { "key": "eventId", "value": "", "type": "string" },
+    { "key": "groupId", "value": "", "type": "string" },
+    { "key": "sessionId", "value": "", "type": "string" },
+    { "key": "connectionId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "flagId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /api/health — Service health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": [],
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /api/auth/firebase — Firebase login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer <FIREBASE_ID_TOKEN>",
+                "description": "Replace with a real Firebase ID token from the client SDK"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/firebase",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "firebase"]
+            }
+          },
+          "response": [],
+          "_postman_previewlanguage": "json"
+        },
+        {
+          "name": "POST /api/logout — Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logout"]
+            }
+          },
+          "response": [],
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "GET /api/user/me — Get current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/user/stats — Get user statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "stats"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Optional — defaults to authenticated user"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/user/profile — Get profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/user/profile — Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Kenny Tang\",\n  \"bio\": \"Computer Science student at BINUS International\",\n  \"university\": \"BINUS University International\",\n  \"major\": \"Computer Science\",\n  \"avatarUrl\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET /api/users/discover — Discover users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/discover?page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "discover"],
+              "query": [
+                { "key": "page", "value": "1" },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Search by name, university, or major"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/users/discover — Search users by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/discover?search=kenny&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "discover"],
+              "query": [
+                { "key": "search", "value": "kenny" },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Forums",
+      "item": [
+        {
+          "name": "GET /api/forums/posts — List all posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "",
+                  "disabled": true,
+                  "description": "e.g. math, cs, physics"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/forums/posts — Filter by category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts?category=cs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts"],
+              "query": [{ "key": "category", "value": "cs" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/forums/posts — Create post (valid)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"How to implement binary search in Python?\",\n  \"content\": \"I am trying to implement binary search for a sorted array. Can anyone help with an example?\",\n  \"category\": \"cs\",\n  \"tags\": [\"algorithms\", \"python\", \"binary-search\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/forums/posts — Create post (missing required field — expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Incomplete post\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/forums/posts — Create post (toxic content — expect moderation block)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test moderation\",\n  \"content\": \"I hate everyone in this class and they are all stupid idiots\",\n  \"category\": \"general\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/forums/posts/{id} — Get post detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts", "{{postId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/forums/posts/{id} — Not found (expect 404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts/nonexistent-id-000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts", "nonexistent-id-000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/forums/posts/{id} — Delete post",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts", "{{postId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/forums/posts/{id}/upvote — Toggle upvote",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/posts/{{postId}}/upvote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "posts", "{{postId}}", "upvote"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/forums/replies — List replies for a post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/replies?postId={{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "replies"],
+              "query": [{ "key": "postId", "value": "{{postId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/forums/replies — Missing postId (expect 400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/replies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "replies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/forums/replies — Create reply (valid)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postId\": \"{{postId}}\",\n  \"content\": \"Here is an example of binary search in Python:\\n\\n```python\\ndef binary_search(arr, target):\\n    left, right = 0, len(arr) - 1\\n    while left <= right:\\n        mid = (left + right) // 2\\n        if arr[mid] == target:\\n            return mid\\n        elif arr[mid] < target:\\n            left = mid + 1\\n        else:\\n            right = mid - 1\\n    return -1\\n```\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/replies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "replies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/forums/replies/{id}/upvote — Toggle reply upvote",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/replies/{{replyId}}/upvote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "replies", "{{replyId}}", "upvote"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/forums/replies/{id} — Delete reply",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/replies/{{replyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "replies", "{{replyId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Materials",
+      "item": [
+        {
+          "name": "GET /api/materials — List all materials",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials"],
+              "query": [
+                { "key": "subject", "value": "", "disabled": true },
+                {
+                  "key": "sortBy",
+                  "value": "",
+                  "disabled": true,
+                  "description": "createdAt | downloads | rating"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/materials — Filter by subject",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials?subject=mathematics&sortBy=downloads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials"],
+              "query": [
+                { "key": "subject", "value": "mathematics" },
+                { "key": "sortBy", "value": "downloads" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/materials — Create material (valid)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Data Structures Lecture Notes Week 5\",\n  \"description\": \"Comprehensive notes covering trees, heaps, and graphs\",\n  \"fileUrl\": \"https://example.com/notes.pdf\",\n  \"subject\": \"Computer Science\",\n  \"fileType\": \"application/pdf\",\n  \"fileSize\": 204800\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/materials — Create material (missing required fields — expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Incomplete material\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/materials/{id} — Get material by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials/{{materialId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials", "{{materialId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/materials/{id} — Update material",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Data Structures Lecture Notes Week 5 (Updated)\",\n  \"description\": \"Updated with graph traversal examples\",\n  \"subject\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/materials/{{materialId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials", "{{materialId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/materials/{id}/download — Track download",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials/{{materialId}}/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials", "{{materialId}}", "download"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/materials/{id} — Delete material",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials/{{materialId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "materials", "{{materialId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "GET /api/events — List events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/events — Create event (valid)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Midterm Exam — Data Structures\",\n  \"description\": \"Covers chapters 1-7, bring calculator\",\n  \"date\": \"2026-06-15T09:00:00.000Z\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"11:00\",\n  \"category\": \"exam\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/events — Create event (missing title — expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-06-15T09:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/events/{id} — Update event",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Midterm Exam — Data Structures (Room Change)\",\n  \"description\": \"New room: Lecture Hall B\",\n  \"date\": \"2026-06-15T09:00:00.000Z\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"11:00\",\n  \"category\": \"exam\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/events/{id} — Delete event",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Features",
+      "item": [
+        {
+          "name": "POST /api/moderation — Moderate content (safe)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Can anyone explain how recursion works in programming? I keep getting stack overflow errors.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/moderation — Moderate content (toxic — expect block)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"I hate everyone and want to destroy this class\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/moderation — Missing content (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/summarize — Summarize thread",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"thread\": \"User A: How does binary search work?\\nUser B: Binary search works by dividing the sorted array in half repeatedly until the target is found.\\nUser C: The time complexity is O(log n) which makes it very efficient.\\nUser A: Thanks! So it only works on sorted arrays?\\nUser B: Yes, the array must be sorted for binary search to work correctly.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/summarize",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "summarize"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/summarize — Missing thread (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/summarize",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "summarize"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/chat — AI tutor chat",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"Explain the difference between a stack and a queue with real-world examples.\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/chat — Invalid messages format (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": \"not an array\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/upload — Upload file (chat attachment)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Select a file (max 10MB, allowed: JPEG/PNG/GIF/WebP/PDF/DOC/DOCX/XLS/XLSX/TXT/ZIP)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "upload"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        {
+          "name": "GET /api/recommendations/threads — Get recommended threads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recommendations/threads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recommendations", "threads"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/recommendations/threads — Unauthenticated (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "", "description": "Intentionally cleared to test 401" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recommendations/threads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recommendations", "threads"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Moderation",
+      "item": [
+        {
+          "name": "POST /api/moderation/flag — Flag content",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentType\": \"post\",\n  \"contentId\": \"{{postId}}\",\n  \"reason\": \"This post contains inappropriate language and harassment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation/flag",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation", "flag"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/moderation/flag — Missing fields (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentType\": \"post\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation/flag",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation", "flag"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/moderation/flagged — List flagged content (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation/flagged?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation", "flagged"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending | resolved | dismissed"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/moderation/resolve — Resolve flag (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flagId\": \"{{flagId}}\",\n  \"action\": \"dismiss\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation", "resolve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/moderation/resolve — Invalid action (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flagId\": \"{{flagId}}\",\n  \"action\": \"invalid_action\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation", "resolve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/moderation/logs — Moderation audit logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/moderation/logs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderation", "logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                {
+                  "key": "action",
+                  "value": "",
+                  "disabled": true,
+                  "description": "FLAG_CREATED | FLAG_RESOLVED | CONTENT_DELETED"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Study Groups",
+      "item": [
+        {
+          "name": "GET /api/study-groups — List study groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/study-groups — Create study group (valid)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Algorithm Study Group\",\n  \"description\": \"Weekly study sessions for algorithm problem solving\",\n  \"subject\": \"Computer Science\",\n  \"maxMembers\": 10,\n  \"isPrivate\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/study-groups — Missing required fields (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Incomplete Group\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/study-groups/{groupId} — Get group detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/study-groups/{groupId}/join — Join group",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}", "join"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/study-groups/{groupId}/messages — Get messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}/messages?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}", "messages"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO timestamp for pagination"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/study-groups/{groupId}/messages — Send text message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hey everyone! Let's meet this Saturday at 2PM to review sorting algorithms.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/study-groups/{groupId}/messages — Send file attachment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"\",\n  \"fileUrl\": \"/uploads/chat/example.pdf\",\n  \"fileName\": \"sorting-notes.pdf\",\n  \"fileType\": \"application/pdf\",\n  \"fileSize\": 102400\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/study-groups/{groupId}/messages — Empty message (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/study-groups/{groupId}/join — Leave group",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups/{{groupId}}/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups", "{{groupId}}", "join"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/study-groups — Delete group (owner only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/study-groups?groupId={{groupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "study-groups"],
+              "query": [{ "key": "groupId", "value": "{{groupId}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Tutor Sessions",
+      "item": [
+        {
+          "name": "GET /api/sessions — List chat sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/sessions — Create chat session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Data Structures Review\",\n  \"subject\": \"Computer Science\",\n  \"description\": \"Study session for midterm preparation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/sessions/{sessionId}/messages — Get session messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{sessionId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "{{sessionId}}", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/sessions — Delete session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions?sessionId={{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions"],
+              "query": [{ "key": "sessionId", "value": "{{sessionId}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Direct Messages",
+      "item": [
+        {
+          "name": "GET /api/messages/conversations — List conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/messages/contacts — List messageable contacts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/contacts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "contacts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/messages/conversations/{userId} — Get conversation thread",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversations/{{userId}}?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "conversations", "{{userId}}"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "disabled": true,
+                  "description": "ISO timestamp cursor for older messages"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/messages/conversations/{userId} — Send direct message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hey! Are you joining the study group session this weekend?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversations/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "conversations", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/messages/conversations/{userId} — Empty content (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversations/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "conversations", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/messages/conversations/{userId}/read — Mark messages as read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversations/{{userId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "conversations", "{{userId}}", "read"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Connections",
+      "item": [
+        {
+          "name": "GET /api/connections — List accepted connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/connections?status=accepted",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "accepted",
+                  "description": "accepted | pending_received | pending_sent"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/connections — List pending received requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/connections?status=pending_received",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections"],
+              "query": [{ "key": "status", "value": "pending_received" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/connections — Send connection request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/connections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/connections — Send to self (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"your-own-user-id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/connections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/connections/status — Get connection status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/connections/status?userId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections", "status"],
+              "query": [{ "key": "userId", "value": "{{userId}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/connections/count — Get connection count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/connections/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections", "count"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Optional — defaults to current user"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/connections/{id} — Accept connection request",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/connections/{{connectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections", "{{connectionId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/connections/{id} — Reject connection request",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/connections/{{connectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections", "{{connectionId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/connections/{id} — Invalid status (expect 400)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"MAYBE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/connections/{{connectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections", "{{connectionId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/connections/{id} — Remove connection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/connections/{{connectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "connections", "{{connectionId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "GET /api/admin/users — List all users (admin only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/admin/users — Non-admin access (expect 403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/admin/users/{id}/role — Promote to moderator",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"MODERATOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}", "role"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/admin/users/{id}/role — Demote to student",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"STUDENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}", "role"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/admin/users/{id}/role — Invalid role (expect 400)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"SUPERUSER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}", "role"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "API Docs",
+      "item": [
+        {
+          "name": "GET /api/docs — OpenAPI specification",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/docs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "docs"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

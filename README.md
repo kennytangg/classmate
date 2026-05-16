@@ -90,8 +90,8 @@ University students lack a dedicated, safe platform to collaborate academically.
 
 ## Live Application
 
-**Production URL:** COMING SOON
+**Production URL:** https://e2526-wads-b4ac.csbihub.id/
 
-**API Documentation (Swagger):** COMING SOON
+**API Documentation (Swagger):** https://e2526-wads-b4ac.csbihub.id/api-docs
 
 **Presentation Video:** COMING SOON

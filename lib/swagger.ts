@@ -5,8 +5,12 @@ export const swaggerSpec = {
     version: '1.0.1',
     description: 'ClassMate2026 REST API - Student Community Platform. ',
   },
-  servers: [{ url: 'http://localhost:3000', description: 'Local development' }],
+  servers: [
+    { url: 'https://e2526-wads-b4ac.csbihub.id', description: 'Production' },
+    { url: 'http://localhost:3000', description: 'Local development' },
+  ],
   tags: [
+    { name: 'auth', description: 'Authentication — Firebase login and session logout' },
     { name: 'forums', description: 'Forum posts and replies with AI moderation' },
     { name: 'events', description: 'User event scheduling and persistence' },
     { name: 'recommendations', description: 'Personalized forum thread recommendations' },
@@ -21,9 +25,171 @@ export const swaggerSpec = {
     { name: 'admin', description: 'Admin-only user management endpoints' },
     { name: 'user', description: 'User profile management' },
     { name: 'docs', description: 'API documentation and specification endpoints' },
+    { name: 'health', description: 'Service health check' },
   ],
   security: [],
   paths: {
+    // ==================== HEALTH ====================
+    '/api/health': {
+      get: {
+        tags: ['health'],
+        summary: 'Service health check',
+        description:
+          'Returns service status and database connectivity. Returns 503 when the database is unreachable.',
+        responses: {
+          '200': {
+            description: 'Service is healthy',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', enum: ['ok'] },
+                    timestamp: { type: 'string', format: 'date-time' },
+                    uptime: { type: 'number', description: 'Process uptime in seconds' },
+                  },
+                },
+              },
+            },
+          },
+          '503': {
+            description: 'Service degraded — database unreachable',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', enum: ['degraded'] },
+                    reason: { type: 'string', enum: ['db_unreachable'] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // ==================== AUTH ====================
+    '/api/auth/firebase': {
+      post: {
+        tags: ['auth'],
+        summary: 'Firebase login',
+        description:
+          'Verifies a Firebase ID token and creates or updates the user in the database. ' +
+          'Sets a `session` cookie (httpOnly, 1-hour TTL) on success.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Login successful — session cookie set',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', enum: ['success'] },
+                    userId: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Missing, invalid, or expired Firebase ID token',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
+              },
+            },
+          },
+          '429': { description: 'Rate limit exceeded' },
+        },
+      },
+    },
+
+    '/api/logout': {
+      post: {
+        tags: ['auth'],
+        summary: 'Logout',
+        description:
+          'Clears both the `session` (Firebase) and `better-auth.session_token` cookies, effectively logging the user out.',
+        responses: {
+          '200': {
+            description: 'Logged out successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: { type: 'string', example: 'Logged out' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // ==================== UPLOAD ====================
+    '/api/upload': {
+      post: {
+        tags: ['ai'],
+        summary: 'Upload a file (chat attachment)',
+        description:
+          'Accepts multipart/form-data with a single `file` field. ' +
+          'Max size 10 MB. Allowed types: JPEG, PNG, GIF, WebP, PDF, DOC, DOCX, XLS, XLSX, TXT, ZIP. ' +
+          'Returns a public URL under `/uploads/chat/`.',
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['file'],
+                properties: {
+                  file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'File to upload (max 10 MB)',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'File uploaded successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    fileUrl: { type: 'string', description: 'Relative URL to the uploaded file' },
+                    fileName: { type: 'string' },
+                    fileType: { type: 'string' },
+                    fileSize: { type: 'integer', description: 'Size in bytes' },
+                  },
+                },
+              },
+            },
+          },
+          '400': {
+            description: 'No file provided, file too large, or file type not allowed',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
+              },
+            },
+          },
+          '401': { description: 'Unauthorized' },
+          '429': { description: 'Rate limit exceeded' },
+          '500': { description: 'Upload failed' },
+        },
+      },
+    },
+
     // ==================== FORUMS ====================
     '/api/forums/posts': {
       get: {
@@ -1330,7 +1496,10 @@ export const swaggerSpec = {
       get: {
         tags: ['study-groups'],
         summary: 'Get group messages',
-        description: 'Returns the message history for a study group.',
+        description:
+          'Returns paginated message history for a study group. ' +
+          'Messages are ordered oldest-first within the page. ' +
+          'Use the `nextCursor` from the response to fetch older messages.',
         parameters: [
           {
             name: 'groupId',
@@ -1338,32 +1507,74 @@ export const swaggerSpec = {
             required: true,
             schema: { type: 'string' },
           },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            description: 'Page size (default 50, max 100)',
+            schema: { type: 'integer', minimum: 1, maximum: 100, default: 50 },
+          },
+          {
+            name: 'cursor',
+            in: 'query',
+            required: false,
+            description: 'ISO timestamp cursor — returns messages older than this value',
+            schema: { type: 'string', format: 'date-time' },
+          },
         ],
         responses: {
           '200': {
-            description: 'Array of messages',
+            description: 'Group info, messages, and pagination cursor',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
+                    group: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string' },
+                        subject: { type: 'string' },
+                        memberCount: { type: 'integer' },
+                        ownerId: { type: 'string' },
+                      },
+                    },
                     messages: {
                       type: 'array',
                       items: { $ref: '#/components/schemas/GroupMessage' },
+                    },
+                    pagination: {
+                      type: 'object',
+                      properties: {
+                        limit: { type: 'integer' },
+                        nextCursor: {
+                          type: 'string',
+                          format: 'date-time',
+                          nullable: true,
+                          description:
+                            'Pass as `cursor` to fetch older messages; null when exhausted',
+                        },
+                      },
                     },
                   },
                 },
               },
             },
           },
+          '400': { description: 'Invalid cursor value' },
           '401': { description: 'Unauthorized' },
           '403': { description: 'Not a group member' },
+          '404': { description: 'Group not found' },
+          '500': { description: 'Internal server error' },
         },
       },
       post: {
         tags: ['study-groups'],
         summary: 'Send a group message',
-        description: 'Posts a message to the study group.',
+        description:
+          'Posts a message to the study group. ' +
+          'Either `content` or a file attachment (`fileUrl`) must be provided.',
         parameters: [
           {
             name: 'groupId',
@@ -1378,9 +1589,19 @@ export const swaggerSpec = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['content'],
                 properties: {
-                  content: { type: 'string' },
+                  content: {
+                    type: 'string',
+                    description: 'Message text (may be empty if fileUrl is set)',
+                  },
+                  fileUrl: {
+                    type: 'string',
+                    nullable: true,
+                    description: 'URL of an uploaded attachment',
+                  },
+                  fileName: { type: 'string', nullable: true },
+                  fileType: { type: 'string', nullable: true },
+                  fileSize: { type: 'integer', nullable: true, description: 'File size in bytes' },
                 },
               },
             },
@@ -1391,12 +1612,20 @@ export const swaggerSpec = {
             description: 'Message sent',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/GroupMessage' },
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: { $ref: '#/components/schemas/GroupMessage' },
+                  },
+                },
               },
             },
           },
+          '400': { description: 'Validation error or empty message (no text and no file)' },
           '401': { description: 'Unauthorized' },
           '403': { description: 'Not a group member' },
+          '404': { description: 'Group not found' },
+          '500': { description: 'Internal server error' },
         },
       },
     },
@@ -2223,6 +2452,22 @@ export const swaggerSpec = {
   },
 
   components: {
+    securitySchemes: {
+      BearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'Firebase ID token',
+        description:
+          'Firebase ID token obtained from the client SDK. Used only for /api/auth/firebase.',
+      },
+      CookieAuth: {
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'session',
+        description:
+          'Session cookie set after Firebase login. All authenticated endpoints use this.',
+      },
+    },
     schemas: {
       Error: {
         type: 'object',
@@ -2460,11 +2705,24 @@ export const swaggerSpec = {
         type: 'object',
         properties: {
           id: { type: 'string' },
-          groupId: { type: 'string' },
-          userId: { type: 'string' },
+          senderId: { type: 'string' },
           content: { type: 'string' },
+          fileUrl: { type: 'string', nullable: true, description: 'URL of an attached file' },
+          fileName: { type: 'string', nullable: true },
+          fileType: { type: 'string', nullable: true },
+          fileSize: { type: 'integer', nullable: true, description: 'File size in bytes' },
           createdAt: { type: 'string', format: 'date-time' },
-          user: { $ref: '#/components/schemas/UserSummary' },
+          sender: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              displayName: {
+                type: 'string',
+                description: 'Resolved display name (profile > name > email)',
+              },
+              avatarUrl: { type: 'string', nullable: true },
+            },
+          },
         },
       },
 
