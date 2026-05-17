@@ -14,6 +14,10 @@ jest.mock('@/lib/auth', () => ({
 
 jest.mock('@/lib/prisma')
 
+jest.mock('@/lib/connections', () => ({
+  getConnectionStatus: jest.fn().mockResolvedValue({ status: 'connected', connectionId: 'conn-1' }),
+}))
+
 jest.mock('@/lib/sanitize', () => ({
   sanitizeMarkdown: (value: string) => value,
 }))
@@ -124,9 +128,20 @@ describe('Messages API', () => {
 
   it('returns all users except current user', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
-    ;(prisma.user.findMany as jest.Mock).mockResolvedValue([
-      { id: 'user-2', email: 'b@test.com', profile: { displayName: 'Bob', avatarUrl: null } },
-      { id: 'user-3', email: 'c@test.com', profile: null },
+    ;(prisma.connection.findMany as jest.Mock).mockResolvedValue([
+      {
+        sender: { id: 'user-1', email: 'u1@test.com', name: null, profile: null },
+        recipient: {
+          id: 'user-2',
+          email: 'b@test.com',
+          name: null,
+          profile: { displayName: 'Bob', avatarUrl: null },
+        },
+      },
+      {
+        sender: { id: 'user-1', email: 'u1@test.com', name: null, profile: null },
+        recipient: { id: 'user-3', email: 'c@test.com', name: null, profile: null },
+      },
     ])
 
     const req = new Request('http://localhost/api/messages/contacts')
@@ -141,19 +156,20 @@ describe('Messages API', () => {
       displayName: 'Bob',
       avatarUrl: null,
     })
-    expect(prisma.user.findMany).toHaveBeenCalledWith(
+    expect(prisma.connection.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: { not: 'user-1' } },
-        orderBy: { email: 'asc' },
-        take: 200,
+        where: expect.objectContaining({ status: 'ACCEPTED' }),
       })
     )
   })
 
   it('returns null displayName and avatarUrl for users without a profile', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
-    ;(prisma.user.findMany as jest.Mock).mockResolvedValue([
-      { id: 'user-2', email: 'b@test.com', profile: null },
+    ;(prisma.connection.findMany as jest.Mock).mockResolvedValue([
+      {
+        sender: { id: 'user-1', email: 'u1@test.com', name: null, profile: null },
+        recipient: { id: 'user-2', email: 'b@test.com', name: null, profile: null },
+      },
     ])
 
     const req = new Request('http://localhost/api/messages/contacts')
@@ -167,7 +183,7 @@ describe('Messages API', () => {
 
   it('returns empty contacts list when no other users exist', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
-    ;(prisma.user.findMany as jest.Mock).mockResolvedValue([])
+    ;(prisma.connection.findMany as jest.Mock).mockResolvedValue([])
 
     const req = new Request('http://localhost/api/messages/contacts')
     const res = await getContacts(req)

@@ -25,6 +25,7 @@ describe('/api/events GET', () => {
 
   it('returns only current user events', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
+    ;(prisma.studyGroupMember.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.event.findMany as jest.Mock).mockResolvedValue([{ id: 'event-1' }])
 
     const res = await GET()
@@ -33,7 +34,9 @@ describe('/api/events GET', () => {
     expect(res.status).toBe(200)
     expect(data.events).toEqual([{ id: 'event-1' }])
     expect(prisma.event.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: 'user-1' } })
+      expect.objectContaining({
+        where: { OR: [{ userId: 'user-1' }] },
+      })
     )
   })
 })

@@ -117,12 +117,12 @@ jest.mock('@/components/ui/sheet', () => ({
 jest.mock('@/lib/navigation', () => ({
   getNavigationBySection: (role: string | null) => {
     const baseNav = {
-      Main: [
+      Learn: [
         { href: '/', icon: 'LayoutDashboard', label: 'Dashboard' },
         { href: '/forums', icon: 'MessageSquare', label: 'Forums' },
       ],
-      Learning: [
-        { href: '/study-groups', icon: 'Users', label: 'Study Groups' },
+      Connect: [
+        { href: '/groups', icon: 'Users', label: 'Study Groups' },
         { href: '/ai-tutor', icon: 'Bot', label: 'AI Tutor' },
       ],
       Account: [{ href: '/profile', icon: 'User', label: 'My Profile' }],
@@ -167,6 +167,10 @@ beforeEach(() => {
     userName: null,
     userEmail: null,
     userImage: null,
+  })
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ pending: 0 }),
   })
 })
 

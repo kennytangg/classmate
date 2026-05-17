@@ -5,6 +5,15 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ConnectButton } from '@/components/features/connections/ConnectButton'
 
+jest.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ open, children }: { open: boolean; children: React.ReactNode }) =>
+    open ? <div role="dialog">{children}</div> : null,
+  DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}))
+
 describe('ConnectButton component', () => {
   afterEach(() => {
     jest.clearAllMocks()
@@ -36,7 +45,7 @@ describe('ConnectButton component', () => {
     )
 
     expect(screen.getByRole('button', { name: /cancel request/i })).toBeInTheDocument()
-    expect(screen.getByText('Pending')).toBeInTheDocument()
+    expect(screen.getByText('Request Sent')).toBeInTheDocument()
   })
 
   it('renders Accept and Reject buttons when status is pending_received', () => {
@@ -49,7 +58,7 @@ describe('ConnectButton component', () => {
     )
 
     expect(screen.getByRole('button', { name: /accept/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /reject/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /decline/i })).toBeInTheDocument()
   })
 
   it('renders Connected button when status is connected', () => {
@@ -107,7 +116,7 @@ describe('ConnectButton component', () => {
     fireEvent.click(screen.getByRole('button', { name: /connect/i }))
 
     await waitFor(() => {
-      expect(screen.getByText('Pending')).toBeInTheDocument()
+      expect(screen.getByText('Request Sent')).toBeInTheDocument()
     })
   })
 
@@ -196,7 +205,7 @@ describe('ConnectButton component', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /reject/i }))
+    fireEvent.click(screen.getByRole('button', { name: /decline/i }))
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/connections/conn-1', {
@@ -224,6 +233,10 @@ describe('ConnectButton component', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /disconnect/i }))
 
+    // Confirm removal in the dialog
+    const removeButton = await screen.findByRole('button', { name: /^remove$/i })
+    fireEvent.click(removeButton)
+
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/connections/conn-1', { method: 'DELETE' })
     })
@@ -240,6 +253,10 @@ describe('ConnectButton component', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /disconnect/i }))
+
+    // Confirm removal in the dialog
+    const removeButton = await screen.findByRole('button', { name: /^remove$/i })
+    fireEvent.click(removeButton)
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()

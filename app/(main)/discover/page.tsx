@@ -125,10 +125,7 @@ export default function DiscoverPage() {
         const res = await fetch(`/api/users/discover?${params}`)
         const data = await res.json()
         if (res.ok) {
-          const sorted = (data.users as DiscoverUser[]).sort(
-            (a, b) => (b.mutualConnectionCount ?? 0) - (a.mutualConnectionCount ?? 0)
-          )
-          setUsers(sorted)
+          setUsers(data.users as DiscoverUser[])
           setMeta(data.meta as Meta)
         }
       } catch {

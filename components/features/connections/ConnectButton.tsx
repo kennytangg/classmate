@@ -100,7 +100,7 @@ export function ConnectButton({
     }
   }
 
-  async function handleRemove() {
+  async function handleRemove(toastMsg = 'Connection removed.') {
     if (!connectionId) return
     setShowDisconnectDialog(false)
     setLoading(true)
@@ -108,7 +108,7 @@ export function ConnectButton({
       const res = await fetch(`/api/connections/${connectionId}`, { method: 'DELETE' })
       if (res.ok) {
         update('not_connected', null)
-        toast('Connection removed.')
+        toast(toastMsg)
       } else {
         toast.error('Could not remove connection. Please try again.')
       }
@@ -140,22 +140,7 @@ export function ConnectButton({
         size="sm"
         variant="outline"
         className="border-border rounded-full"
-        onClick={async () => {
-          setLoading(true)
-          try {
-            const res = await fetch(`/api/connections/${connectionId}`, { method: 'DELETE' })
-            if (res.ok) {
-              update('not_connected', null)
-              toast('Connection request withdrawn.')
-            } else {
-              toast.error('Could not withdraw request. Please try again.')
-            }
-          } catch {
-            toast.error('Something went wrong. Please try again.')
-          } finally {
-            setLoading(false)
-          }
-        }}
+        onClick={() => void handleRemove('Connection request withdrawn.')}
         disabled={loading}
         aria-label="Cancel request"
         title="Click to withdraw this request"
@@ -226,7 +211,12 @@ export function ConnectButton({
             <Button variant="outline" size="sm" onClick={() => setShowDisconnectDialog(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleRemove} disabled={loading}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => void handleRemove()}
+              disabled={loading}
+            >
               {loading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
               Remove
             </Button>

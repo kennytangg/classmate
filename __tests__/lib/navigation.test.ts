@@ -6,12 +6,12 @@ describe('navigation config', () => {
 
     expect(core.map((item) => item.href)).toEqual([
       '/dashboard',
-      '/forums',
+      '/materials',
+      '/ai-tutor',
+      '/schedule',
       '/groups',
       '/chat',
-      '/materials',
-      '/schedule',
-      '/ai-tutor',
+      '/forums',
       '/discover',
       '/profile',
     ])

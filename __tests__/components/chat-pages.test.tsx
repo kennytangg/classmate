@@ -100,7 +100,7 @@ describe('Chat pages integration', () => {
 
     const { container } = render(<ChatPage />)
 
-    await screen.findByText('No conversations yet.')
+    await screen.findByText("No messages yet. Use 'Find People' to start a conversation.")
 
     expect(container.firstChild).toHaveClass('h-full')
     expect(container.innerHTML).toContain('bg-card')

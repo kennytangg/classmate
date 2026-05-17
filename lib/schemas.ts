@@ -114,7 +114,7 @@ export const updateProfileSchema = z.object({
 })
 
 // ── Chat / AI Tutor ────────────────────────────────────────────────────────
-export const chatMessageSchema = z.object({
+const chatMessageSchema = z.object({
   role: z.string(),
   content: z.string().max(10000),
 })

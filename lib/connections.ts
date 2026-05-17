@@ -71,30 +71,25 @@ export async function getPendingConnectionCount(userId: string): Promise<number>
 }
 
 /**
- * Count mutual connections between two users.
+ * Count mutual connections between two users via a single SQL query.
  */
 export async function getMutualConnectionCount(userIdA: string, userIdB: string): Promise<number> {
-  const [aConnections, bConnections] = await Promise.all([
-    prisma.connection.findMany({
-      where: {
-        status: 'ACCEPTED',
-        OR: [{ senderId: userIdA }, { recipientId: userIdA }],
-      },
-      select: { senderId: true, recipientId: true },
-    }),
-    prisma.connection.findMany({
-      where: {
-        status: 'ACCEPTED',
-        OR: [{ senderId: userIdB }, { recipientId: userIdB }],
-      },
-      select: { senderId: true, recipientId: true },
-    }),
-  ])
-
-  const aIds = new Set(
-    aConnections.map((c) => (c.senderId === userIdA ? c.recipientId : c.senderId))
-  )
-  const bIds = bConnections.map((c) => (c.senderId === userIdB ? c.recipientId : c.senderId))
-
-  return bIds.filter((id) => aIds.has(id) && id !== userIdA && id !== userIdB).length
+  const result = await prisma.$queryRaw<[{ count: bigint }]>`
+    SELECT COUNT(*) AS count
+    FROM (
+      SELECT CASE WHEN "senderId" = ${userIdA} THEN "recipientId" ELSE "senderId" END AS neighbor_id
+      FROM "Connection"
+      WHERE status = 'ACCEPTED'
+        AND ("senderId" = ${userIdA} OR "recipientId" = ${userIdA})
+    ) a
+    WHERE a.neighbor_id IN (
+      SELECT CASE WHEN "senderId" = ${userIdB} THEN "recipientId" ELSE "senderId" END
+      FROM "Connection"
+      WHERE status = 'ACCEPTED'
+        AND ("senderId" = ${userIdB} OR "recipientId" = ${userIdB})
+    )
+    AND a.neighbor_id != ${userIdA}
+    AND a.neighbor_id != ${userIdB}
+  `
+  return Number(result[0].count)
 }

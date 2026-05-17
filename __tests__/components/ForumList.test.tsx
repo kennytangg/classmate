@@ -151,9 +151,11 @@ describe('ForumList component', () => {
     it('renders the page header with title and description', async () => {
       render(<ForumList />)
 
-      expect(screen.getByText('Discussion Forums')).toBeInTheDocument()
+      expect(screen.getByText('Discussions')).toBeInTheDocument()
       expect(
-        screen.getByText('Ask questions, share knowledge, and learn together.')
+        screen.getByText(
+          'Ask questions and get answers — everything stays searchable for everyone.'
+        )
       ).toBeInTheDocument()
     })
 
@@ -167,7 +169,7 @@ describe('ForumList component', () => {
     it('renders New Discussion link with button', () => {
       render(<ForumList />)
 
-      const newDiscussionButton = screen.getByText('New Discussion')
+      const newDiscussionButton = screen.getByText('Ask a Question')
       expect(newDiscussionButton).toBeInTheDocument()
       expect(newDiscussionButton.closest('button')).toBeInTheDocument()
     })
@@ -177,8 +179,8 @@ describe('ForumList component', () => {
 
       await waitFor(() => {
         // Check that both the recommended panel and posts section exist
-        expect(screen.getByText('Recommended Threads')).toBeInTheDocument()
-        expect(screen.getByText('Discussion Forums')).toBeInTheDocument()
+        expect(screen.getByText('Trending discussions')).toBeInTheDocument()
+        expect(screen.getByText('Discussions')).toBeInTheDocument()
       })
     })
   })
@@ -196,9 +198,10 @@ describe('ForumList component', () => {
           })
       )
 
-      render(<ForumList />)
+      const { container } = render(<ForumList />)
 
-      expect(screen.getByText('Loading...')).toBeInTheDocument()
+      // Sidebar shows animated skeleton divs while recommendations load
+      expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
     })
 
     it('displays recommendations when API returns data', async () => {
@@ -247,7 +250,7 @@ describe('ForumList component', () => {
       })
     })
 
-    it('displays empty state message when no recommendations', async () => {
+    it('hides the sidebar when no recommendations', async () => {
       ;(global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -261,13 +264,12 @@ describe('ForumList component', () => {
       render(<ForumList />)
 
       await waitFor(() => {
-        expect(
-          screen.getByText('No recommendations yet. Start posting to personalize this list.')
-        ).toBeInTheDocument()
+        // Sidebar is hidden when there are no recommendations
+        expect(screen.queryByText('Trending discussions')).not.toBeInTheDocument()
       })
     })
 
-    it('displays error message when recommendations API fails', async () => {
+    it('silently hides sidebar when recommendations API fails', async () => {
       ;(global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -281,11 +283,13 @@ describe('ForumList component', () => {
       render(<ForumList />)
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load recommendations')).toBeInTheDocument()
+        // Recommendations errors are swallowed; sidebar is hidden
+        expect(screen.queryByText('Trending discussions')).not.toBeInTheDocument()
+        expect(screen.queryByText('Failed to load recommendations')).not.toBeInTheDocument()
       })
     })
 
-    it('displays error message when recommendations API throws', async () => {
+    it('silently hides sidebar when recommendations API throws', async () => {
       ;(global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -296,7 +300,9 @@ describe('ForumList component', () => {
       render(<ForumList />)
 
       await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument()
+        // Recommendations errors are swallowed; sidebar is hidden
+        expect(screen.queryByText('Trending discussions')).not.toBeInTheDocument()
+        expect(screen.queryByText('Network error')).not.toBeInTheDocument()
       })
     })
 
@@ -391,7 +397,7 @@ describe('ForumList component', () => {
 
       await waitFor(() => {
         expect(screen.getByText('No discussions yet')).toBeInTheDocument()
-        expect(screen.getByText('Be the first to start a discussion!')).toBeInTheDocument()
+        expect(screen.getByText('Be the first to ask a question.')).toBeInTheDocument()
       })
     })
 
@@ -506,8 +512,8 @@ describe('ForumList component', () => {
       await userEvent.type(searchInput, 'nonexistent-term')
 
       await waitFor(() => {
-        expect(screen.getByText('No discussions match your search')).toBeInTheDocument()
-        expect(screen.getByText('Try a different search term')).toBeInTheDocument()
+        expect(screen.getByText('No results for that search')).toBeInTheDocument()
+        expect(screen.getByText('Try different keywords.')).toBeInTheDocument()
       })
     })
 
@@ -571,9 +577,8 @@ describe('ForumList component', () => {
       render(<ForumList />)
 
       await waitFor(() => {
-        expect(
-          screen.getByText('No recommendations yet. Start posting to personalize this list.')
-        ).toBeInTheDocument()
+        // undefined recommendations defaults to [] — sidebar is hidden
+        expect(screen.queryByText('Trending discussions')).not.toBeInTheDocument()
       })
     })
   })
