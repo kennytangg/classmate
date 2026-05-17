@@ -86,6 +86,14 @@ export function ConversationList({
       <div className="border-border border-b p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-foreground text-xl font-bold">Messages</h2>
+          <button
+            onClick={onNewMessage}
+            title="New message"
+            aria-label="Start new conversation"
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg p-1.5 transition-colors"
+          >
+            <MessageSquarePlus className="h-5 w-5" />
+          </button>
         </div>
         <div className="relative">
           <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
@@ -171,20 +179,10 @@ export function ConversationList({
                 <p className="text-muted-foreground text-sm">
                   {query
                     ? 'No direct messages match your search.'
-                    : "No messages yet. Use 'Find People' to start a conversation."}
+                    : 'No messages yet. Tap the compose button above to start a conversation.'}
                 </p>
               </div>
             )}
-
-            <div className="border-border border-b px-4 py-3">
-              <button
-                onClick={onNewMessage}
-                className="text-primary hover:bg-primary/10 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium transition-colors"
-              >
-                <MessageSquarePlus className="h-4 w-4" />
-                Find People
-              </button>
-            </div>
 
             {/* Group Chats section — always visible */}
             <div className="border-border border-b px-4 py-2">

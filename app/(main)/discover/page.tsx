@@ -185,22 +185,14 @@ export default function DiscoverPage() {
   const activeTab = FILTER_TABS.find((t) => t.value === filter)!
 
   return (
-    <div className="bg-background text-foreground px-6 py-4 transition-colors duration-300 md:px-8 md:py-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        {/* Hero intro */}
-        <div className="bg-card border-border flex items-start gap-4 rounded-2xl border p-5 shadow-sm">
-          <div className="bg-primary/10 shrink-0 rounded-xl p-3">
-            <Compass className="text-primary h-6 w-6" />
+    <div className="bg-background text-foreground px-4 py-4 transition-colors duration-300 sm:px-6 md:px-8 md:py-8">
+      <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
+        {/* Page title */}
+        <div className="flex items-center gap-2.5">
+          <div className="bg-primary/10 shrink-0 rounded-xl p-2">
+            <Compass className="text-primary h-5 w-5" />
           </div>
-          <div>
-            <h1 className="text-foreground mb-1 text-xl font-bold">
-              Find &amp; Connect with Classmates
-            </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Search for fellow students by name, university, or field of study. Send them a
-              connection request — once they accept, you can chat and study together.
-            </p>
-          </div>
+          <h1 className="text-foreground text-xl font-bold">Find &amp; Connect with Classmates</h1>
         </div>
 
         {/* Search */}
@@ -210,11 +202,14 @@ export default function DiscoverPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Type a name, university, or subject to search…"
+              placeholder="Search by name, university, or subject…"
               className="border-border bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border py-2 pr-4 pl-9 text-sm"
             />
           </div>
-          <Button type="submit" className="bg-primary text-primary-foreground rounded-lg px-4">
+          <Button
+            type="submit"
+            className="bg-primary text-primary-foreground shrink-0 rounded-lg px-4"
+          >
             Search
           </Button>
         </form>
