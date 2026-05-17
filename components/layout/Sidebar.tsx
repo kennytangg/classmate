@@ -239,6 +239,7 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMobileClose
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard'
+    if (href === '/profile') return pathname === '/profile'
     return pathname.startsWith(href)
   }
 

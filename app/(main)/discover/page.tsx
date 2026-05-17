@@ -24,6 +24,26 @@ import {
   type ConnectionStatus,
 } from '@/components/features/connections/ConnectButton'
 
+const AVATAR_COLORS = [
+  'bg-violet-500',
+  'bg-blue-500',
+  'bg-emerald-500',
+  'bg-rose-500',
+  'bg-amber-500',
+  'bg-cyan-500',
+  'bg-fuchsia-500',
+  'bg-orange-500',
+  'bg-teal-500',
+  'bg-indigo-500',
+]
+function getAvatarColor(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  }
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length] as string
+}
+
 type DiscoverFilter = 'discover' | 'connected' | 'pending'
 
 const FILTER_TABS: { value: DiscoverFilter; label: string; description: string }[] = [
@@ -249,11 +269,7 @@ export default function DiscoverPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {users.map((user) => {
               const displayName = user.profile?.displayName ?? user.name ?? 'Unknown'
-              const avatarSeed = encodeURIComponent(displayName)
-              const avatarSrc =
-                user.profile?.avatarUrl ??
-                user.image ??
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`
+              const avatarSrc = user.profile?.avatarUrl ?? user.image ?? null
               const isPendingReceived = user.connectionStatus === 'pending_received'
               const isPendingSent = user.connectionStatus === 'pending_sent'
               const isConnected = user.connectionStatus === 'connected'
@@ -292,14 +308,24 @@ export default function DiscoverPage() {
                   {/* Avatar + identity */}
                   <div className="flex items-start gap-3">
                     <Link href={`/profile/${user.id}`} className="shrink-0">
-                      <Image
-                        src={avatarSrc}
-                        alt={displayName}
-                        width={56}
-                        height={56}
-                        className="bg-muted h-14 w-14 rounded-full object-cover"
-                        unoptimized
-                      />
+                      {avatarSrc ? (
+                        <Image
+                          src={avatarSrc}
+                          alt={displayName}
+                          width={56}
+                          height={56}
+                          className="bg-muted h-14 w-14 rounded-full object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-full ${getAvatarColor(user.id)}`}
+                        >
+                          <span className="text-xl font-bold text-white">
+                            {displayName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                     </Link>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">

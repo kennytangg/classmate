@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from 'react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import Link from 'next/link'
 import {
   MapPin,
   GraduationCap,
@@ -13,9 +12,27 @@ import {
   UserX,
   Clock,
   Loader2,
-  MessageSquare,
-  BookOpen,
 } from 'lucide-react'
+
+const AVATAR_COLORS = [
+  'bg-violet-500',
+  'bg-blue-500',
+  'bg-emerald-500',
+  'bg-rose-500',
+  'bg-amber-500',
+  'bg-cyan-500',
+  'bg-fuchsia-500',
+  'bg-orange-500',
+  'bg-teal-500',
+  'bg-indigo-500',
+]
+function getAvatarColor(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  }
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length] as string
+}
 import { authClient } from '@/lib/auth-client'
 
 type ProfileData = {
@@ -31,18 +48,6 @@ type ProfileData = {
 
 type ConnectionStatus = 'connected' | 'pending_sent' | 'pending_received' | 'not_connected'
 
-type StudyGroup = {
-  id: string
-  name: string
-  subject: string
-}
-
-type ForumPost = {
-  id: string
-  title: string
-  createdAt: string
-}
-
 export default function UserProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params)
   const { data: session } = authClient.useSession()
@@ -51,10 +56,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('not_connected')
   const [connectionId, setConnectionId] = useState<string | null>(null)
   const [connectionCount, setConnectionCount] = useState(0)
-  const [forumPostCount, setForumPostCount] = useState(0)
-  const [studyGroupCount, setStudyGroupCount] = useState(0)
-  const [recentGroups, setRecentGroups] = useState<StudyGroup[]>([])
-  const [recentPosts, setRecentPosts] = useState<ForumPost[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
 
@@ -72,13 +73,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
     async function load() {
       setLoading(true)
       try {
-        const [profileRes, statusRes, countRes, statsRes, groupsRes, postsRes] = await Promise.all([
+        const [profileRes, statusRes, countRes] = await Promise.all([
           fetch(`/api/user/profile?userId=${userId}`),
           fetch(`/api/connections/status?userId=${userId}`),
           fetch(`/api/connections/count?userId=${userId}`),
-          fetch(`/api/user/stats?userId=${userId}`),
-          fetch(`/api/study-groups?myGroups=true&userId=${userId}&limit=3`),
-          fetch(`/api/forums/posts?userId=${userId}&limit=5`),
         ])
 
         const profileData = await profileRes.json()
@@ -93,26 +91,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
         if (countRes.ok) {
           const countData = await countRes.json()
           setConnectionCount(countData.count as number)
-        }
-
-        if (statsRes.ok) {
-          const statsData = await statsRes.json()
-          if (typeof statsData.forumPostCount === 'number')
-            setForumPostCount(statsData.forumPostCount)
-          if (typeof statsData.studyGroupCount === 'number')
-            setStudyGroupCount(statsData.studyGroupCount)
-        }
-
-        if (groupsRes.ok) {
-          const groupsData = await groupsRes.json()
-          if (Array.isArray(groupsData.groups))
-            setRecentGroups(groupsData.groups.slice(0, 3) as StudyGroup[])
-        }
-
-        if (postsRes.ok) {
-          const postsData = await postsRes.json()
-          if (Array.isArray(postsData.posts))
-            setRecentPosts(postsData.posts.slice(0, 5) as ForumPost[])
         }
       } catch (err) {
         console.error('[UserProfilePage] Failed to load profile data:', err)
@@ -220,12 +198,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
   }
 
   const displayName = profile.displayName ?? profile.name ?? 'Unknown'
-  const avatarSeed = encodeURIComponent(displayName)
+  const avatarColor = getAvatarColor(userId)
 
   return (
     <div className="bg-background text-foreground px-6 py-6 transition-colors duration-300 md:px-8">
       <div className="mx-auto max-w-3xl space-y-6">
-        {/* Hero Card — matches /profile layout */}
+        {/* Hero Card */}
         <div className="border-border bg-card relative overflow-hidden rounded-3xl border shadow-sm">
           {/* Cover strip */}
           <div className="from-primary/30 to-primary/5 h-24 bg-gradient-to-r" />
@@ -234,17 +212,24 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
             {/* Avatar overlapping cover */}
             <div className="bg-primary -mt-12 mb-4 inline-block rounded-full p-1">
               <div className="bg-card rounded-full p-1">
-                <Image
-                  src={
-                    profile.avatarUrl ??
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`
-                  }
-                  alt={displayName}
-                  width={80}
-                  height={80}
-                  className="bg-muted h-20 w-20 rounded-full object-cover"
-                  unoptimized
-                />
+                {profile.avatarUrl ? (
+                  <Image
+                    src={profile.avatarUrl}
+                    alt={displayName}
+                    width={80}
+                    height={80}
+                    className="bg-muted h-20 w-20 rounded-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div
+                    className={`flex h-20 w-20 items-center justify-center rounded-full ${avatarColor}`}
+                  >
+                    <span className="text-2xl font-bold text-white">
+                      {displayName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -283,17 +268,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
                 </div>
               </div>
 
-              {/* Action buttons */}
+              {/* Connection actions */}
               {currentUserId && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/chat/${userId}`}
-                    className="border-border text-foreground hover:bg-accent rounded-full border px-5 py-2 text-sm font-medium transition-colors"
-                  >
-                    <MessageSquare className="mr-2 inline h-4 w-4" />
-                    Message
-                  </Link>
-
                   {connectionStatus === 'not_connected' && (
                     <Button
                       className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5"
@@ -372,22 +349,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
           </div>
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { icon: Users, label: 'Connections', value: connectionCount },
-            { icon: MessageSquare, label: 'Forum Posts', value: forumPostCount },
-            { icon: BookOpen, label: 'Study Groups', value: studyGroupCount },
-          ].map(({ icon: Icon, label, value }) => (
-            <div
-              key={label}
-              className="border-border bg-card rounded-2xl border p-4 text-center shadow-sm"
-            >
-              <Icon className="text-primary mx-auto mb-1 h-5 w-5" />
-              <p className="text-foreground text-xl font-bold">{value}</p>
-              <p className="text-muted-foreground text-xs">{label}</p>
-            </div>
-          ))}
+        {/* Connections count */}
+        <div className="border-border bg-card rounded-2xl border p-4 text-center shadow-sm">
+          <Users className="text-primary mx-auto mb-1 h-5 w-5" />
+          <p className="text-foreground text-xl font-bold">{connectionCount}</p>
+          <p className="text-muted-foreground text-xs">Connections</p>
         </div>
 
         {/* About */}
@@ -398,60 +364,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ userId: 
           ) : (
             <p className="text-muted-foreground text-sm italic">No bio shared yet.</p>
           )}
-        </div>
-
-        {/* Study Groups + Recent Posts */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Study Groups */}
-          <div className="border-border bg-card rounded-2xl border p-6 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-foreground font-semibold">
-                Study Groups{studyGroupCount > 0 ? ` (${studyGroupCount})` : ''}
-              </h2>
-              <Link href="/groups" className="text-primary text-xs hover:underline">
-                Browse all
-              </Link>
-            </div>
-            {recentGroups.length > 0 ? (
-              <ul className="space-y-2">
-                {recentGroups.map((g) => (
-                  <li key={g.id} className="flex items-center gap-2">
-                    <BookOpen className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <div>
-                      <p className="text-foreground text-sm font-medium">{g.name}</p>
-                      <p className="text-muted-foreground text-xs">{g.subject}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground text-sm italic">No groups joined yet.</p>
-            )}
-          </div>
-
-          {/* Recent Forum Posts */}
-          <div className="border-border bg-card rounded-2xl border p-6 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-foreground font-semibold">
-                Recent Posts{forumPostCount > 0 ? ` (${forumPostCount})` : ''}
-              </h2>
-              <Link href="/forums" className="text-primary text-xs hover:underline">
-                Browse all
-              </Link>
-            </div>
-            {recentPosts.length > 0 ? (
-              <ul className="space-y-2">
-                {recentPosts.map((p) => (
-                  <li key={p.id} className="flex items-center gap-2">
-                    <MessageSquare className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <p className="text-foreground line-clamp-1 text-sm">{p.title}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground text-sm italic">No posts yet.</p>
-            )}
-          </div>
         </div>
       </div>
     </div>

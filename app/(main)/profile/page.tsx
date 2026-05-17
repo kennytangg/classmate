@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import Link from 'next/link'
 import {
   MapPin,
   GraduationCap,
@@ -14,6 +13,7 @@ import {
   BookOpen,
   Users,
 } from 'lucide-react'
+
 import {
   Dialog,
   DialogContent,
@@ -43,26 +43,12 @@ type MeData = {
   role: string
 }
 
-type StudyGroup = {
-  id: string
-  name: string
-  subject: string
-}
-
-type ForumPost = {
-  id: string
-  title: string
-  createdAt: string
-}
-
 export default function ProfilePage() {
   const [me, setMe] = useState<MeData | null>(null)
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [forumPostCount, setForumPostCount] = useState(0)
   const [studyGroupCount, setStudyGroupCount] = useState(0)
-  const [recentGroups, setRecentGroups] = useState<StudyGroup[]>([])
-  const [recentPosts, setRecentPosts] = useState<ForumPost[]>([])
   const [connectionCount, setConnectionCount] = useState(0)
   const [editOpen, setEditOpen] = useState(false)
   const [editName, setEditName] = useState('')
@@ -80,11 +66,9 @@ export default function ProfilePage() {
         if (!meData) return
         setMe(meData)
         const id = meData.id
-        const [profileData, statsData, groupsData, postsData, connectionsData] = await Promise.all([
+        const [profileData, statsData, connectionsData] = await Promise.all([
           fetch(`/api/user/profile?userId=${id}`).then((r) => r.json()),
           fetch(`/api/user/stats?userId=${id}`).then((r) => r.json()),
-          fetch(`/api/study-groups?myGroups=true&userId=${id}&limit=3`).then((r) => r.json()),
-          fetch(`/api/forums/posts?userId=${id}&limit=5`).then((r) => r.json()),
           fetch(`/api/connections/count?userId=${id}`).then((r) => r.json()),
         ])
         if (profileData.profile) setProfile(profileData.profile as ProfileData)
@@ -92,10 +76,6 @@ export default function ProfilePage() {
           setForumPostCount(statsData.forumPostCount)
         if (typeof statsData.studyGroupCount === 'number')
           setStudyGroupCount(statsData.studyGroupCount)
-        if (Array.isArray(groupsData.groups))
-          setRecentGroups(groupsData.groups.slice(0, 3) as StudyGroup[])
-        if (Array.isArray(postsData.posts))
-          setRecentPosts(postsData.posts.slice(0, 5) as ForumPost[])
         if (typeof connectionsData.count === 'number') setConnectionCount(connectionsData.count)
       } catch (err) {
         console.error('[ProfilePage] Failed to load profile data:', err)
@@ -310,60 +290,6 @@ export default function ProfilePage() {
               </button>
             </p>
           )}
-        </div>
-
-        {/* Study Groups + Recent Posts */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Study Groups */}
-          <div className="border-border bg-card rounded-2xl border p-6 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-foreground font-semibold">
-                Study Groups{studyGroupCount > 0 ? ` (${studyGroupCount})` : ''}
-              </h2>
-              <Link href="/groups" className="text-primary text-xs hover:underline">
-                View all
-              </Link>
-            </div>
-            {recentGroups.length > 0 ? (
-              <ul className="space-y-2">
-                {recentGroups.map((g) => (
-                  <li key={g.id} className="flex items-center gap-2">
-                    <BookOpen className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <div>
-                      <p className="text-foreground text-sm font-medium">{g.name}</p>
-                      <p className="text-muted-foreground text-xs">{g.subject}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground text-sm italic">No groups joined yet.</p>
-            )}
-          </div>
-
-          {/* Recent Forum Posts */}
-          <div className="border-border bg-card rounded-2xl border p-6 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-foreground font-semibold">
-                Recent Posts{forumPostCount > 0 ? ` (${forumPostCount})` : ''}
-              </h2>
-              <Link href="/forums" className="text-primary text-xs hover:underline">
-                View all
-              </Link>
-            </div>
-            {recentPosts.length > 0 ? (
-              <ul className="space-y-2">
-                {recentPosts.map((p) => (
-                  <li key={p.id} className="flex items-center gap-2">
-                    <MessageSquare className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <p className="text-foreground line-clamp-1 text-sm">{p.title}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground text-sm italic">No posts yet.</p>
-            )}
-          </div>
         </div>
       </div>
 
