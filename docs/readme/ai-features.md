@@ -6,12 +6,13 @@
 
 ## 8.1 AI Provider & Overview
 
-**Provider:** [Groq](https://groq.com)  
-**Model:** `llama-3.3-70b-versatile`  
-**Auth:** `GROQ_API_KEY` environment variable  
+**Provider:** BINUS Local LLM (Ollama)  
+**Model:** `llama3.1:8b`  
+**Endpoint:** `https://ollama.csbihub.id/v1/chat/completions`  
+**Auth:** None required (internal network endpoint)  
 **Protocol:** OpenAI-compatible REST API
 
-Classmate integrates four AI features, all powered by Groq except Thread Recommendations, which uses a pure algorithmic scoring function with no external AI calls.
+Classmate integrates four AI features, all powered by the BINUS-hosted Ollama instance except Thread Recommendations, which uses a pure algorithmic scoring function with no external AI calls.
 
 ---
 
@@ -38,14 +39,14 @@ User types message in chat UI
   → Rate limit check (aiLimiter: 20 req/hr)
   → Moderate message (moderateContent)
   → Save user message to DB
-  → Stream response from Groq (llama-3.3-70b)
+  → Stream response from Ollama (llama3.1:8b)
   → Accumulate and save assistant message to DB
   → Return streaming Response
 ```
 
 **System Prompt:** Uses Socratic method to guide students to answers rather than giving them directly. Formats output in Markdown with code blocks, shows work step-by-step, and keeps responses concise and scannable.
 
-**Failure handling:** If Groq is unavailable → `503 AI service temporarily unavailable`. UI shows error and disables send until retry.
+**Failure handling:** If Ollama is unavailable → `503 AI service temporarily unavailable`. UI shows error and disables send until retry.
 
 ---
 
@@ -70,7 +71,7 @@ User submits content (forum post, reply, chat message)
 
 **Detected Categories:** `harassment`, `hate_speech`, `spam`, `off_topic`, `inappropriate`, `sexual_content`, `violence`, `self_harm`
 
-**Key Design Decision — Fail-Closed:** Any Groq error, missing API key, or malformed response defaults to `block`. Safety is prioritized over availability.
+**Key Design Decision — Fail-Closed:** Any Ollama error or malformed response defaults to `block`. Safety is prioritized over availability.
 
 ---
 
@@ -82,12 +83,12 @@ User submits content (forum post, reply, chat message)
 User clicks "Summarize" on a forum post
   → POST /api/summarize  (auth required)
   → Rate limit check (aiLimiter: 20 req/hr)
-  → Call Groq (non-streaming, max_tokens: 200, temp: 0.5)
+  → Call Ollama (non-streaming, max_tokens: 200, temp: 0.5)
   → Return 2–3 sentence summary
   → Displayed in collapsible card above replies
 ```
 
-**Failure handling:** If Groq is unavailable → toast error shown, summary card hidden.
+**Failure handling:** If Ollama is unavailable → toast error shown, summary card hidden.
 
 ---
 
@@ -112,23 +113,26 @@ User visits /forums
 
 ## 8.4 Key Design Decisions
 
-| Decision                              | Rationale                                                                                           |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Streaming via SSE**                 | Groq response is piped to browser while accumulating for DB persistence. No second API call needed. |
-| **Fail-closed moderation**            | Any error blocks content. Safety > availability.                                                    |
-| **`temperature: 0.3` for moderation** | Low temperature ensures consistent, deterministic classification.                                   |
-| **`temperature: 0.5` for summaries**  | Balanced between deterministic and creative, giving consistent but not robotic summaries.           |
-| **Algorithmic recommendations**       | Eliminates external AI dependency; always available; low cost.                                      |
-| **Content cap at 10,000 chars**       | Prevents token overflow; controls cost for very long posts.                                         |
-| **Pre-moderation gate**               | User message moderated before DB write or Groq call. Block result returns HTTP 400 immediately.     |
+| Decision                              | Rationale                                                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Streaming via SSE**                 | Ollama response is piped to browser while accumulating for DB persistence. No second API call needed.      |
+| **Fail-closed moderation**            | Any error blocks content. Safety > availability.                                                           |
+| **`temperature: 0.3` for moderation** | Low temperature ensures consistent, deterministic classification.                                          |
+| **`temperature: 0.5` for summaries**  | Balanced between deterministic and creative, giving consistent but not robotic summaries.                  |
+| **Algorithmic recommendations**       | Eliminates AI dependency; always available; no rate limits.                                                |
+| **Content cap at 10,000 chars**       | Prevents token overflow for the local model.                                                               |
+| **Pre-moderation gate**               | User message moderated before DB write or Ollama call. Block result returns HTTP 400 immediately.          |
+| **BINUS-hosted Ollama**               | Uses the institution's own Ollama deployment — no external API key, no per-token cost, data stays on-prem. |
 
 ---
 
 ## 8.5 Environment Variables Required
 
-| Variable       | Used by                                     | Behavior if missing                                             |
-| -------------- | ------------------------------------------- | --------------------------------------------------------------- |
-| `GROQ_API_KEY` | AI Tutor, Summarization, Content Moderation | Moderation fails closed (blocks all); other features return 500 |
+No AI-specific environment variables are required. All AI features connect to the BINUS-hosted Ollama endpoint (`https://ollama.csbihub.id`) without an API key.
+
+| Variable        | Used by | Behavior if missing |
+| --------------- | ------- | ------------------- |
+| _(none for AI)_ | —       | —                   |
 
 ---
 

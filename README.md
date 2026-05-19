@@ -51,8 +51,8 @@ University students lack a dedicated, safe platform to collaborate academically.
 
 **Where AI is used:**
 
-1. **AI Tutor** — conversational academic assistant (Groq Llama 3.3-70B, streaming)
-2. **AI Content Moderation** — every forum post and reply is screened by Groq before being saved; fail-closed (blocks on AI error)
+1. **AI Tutor** — conversational academic assistant (BINUS Ollama `llama3.1:8b`, streaming)
+2. **AI Content Moderation** — every forum post and reply is screened by the local LLM before being saved; fail-closed (blocks on AI error)
 3. **AI Thread Recommendations** — scoring algorithm surfaces relevant threads per user
 
 ---
@@ -66,7 +66,7 @@ University students lack a dedicated, safe platform to collaborate academically.
 | API              | REST API – 43 endpoints, OpenAPI 3.0 via Swagger       |
 | Database         | PostgreSQL + Prisma ORM                                |
 | Auth             | Firebase (Google OAuth) + Better Auth (email/password) |
-| AI               | Groq API (Llama 3.3-70B)                               |
+| AI               | BINUS Ollama (llama3.1:8b, self-hosted)                |
 | Containerization | Docker + docker-compose                                |
 | Deployment       | [Hosting Platform]                                     |
 | Version Control  | GitHub                                                 |

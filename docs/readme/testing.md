@@ -49,16 +49,16 @@ Tests in `__tests__/api/` (22 files).
 
 ## 10.3 Security Testing
 
-| Test Case | Attack Type                                 | Expected Behavior                    | Result |
-| :-------- | :------------------------------------------ | :----------------------------------- | :----- |
-| SEC-01    | XSS via forum post body                     | Input sanitized, `<script>` stripped | Pass   |
-| SEC-02    | XSS via username field                      | HTML entities encoded                | Pass   |
-| SEC-03    | SQL Injection in search param               | Prisma parameterization blocks query | Pass   |
-| SEC-04    | Accessing `/api/admin/users` as STUDENT     | 403 Forbidden                        | Pass   |
-| SEC-05    | Forged session cookie                       | 401 / session validation fails       | Pass   |
-| SEC-06    | Rate limit on auth endpoint                 | 429 after 5 attempts / 15 min        | Pass   |
-| SEC-07    | File upload with `.exe` disguised as `.pdf` | Magic-byte check rejects             | Pass   |
-| SEC-08    | CSRF — cross-origin state-changing request  | SameSite cookie blocks               | Pass   |
+| Test Case | Attack Type                                 | Input                                              | Expected Output                            | Result |
+| :-------- | :------------------------------------------ | :------------------------------------------------- | :----------------------------------------- | :----- |
+| SEC-01    | XSS via forum post body                     | `<script>alert('xss')</script>` in post body       | Sanitized HTML stored, `<script>` stripped | Pass   |
+| SEC-02    | XSS via username field                      | `<img src=x onerror=alert(1)>` as username         | HTML entities encoded in response          | Pass   |
+| SEC-03    | SQL Injection in search param               | `' OR 1=1 --` in search query string               | 200 with safe results; no data leaked      | Pass   |
+| SEC-04    | Accessing `/api/admin/users` as STUDENT     | GET `/api/admin/users` with STUDENT session cookie | 403 Forbidden                              | Pass   |
+| SEC-05    | Forged session cookie                       | Tampered / invalid `session` cookie value          | 401 Unauthorized                           | Pass   |
+| SEC-06    | Rate limit on auth endpoint                 | 6+ login attempts within 15 minutes                | 429 Too Many Requests after 5th attempt    | Pass   |
+| SEC-07    | File upload with `.exe` disguised as `.pdf` | `.exe` binary renamed to `.pdf`                    | 400 Bad Request, upload rejected           | Pass   |
+| SEC-08    | CSRF — cross-origin state-changing request  | Cross-origin POST to a mutating endpoint           | Request blocked by SameSite cookie policy  | Pass   |
 
 ---
 
