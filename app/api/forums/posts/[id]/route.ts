@@ -61,10 +61,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!parsed.success) {
       return NextResponse.json({ error: zodErrorToString(parsed.error) }, { status: 400 })
     }
-    const { title, content, category } = parsed.data
+    const { title, content } = parsed.data
 
     try {
-      const updated = await updateForumPost(id, { title, content, category })
+      const updated = await updateForumPost(id, { title, content })
       return NextResponse.json({ post: updated }, { status: 200 })
     } catch (err) {
       if (err instanceof ServiceValidationError) {

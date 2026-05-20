@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const category = searchParams.get('category') ?? undefined
+    const search = searchParams.get('search') ?? undefined
     const userId = searchParams.get('userId') ?? undefined
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '10', 10) || 10))
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const hasReplies =
       hasRepliesParam === 'true' ? true : hasRepliesParam === 'false' ? false : undefined
 
-    const { posts, total } = await listForumPosts(category, page, limit, userId, hasReplies)
+    const { posts, total } = await listForumPosts(search, page, limit, userId, hasReplies)
     const postsWithUpvoted = await enrichPostsWithUpvotes(posts, session.id)
 
     return NextResponse.json(
@@ -59,10 +59,10 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: zodErrorToString(parsed.error) }, { status: 400 })
     }
-    const { title, content, tags } = parsed.data
+    const { title, content } = parsed.data
 
     try {
-      const result = await createForumPost(user.id, { title, content, category: 'general', tags })
+      const result = await createForumPost(user.id, { title, content })
 
       // Auto-flag AI-detected borderline content for human review
       if (result.warning) {

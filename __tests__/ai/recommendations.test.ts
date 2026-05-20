@@ -35,7 +35,6 @@ const samplePosts = [
   {
     id: 'post-math-1',
     title: 'Calculus: Integration by Parts',
-    category: 'math',
     createdAt: new Date('2026-03-20'),
     upvotes: 8,
     views: 120,
@@ -45,7 +44,6 @@ const samplePosts = [
   {
     id: 'post-cs-1',
     title: 'Binary Trees Explained',
-    category: 'cs',
     createdAt: new Date('2026-03-18'),
     upvotes: 5,
     views: 80,
@@ -55,7 +53,6 @@ const samplePosts = [
   {
     id: 'post-history-1',
     title: 'World War II Essay Tips',
-    category: 'history',
     createdAt: new Date('2026-03-15'),
     upvotes: 2,
     views: 30,
@@ -70,7 +67,7 @@ describe('AI Recommendations — Valid Inputs', () => {
   it('TC-AI-R-01: authenticated user with history receives recommendations', async () => {
     mockAuth()
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      forumPosts: [{ category: 'math', tags: [{ name: 'calculus' }] }],
+      forumPosts: [{ tags: [{ name: 'calculus' }] }],
     })
     ;(prisma.flaggedContent.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.forumPost.findMany as jest.Mock).mockResolvedValue(samplePosts)
@@ -86,7 +83,7 @@ describe('AI Recommendations — Valid Inputs', () => {
   it('TC-AI-R-02: each recommendation has required fields (id, title, reason, score)', async () => {
     mockAuth()
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      forumPosts: [{ category: 'math', tags: [{ name: 'calculus' }] }],
+      forumPosts: [{ tags: [{ name: 'calculus' }] }],
     })
     ;(prisma.flaggedContent.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.forumPost.findMany as jest.Mock).mockResolvedValue(samplePosts)
@@ -108,7 +105,7 @@ describe('AI Recommendations — Valid Inputs', () => {
   it('TC-AI-R-03: category-matching post ranks higher than unrelated post', async () => {
     mockAuth()
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      forumPosts: [{ category: 'math', tags: [{ name: 'calculus' }] }],
+      forumPosts: [{ tags: [{ name: 'calculus' }] }],
     })
     ;(prisma.flaggedContent.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.forumPost.findMany as jest.Mock).mockResolvedValue(samplePosts)
@@ -130,7 +127,7 @@ describe('AI Recommendations — Valid Inputs', () => {
   it('TC-AI-R-04: fallbackUsed is false when user has posting history', async () => {
     mockAuth()
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      forumPosts: [{ category: 'cs', tags: [{ name: 'data-structures' }] }],
+      forumPosts: [{ tags: [{ name: 'data-structures' }] }],
     })
     ;(prisma.flaggedContent.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.forumPost.findMany as jest.Mock).mockResolvedValue(samplePosts)
@@ -245,7 +242,7 @@ describe('AI Recommendations — Edge Cases', () => {
 describe('AI Recommendations — Consistency', () => {
   it('TC-AI-R-11: same user, same data → same top recommendation (deterministic)', async () => {
     const userHistory = {
-      forumPosts: [{ category: 'math', tags: [{ name: 'calculus' }] }],
+      forumPosts: [{ tags: [{ name: 'calculus' }] }],
     }
 
     for (let i = 0; i < 2; i++) {
@@ -275,7 +272,7 @@ describe('AI Recommendations — Consistency', () => {
   it('TC-AI-R-12: score is a number and ordered descending', async () => {
     mockAuth()
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      forumPosts: [{ category: 'math', tags: [{ name: 'calculus' }] }],
+      forumPosts: [{ tags: [{ name: 'calculus' }] }],
     })
     ;(prisma.flaggedContent.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.forumPost.findMany as jest.Mock).mockResolvedValue(samplePosts)
@@ -346,7 +343,6 @@ describe('AI Recommendations — Abuse & Misuse Prevention', () => {
     mockAuth()
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
       forumPosts: Array.from({ length: 200 }, () => ({
-        category: 'math',
         tags: [{ name: 'calculus' }],
       })),
     })

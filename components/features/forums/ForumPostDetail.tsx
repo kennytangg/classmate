@@ -12,7 +12,6 @@ interface ForumPostDetailProps {
     id: string
     title: string
     content: string
-    category?: string
     views: number
     upvotes: number
     hasUpvoted: boolean
@@ -27,7 +26,6 @@ interface ForumPostDetailProps {
         major?: string | null
       } | null
     }
-    tags: { id: string; name: string }[]
     _count: {
       replies: number
     }
@@ -60,29 +58,11 @@ export function ForumPostDetail({ post }: ForumPostDetailProps) {
           </div>
         </div>
 
-        {post.category && (
-          <span className="bg-primary/10 text-primary mb-3 inline-block rounded-md px-2 py-0.5 text-xs font-medium">
-            {post.category}
-          </span>
-        )}
         <h1 className="text-foreground mb-4 text-2xl font-bold md:text-3xl">{post.title}</h1>
 
         <div className="prose text-foreground dark:prose-invert mb-6 max-w-none whitespace-pre-line">
           {post.content}
         </div>
-
-        {post.tags.length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <span
-                key={tag.id}
-                className="bg-muted text-muted-foreground rounded-md px-3 py-1 text-sm"
-              >
-                #{tag.name}
-              </span>
-            ))}
-          </div>
-        )}
 
         <div className="border-border flex items-center gap-6 border-t pt-6">
           <UpvoteButton

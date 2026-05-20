@@ -29,12 +29,10 @@ beforeEach(() => {
 
 async function fillForm(
   user: ReturnType<typeof userEvent.setup>,
-  overrides: { title?: string; content?: string; category?: string; tags?: string } = {}
+  overrides: { title?: string; content?: string } = {}
 ) {
   const title = overrides.title ?? 'How to solve integrals?'
   const content = overrides.content ?? 'I need help understanding integration by parts.'
-  const category = overrides.category ?? 'math'
-  const tags = overrides.tags ?? 'calculus'
 
   if (title) await user.type(screen.getByPlaceholderText("What's your question or topic?"), title)
   if (content)
@@ -42,24 +40,20 @@ async function fillForm(
       screen.getByPlaceholderText('Describe your question or discussion topic in detail...'),
       content
     )
-  if (category) {
-    const select = screen.getByRole('combobox')
-    await user.selectOptions(select, category)
-  }
-  if (tags)
-    await user.type(screen.getByPlaceholderText('e.g., calculus, homework, derivatives'), tags)
 }
 
 describe('CreateForumPostPage', () => {
-  it('renders title, content, category, and tags fields', () => {
+  it('renders title and content fields', () => {
     render(<CreateForumPostPage />)
 
     expect(screen.getByPlaceholderText("What's your question or topic?")).toBeInTheDocument()
     expect(
       screen.getByPlaceholderText('Describe your question or discussion topic in detail...')
     ).toBeInTheDocument()
-    expect(screen.getByRole('combobox')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('e.g., calculus, homework, derivatives')).toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('e.g., calculus, homework, derivatives')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
   })
 
   it('shows error toast when title is empty', async () => {
@@ -70,7 +64,6 @@ describe('CreateForumPostPage', () => {
       screen.getByPlaceholderText('Describe your question or discussion topic in detail...'),
       'some content'
     )
-    await user.selectOptions(screen.getByRole('combobox'), 'math')
     await user.click(screen.getByRole('button', { name: /post discussion/i }))
 
     expect(toast.error).toHaveBeenCalledWith('Please fill in all required fields')
@@ -81,7 +74,6 @@ describe('CreateForumPostPage', () => {
     render(<CreateForumPostPage />)
 
     await user.type(screen.getByPlaceholderText("What's your question or topic?"), 'My title')
-    await user.selectOptions(screen.getByRole('combobox'), 'cs')
     await user.click(screen.getByRole('button', { name: /post discussion/i }))
 
     expect(toast.error).toHaveBeenCalledWith('Please fill in all required fields')

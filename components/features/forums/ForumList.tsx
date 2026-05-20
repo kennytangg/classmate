@@ -28,7 +28,6 @@ interface ForumPost {
       major?: string | null
     } | null
   }
-  tags: { id: string; name: string }[]
   _count: {
     replies: number
   }
@@ -52,6 +51,8 @@ export function ForumList() {
   const [totalPages, setTotalPages] = useState(1)
 
   useEffect(() => {
+    let cancelled = false
+
     async function fetchPosts() {
       setLoading(true)
       setError(null)
@@ -62,6 +63,7 @@ export function ForumList() {
         params.set('limit', String(PAGE_LIMIT))
         if (activeTab === 'active') params.set('hasReplies', 'true')
         if (activeTab === 'unanswered') params.set('hasReplies', 'false')
+        if (searchQuery) params.set('search', searchQuery)
 
         const response = await fetch(`/api/forums/posts?${params.toString()}`)
 
@@ -73,17 +75,32 @@ export function ForumList() {
           posts: ForumPost[]
           meta: { pages: number }
         }
-        setPosts(data.posts ?? [])
-        setTotalPages(data.meta?.pages ?? 1)
+        if (!cancelled) {
+          setPosts(data.posts ?? [])
+          setTotalPages(data.meta?.pages ?? 1)
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load posts')
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load posts')
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    if (searchQuery) {
+      const timer = setTimeout(fetchPosts, 300)
+      return () => {
+        cancelled = true
+        clearTimeout(timer)
       }
     }
 
     fetchPosts()
-  }, [page, activeTab])
+    return () => {
+      cancelled = true
+    }
+  }, [page, activeTab, searchQuery])
 
   useEffect(() => {
     async function fetchRecommendations() {
@@ -104,17 +121,6 @@ export function ForumList() {
 
     fetchRecommendations()
   }, [])
-
-  const filteredPosts = searchQuery
-    ? posts.filter((post) => {
-        const query = searchQuery.toLowerCase()
-        return (
-          post.title.toLowerCase().includes(query) ||
-          post.content.toLowerCase().includes(query) ||
-          post.tags.some((tag) => tag.name.toLowerCase().includes(query))
-        )
-      })
-    : posts
 
   const recommendationMap = new Map(recommendations.map((r) => [r.id, r.reason]))
 
@@ -226,7 +232,7 @@ export function ForumList() {
             </div>
           )}
 
-          {!loading && !error && filteredPosts.length === 0 && (
+          {!loading && !error && posts.length === 0 && (
             <div className="border-border bg-muted flex flex-col items-center justify-center rounded-xl border py-16">
               <MessageSquarePlus className="text-muted-foreground h-12 w-12" />
               <p className="text-foreground mt-4 text-lg font-medium">{emptyState.title}</p>
@@ -241,9 +247,9 @@ export function ForumList() {
             </div>
           )}
 
-          {!loading && !error && filteredPosts.length > 0 && (
-            <div className="space-y-3">
-              {filteredPosts.map((post) => (
+          {!loading && !error && posts.length > 0 && (
+            <div>
+              {posts.map((post) => (
                 <ForumCard
                   key={post.id}
                   id={post.id}
@@ -256,7 +262,6 @@ export function ForumList() {
                   views={post.views}
                   upvotes={post.upvotes}
                   hasUpvoted={post.hasUpvoted}
-                  tags={post.tags.map((t) => t.name)}
                   createdAt={formatDate(post.createdAt)}
                   isRecommended={recommendationMap.has(post.id)}
                 />

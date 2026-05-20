@@ -10,7 +10,6 @@ describe('ForumPostDetail component', () => {
     id: 'post-1',
     title: 'How to solve quadratic equations?',
     content: 'I am struggling with quadratic equations. Can someone explain the quadratic formula?',
-    category: 'math',
     views: 42,
     upvotes: 0,
     hasUpvoted: false,
@@ -25,10 +24,6 @@ describe('ForumPostDetail component', () => {
         major: 'Computer Science',
       },
     },
-    tags: [
-      { id: 'tag-1', name: 'algebra' },
-      { id: 'tag-2', name: 'homework' },
-    ],
     _count: {
       replies: 5,
     },
@@ -96,12 +91,6 @@ describe('ForumPostDetail component', () => {
     expect(screen.getByText('student')).toBeInTheDocument()
   })
 
-  it('displays category badge', () => {
-    render(<ForumPostDetail post={mockPost} />)
-
-    expect(screen.getByText('math')).toBeInTheDocument()
-  })
-
   it('displays the post creation date', () => {
     render(<ForumPostDetail post={mockPost} />)
 
@@ -109,22 +98,6 @@ describe('ForumPostDetail component', () => {
     expect(
       screen.getByText(/days ago|just now|hour|min ago|\d{1,2}\/\d{1,2}\/\d{4}/i)
     ).toBeInTheDocument()
-  })
-
-  it('displays all tags', () => {
-    render(<ForumPostDetail post={mockPost} />)
-
-    expect(screen.getByText('#algebra')).toBeInTheDocument()
-    expect(screen.getByText('#homework')).toBeInTheDocument()
-  })
-
-  it('does not render tags section when no tags exist', () => {
-    const postWithoutTags = { ...mockPost, tags: [] }
-    render(<ForumPostDetail post={postWithoutTags} />)
-
-    // Neither tag should be present
-    expect(screen.queryByText('#algebra')).not.toBeInTheDocument()
-    expect(screen.queryByText('#homework')).not.toBeInTheDocument()
   })
 
   it('displays replies count', () => {
@@ -173,17 +146,6 @@ describe('ForumPostDetail component', () => {
 
     // Should fall back to email prefix
     expect(screen.getByText('student')).toBeInTheDocument()
-  })
-
-  it('renders with different categories', () => {
-    const categories = ['cs', 'physics', 'chemistry', 'biology', 'history']
-
-    categories.forEach((category) => {
-      const { unmount } = render(<ForumPostDetail post={{ ...mockPost, category }} />)
-
-      expect(screen.getByText(category)).toBeInTheDocument()
-      unmount()
-    })
   })
 
   it('displays message icon alongside replies count', () => {

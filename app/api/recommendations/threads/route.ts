@@ -1,11 +1,10 @@
-import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { scoreAndRankPosts } from '@/lib/recommendations'
 import { checkRateLimit, generalLimiter } from '@/lib/rate-limit'
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const session = await getSession()
     if (!session) {
@@ -23,7 +22,6 @@ export async function GET(_req: NextRequest) {
             orderBy: { createdAt: 'desc' },
             take: 20,
             select: {
-              category: true,
               tags: {
                 select: { name: true },
               },
@@ -57,17 +55,14 @@ export async function GET(_req: NextRequest) {
       take: 100,
     })
 
-    const userCategories = new Set(
-      (historyUser?.forumPosts ?? []).map((post) => post.category.toLowerCase())
-    )
     const userTags = new Set(
       (historyUser?.forumPosts ?? [])
         .flatMap((post) => post.tags)
         .map((tag) => tag.name.toLowerCase())
     )
 
-    const hasHistory = userCategories.size > 0 || userTags.size > 0
-    const ranked = scoreAndRankPosts(posts, userCategories, userTags)
+    const hasHistory = userTags.size > 0
+    const ranked = scoreAndRankPosts(posts, new Set(), userTags)
     const top = ranked.slice(0, 5)
 
     return NextResponse.json(
@@ -75,7 +70,6 @@ export async function GET(_req: NextRequest) {
         recommendations: top.map((item) => ({
           id: item.id,
           title: item.title,
-          category: item.category,
           createdAt: item.createdAt,
           upvotes: item.upvotes,
           views: item.views,

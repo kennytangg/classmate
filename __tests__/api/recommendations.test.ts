@@ -27,7 +27,6 @@ describe('GET /api/recommendations/threads', () => {
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
       forumPosts: [
         {
-          category: 'math',
           tags: [{ name: 'calculus' }],
         },
       ],
@@ -37,7 +36,6 @@ describe('GET /api/recommendations/threads', () => {
       {
         id: 'post-a',
         title: 'Integration techniques',
-        category: 'math',
         createdAt: new Date('2026-03-20T08:00:00.000Z'),
         upvotes: 4,
         views: 80,
@@ -47,7 +45,6 @@ describe('GET /api/recommendations/threads', () => {
       {
         id: 'post-b',
         title: 'History essay tips',
-        category: 'history',
         createdAt: new Date('2026-03-18T08:00:00.000Z'),
         upvotes: 1,
         views: 12,
@@ -74,7 +71,6 @@ describe('GET /api/recommendations/threads', () => {
       {
         id: 'post-1',
         title: 'General discussion thread',
-        category: 'cs',
         createdAt: new Date('2026-03-19T10:00:00.000Z'),
         upvotes: 2,
         views: 50,
@@ -103,7 +99,6 @@ describe('GET /api/recommendations/threads', () => {
       {
         id: 'post-safe-1',
         title: 'Allowed thread',
-        category: 'science',
         createdAt: new Date('2026-03-19T10:00:00.000Z'),
         upvotes: 2,
         views: 50,

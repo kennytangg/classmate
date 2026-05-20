@@ -215,15 +215,15 @@ describe('PATCH /api/forums/posts/[id]', () => {
     expect(data.error).not.toMatch(/postgres|secret|db\.internal/i)
   })
 
-  it('updates title, content, and category when all provided', async () => {
-    const mockUpdatedPost = { id: 'post-1', title: 'T', content: 'C', category: 'Cat', tags: [] }
+  it('updates title and content when both provided', async () => {
+    const mockUpdatedPost = { id: 'post-1', title: 'T', content: 'C', tags: [] }
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
     ;(prisma.forumPost.findUnique as jest.Mock).mockResolvedValue({ userId: 'user-1' })
     ;(prisma.forumPost.update as jest.Mock).mockResolvedValue(mockUpdatedPost)
 
     const req = new NextRequest('http://localhost/api/forums/posts/post-1', {
       method: 'PATCH',
-      body: JSON.stringify({ title: 'T', content: 'C', category: 'Cat' }),
+      body: JSON.stringify({ title: 'T', content: 'C' }),
       headers: { 'Content-Type': 'application/json' },
     })
     const res = await patchPost(req, { params: Promise.resolve({ id: 'post-1' }) })
@@ -231,7 +231,7 @@ describe('PATCH /api/forums/posts/[id]', () => {
     expect(res.status).toBe(200)
     expect(prisma.forumPost.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ title: 'T', content: 'C', category: 'Cat' }),
+        data: expect.objectContaining({ title: 'T', content: 'C' }),
       })
     )
   })

@@ -1,7 +1,6 @@
 type RecommendationItem = {
   id: string
   title: string
-  category: string
   createdAt: Date
   upvotes: number
   views: number
@@ -13,7 +12,6 @@ type RecommendationItem = {
 type PostInput = {
   id: string
   title: string
-  category: string
   createdAt: Date
   upvotes: number
   views: number
@@ -41,16 +39,13 @@ function isTrending(repliesCount: number, views: number, upvotes: number): boole
 
 export function scoreAndRankPosts(
   posts: PostInput[],
-  userCategories: Set<string>,
+  _userCategories: Set<string>,
   userTags: Set<string>
 ): RecommendationItem[] {
-  const hasHistory = userCategories.size > 0 || userTags.size > 0
+  const hasHistory = userTags.size > 0
 
   const scored: RecommendationItem[] = posts.map((post) => {
-    const lowerCategory = post.category.toLowerCase()
     const postTagNames = post.tags.map((tag) => tag.name.toLowerCase())
-
-    const categoryMatch = userCategories.has(lowerCategory)
     const matchingTags = postTagNames.filter((tag) => userTags.has(tag)).length
 
     const recency = recencyScore(post.createdAt)
@@ -60,10 +55,6 @@ export function scoreAndRankPosts(
     const reasons: string[] = []
 
     if (hasHistory) {
-      if (categoryMatch) {
-        score += 40
-        reasons.push(`Matches your recent ${post.category} activity`)
-      }
       if (matchingTags > 0) {
         score += matchingTags * 15
         reasons.push(`Shares ${matchingTags} of your frequent topic tags`)
@@ -81,7 +72,6 @@ export function scoreAndRankPosts(
     return {
       id: post.id,
       title: post.title,
-      category: post.category,
       createdAt: post.createdAt,
       upvotes: post.upvotes,
       views: post.views,

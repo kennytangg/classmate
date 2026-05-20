@@ -54,7 +54,6 @@ async function main() {
   await prisma.studyGroup.deleteMany()
   await prisma.forumReply.deleteMany()
   await prisma.forumPost.deleteMany()
-  await prisma.forumTag.deleteMany()
   await prisma.event.deleteMany()
   await prisma.account.deleteMany()
   await prisma.session.deleteMany()
@@ -233,30 +232,6 @@ async function main() {
     )
   )
 
-  // ── Forum Tags ─────────────────────────────────────────────────────────────
-  console.warn('  Creating forum tags...')
-  const tagNames = [
-    'react',
-    'python',
-    'algorithms',
-    'typescript',
-    'database',
-    'web-development',
-    'data-structures',
-    'javascript',
-    'machine-learning',
-    'security',
-    'css',
-    'git',
-    'linux',
-    'study-tips',
-    'math',
-  ]
-  const tags = await Promise.all(tagNames.map((name) => prisma.forumTag.create({ data: { name } })))
-  const t = Object.fromEntries(
-    tags.map((tag: { id: string; name: string }) => [tag.name, tag])
-  ) as Record<string, { id: string; name: string }>
-
   // ── Forum Posts ────────────────────────────────────────────────────────────
   console.warn('  Creating forum posts...')
   const posts = await Promise.all([
@@ -265,12 +240,10 @@ async function main() {
         userId: alice.id,
         title: 'How do I properly use useEffect with async functions?',
         content: `I keep running into issues with async functions inside useEffect. I've tried:\n\n\`\`\`js\nuseEffect(async () => {\n  const data = await fetchData();\n  setData(data);\n}, []);\n\`\`\`\n\nBut I get a warning about returning a Promise. What's the correct pattern?`,
-        category: 'cs',
         upvotes: 12,
         views: 145,
         isAnswered: true,
         repliesCount: 3,
-        tags: { connect: [{ id: t['react']!.id }, { id: t['javascript']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -278,12 +251,10 @@ async function main() {
         userId: bob.id,
         title: 'Best resources for learning Big O notation?',
         content: `I'm preparing for technical interviews and struggling to understand time complexity analysis. Can anyone recommend good resources or share how they learned Big O notation? Books, videos, or practice sites all welcome!`,
-        category: 'cs',
         upvotes: 8,
         views: 98,
         isAnswered: false,
         repliesCount: 4,
-        tags: { connect: [{ id: t['algorithms']!.id }, { id: t['data-structures']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -291,12 +262,10 @@ async function main() {
         userId: fiona.id,
         title: 'TypeScript generics — when to use them vs. `any`?',
         content: `I understand the basics of generics in TypeScript but I'm unsure when it's appropriate to use them versus just using \`any\`. Can someone explain with practical examples? I want to write more type-safe code.`,
-        category: 'cs',
         upvotes: 15,
         views: 210,
         isAnswered: true,
         repliesCount: 3,
-        tags: { connect: [{ id: t['typescript']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -304,12 +273,10 @@ async function main() {
         userId: carol.id,
         title: '[Resource] Complete React Hooks Cheat Sheet 2026',
         content: `Here's a comprehensive cheat sheet I put together for all core React hooks:\n\n- **useState** — state management in functional components\n- **useEffect** — side effects, data fetching, subscriptions\n- **useContext** — consume context values without prop drilling\n- **useReducer** — complex state logic (alternative to useState)\n- **useMemo** — memoize expensive computations\n- **useCallback** — memoize callback functions\n- **useRef** — mutable reference that doesn't trigger re-renders\n\nFeel free to bookmark and share!`,
-        category: 'cs',
         upvotes: 24,
         views: 387,
         isAnswered: false,
         repliesCount: 2,
-        tags: { connect: [{ id: t['react']!.id }, { id: t['javascript']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -317,12 +284,10 @@ async function main() {
         userId: george.id,
         title: 'Database normalisation — 1NF, 2NF, 3NF explained clearly',
         content: `Database normalisation is a critical skill but often poorly explained. Here's my concise breakdown:\n\n**1NF**: Each column contains atomic values; no repeating groups.\n**2NF**: Must be in 1NF; every non-key attribute is fully dependent on the primary key.\n**3NF**: Must be in 2NF; no transitive dependencies — non-key attributes depend only on the primary key.\n\nAsk me any questions in the replies!`,
-        category: 'cs',
         upvotes: 19,
         views: 256,
         isAnswered: false,
         repliesCount: 3,
-        tags: { connect: [{ id: t['database']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -330,12 +295,10 @@ async function main() {
         userId: diana.id,
         title: "I'm completely lost on recursion — can anyone help?",
         content: `I've been staring at recursive algorithms for a week and still don't understand them intuitively. The factorial example makes sense but when it gets more complex (like tree traversal) I lose track completely. Is there a mental model that helps?`,
-        category: 'cs',
         upvotes: 6,
         views: 72,
         isAnswered: true,
         repliesCount: 4,
-        tags: { connect: [{ id: t['algorithms']!.id }, { id: t['python']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -343,12 +306,10 @@ async function main() {
         userId: evan.id,
         title: 'ClassMate platform update — study groups, AI tutor & more',
         content: `Excited to announce the latest ClassMate features!\n\n✅ **Study Groups** — create or join private/public groups to collaborate with peers\n✅ **AI Tutor** — get instant answers to your study questions powered by AI\n✅ **Forum Summarisation** — summarise long discussion threads with one click\n✅ **Thread Recommendations** — personalised forum recommendations based on your activity\n\nFeedback and bug reports are welcome!`,
-        category: 'cs',
         upvotes: 31,
         views: 512,
         isAnswered: false,
         repliesCount: 2,
-        tags: { connect: [{ id: t['web-development']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -356,12 +317,10 @@ async function main() {
         userId: hannah.id,
         title: "What's the difference between Python lists and tuples?",
         content: `I keep seeing both lists and tuples in Python code and I'm confused about when to use which. They seem to do the same thing? Is there a practical difference beyond mutability?`,
-        category: 'cs',
         upvotes: 4,
         views: 55,
         isAnswered: true,
         repliesCount: 3,
-        tags: { connect: [{ id: t['python']!.id }] },
       },
     }),
     // ── Additional posts (page 2 demo + variety) ───────────────────────────────
@@ -370,12 +329,10 @@ async function main() {
         userId: bob.id,
         title: 'How does JWT authentication work under the hood?',
         content: `I'm implementing login for my web project and everyone says to use JWT, but I don't really understand how it works. How does the server verify the token? Where should I store it on the client — localStorage or cookies? And what makes it "stateless"?`,
-        category: 'cs',
         upvotes: 18,
         views: 234,
         isAnswered: false,
         repliesCount: 0,
-        tags: { connect: [{ id: t['security']!.id }, { id: t['web-development']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -383,12 +340,10 @@ async function main() {
         userId: diana.id,
         title: 'CSS Flexbox vs Grid — when to use which?',
         content: `I keep going back and forth between Flexbox and CSS Grid and I'm not sure I'm picking the right one. My understanding:\n- Flexbox = one-dimensional (row or column)\n- Grid = two-dimensional (rows AND columns)\n\nBut in practice they seem interchangeable a lot of the time. Can someone give me clear rules for when to reach for each?`,
-        category: 'cs',
         upvotes: 11,
         views: 167,
         isAnswered: true,
         repliesCount: 0,
-        tags: { connect: [{ id: t['css']!.id }, { id: t['web-development']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -396,12 +351,10 @@ async function main() {
         userId: fiona.id,
         title: 'Getting started with Machine Learning — best first steps?',
         content: `I want to learn Machine Learning but the field feels overwhelming. There are so many frameworks (TensorFlow, PyTorch, scikit-learn), math prerequisites (linear algebra, stats, calculus), and online courses. Where should an intermediate Python developer actually start? What's the logical learning path?`,
-        category: 'cs',
         upvotes: 22,
         views: 318,
         isAnswered: false,
         repliesCount: 0,
-        tags: { connect: [{ id: t['machine-learning']!.id }, { id: t['python']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -409,12 +362,10 @@ async function main() {
         userId: alice.id,
         title: 'Git branching strategies for small team projects',
         content: `Our team of 3 is building a web app for our final project and we keep stepping on each other with Git. We've had merge conflicts on main twice this week. What branching strategy is practical for a small team? Is Git Flow overkill for 3 people, or should we just use feature branches off main?`,
-        category: 'general',
         upvotes: 9,
         views: 121,
         isAnswered: true,
         repliesCount: 0,
-        tags: { connect: [{ id: t['git']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -422,12 +373,10 @@ async function main() {
         userId: carol.id,
         title: 'Study tips that actually worked for me in CS — share yours!',
         content: `After two years of CS I've figured out what actually works for me:\n\n1. **Active recall over passive reading** — close the notes and try to explain it from memory\n2. **Pomodoro for coding** — 25 min focus, 5 min break keeps me sharp\n3. **Rubber duck debugging** — explaining the problem out loud catches more bugs than staring at the screen\n4. **Spaced repetition** — Anki for flashcards of algorithms and patterns\n5. **Build something real** — tutorials alone don't stick; build a project using what you learned\n\nWhat are your go-to study strategies?`,
-        category: 'general',
         upvotes: 27,
         views: 445,
         isAnswered: false,
         repliesCount: 0,
-        tags: { connect: [{ id: t['study-tips']!.id }] },
       },
     }),
     prisma.forumPost.create({
@@ -435,12 +384,10 @@ async function main() {
         userId: george.id,
         title: 'Probability & statistics resources for CS students',
         content: `Probability and stats keep coming up in my CS coursework (machine learning, algorithm analysis, networking) and my maths background is weak. Which resources do you recommend that are specifically aimed at CS applications rather than pure maths? I want intuition, not proofs.`,
-        category: 'math',
         upvotes: 14,
         views: 198,
         isAnswered: false,
         repliesCount: 0,
-        tags: { connect: [{ id: t['math']!.id }, { id: t['machine-learning']!.id }] },
       },
     }),
   ])
@@ -1558,7 +1505,6 @@ async function main() {
   console.warn(`    ${8} users (1 owner, 2 moderators, 5 students)`)
   console.warn(`    ${8} user profiles`)
   console.warn(`    ${8} auth accounts`)
-  console.warn(`    ${tagNames.length} forum tags`)
   console.warn(`    ${posts.length} forum posts (2 pages at limit=10)`)
   console.warn(`    ${replies.length} forum replies`)
   console.warn(`    10 study groups + members`)

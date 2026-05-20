@@ -36,7 +36,6 @@ async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
     screen.getByPlaceholderText('Describe your question or discussion topic in detail...'),
     'Test content'
   )
-  await user.selectOptions(screen.getByRole('combobox'), 'math')
   await user.click(screen.getByRole('button', { name: /post discussion/i }))
 }
 

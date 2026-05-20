@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ThumbsUp } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface UpvoteButtonProps {
@@ -25,7 +25,6 @@ export function UpvoteButton({
     if (loading) return
     setLoading(true)
 
-    // Optimistic update
     const prevUpvotes = upvotes
     const prevHasUpvoted = hasUpvoted
     setUpvotes(hasUpvoted ? upvotes - 1 : upvotes + 1)
@@ -67,15 +66,16 @@ export function UpvoteButton({
     <button
       onClick={handleUpvote}
       disabled={loading}
-      aria-label={hasUpvoted ? 'Remove upvote' : 'Upvote'}
-      className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm transition-colors disabled:opacity-50 ${
-        hasUpvoted
-          ? 'text-primary bg-primary/10 hover:bg-primary/20'
-          : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+      aria-label={hasUpvoted ? 'Remove like' : 'Like'}
+      className={`group/upvote relative flex cursor-pointer items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+        hasUpvoted ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
       }`}
     >
-      <ThumbsUp className="h-4 w-4" />
+      <Heart className={`h-3.5 w-3.5 ${hasUpvoted ? 'fill-red-500' : ''}`} />
       <span>{upvotes}</span>
+      <span className="bg-popover text-popover-foreground pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap opacity-0 shadow-md transition-opacity group-hover/upvote:opacity-100">
+        Like
+      </span>
     </button>
   )
 }

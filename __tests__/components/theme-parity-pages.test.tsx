@@ -18,13 +18,12 @@ describe('Theme parity component guards', () => {
         views={10}
         upvotes={3}
         hasUpvoted={false}
-        tags={['calculus']}
         createdAt="today"
       />
     )
 
     expect(screen.getByText('Need help with calculus')).toBeInTheDocument()
-    expect(container.innerHTML).toContain('bg-card')
+    expect(container.innerHTML).toContain('border-b')
     expect(container.innerHTML).toContain('text-foreground')
   })
 

@@ -4,13 +4,11 @@ import { z } from 'zod'
 export const createPostSchema = z.object({
   title: z.string().min(1).max(300),
   content: z.string().min(1).max(20000),
-  tags: z.array(z.string().max(50)).max(10).optional(),
 })
 
 export const updatePostSchema = z.object({
   title: z.string().min(1).max(300).optional(),
   content: z.string().min(1).max(20000).optional(),
-  category: z.string().max(100).optional(),
 })
 
 export const deleteWithReasonSchema = z.object({

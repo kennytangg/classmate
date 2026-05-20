@@ -29,7 +29,6 @@ jest.mock('@/components/features/forums/ForumCard', () => ({
     id: string | number
     title: string
     author: string
-    category: string
     replies: number
     views: number
     upvotes: number
@@ -64,7 +63,6 @@ describe('ForumList component', () => {
       id: 'post-1',
       title: 'How to study effectively',
       content: 'What are your best study tips?',
-      category: 'Study Tips',
       views: 42,
       upvotes: 0,
       hasUpvoted: false,
@@ -89,7 +87,6 @@ describe('ForumList component', () => {
       id: 'post-2',
       title: 'Best resources for algorithms',
       content: 'Looking for algorithm resources...',
-      category: 'Resources',
       views: 28,
       upvotes: 0,
       hasUpvoted: false,
@@ -113,19 +110,16 @@ describe('ForumList component', () => {
     {
       id: 'rec-1',
       title: 'Understanding recursion',
-      category: 'Algorithms',
       reason: 'Based on your interest',
     },
     {
       id: 'rec-2',
       title: 'Time complexity explained',
-      category: 'Theory',
       reason: 'Popular in your major',
     },
     {
       id: 'rec-3',
       title: 'Data structures guide',
-      category: 'Fundamentals',
       reason: 'Trending now',
     },
   ]
@@ -440,20 +434,22 @@ describe('ForumList component', () => {
   })
 
   describe('Search filtering', () => {
-    beforeEach(() => {
+    it('sends search param to API and shows matching posts', async () => {
       global.fetch = jest.fn()
       ;(global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ posts: mockForumPosts }),
+          json: async () => ({ posts: mockForumPosts, meta: { pages: 1 } }),
         })
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ recommendations: mockRecommendations }),
         })
-    })
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ posts: [mockForumPosts[0]], meta: { pages: 1 } }),
+        })
 
-    it('filters posts by title', async () => {
       render(<ForumList />)
       const searchInput = screen.getByPlaceholderText('Search discussions...')
 
@@ -464,44 +460,28 @@ describe('ForumList component', () => {
       await userEvent.type(searchInput, 'study')
 
       await waitFor(() => {
-        expect(screen.getByText('How to study effectively')).toBeInTheDocument()
-        expect(screen.queryByText('Best resources for algorithms')).not.toBeInTheDocument()
+        const calls = (global.fetch as jest.Mock).mock.calls
+        const searchCall = calls.find((c: string[]) => c[0]?.includes('search=study'))
+        expect(searchCall).toBeDefined()
       })
     })
 
-    it('filters posts by content', async () => {
-      render(<ForumList />)
-      const searchInput = screen.getByPlaceholderText('Search discussions...')
+    it('shows no results message when API returns empty results for search', async () => {
+      global.fetch = jest.fn()
+      ;(global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ posts: mockForumPosts, meta: { pages: 1 } }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ recommendations: mockRecommendations }),
+        })
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ posts: [], meta: { pages: 1 } }),
+        })
 
-      await waitFor(() => {
-        expect(screen.getByText('How to study effectively')).toBeInTheDocument()
-      })
-
-      await userEvent.type(searchInput, 'algorithm')
-
-      await waitFor(() => {
-        expect(screen.queryByText('How to study effectively')).not.toBeInTheDocument()
-        expect(screen.getByText('Best resources for algorithms')).toBeInTheDocument()
-      })
-    })
-
-    it('filters posts by tags', async () => {
-      render(<ForumList />)
-      const searchInput = screen.getByPlaceholderText('Search discussions...')
-
-      await waitFor(() => {
-        expect(screen.getByText('How to study effectively')).toBeInTheDocument()
-      })
-
-      await userEvent.type(searchInput, 'productivity')
-
-      await waitFor(() => {
-        expect(screen.getByText('How to study effectively')).toBeInTheDocument()
-        expect(screen.queryByText('Best resources for algorithms')).not.toBeInTheDocument()
-      })
-    })
-
-    it('shows no results message when search matches nothing', async () => {
       render(<ForumList />)
       const searchInput = screen.getByPlaceholderText('Search discussions...')
 
@@ -514,28 +494,6 @@ describe('ForumList component', () => {
       await waitFor(() => {
         expect(screen.getByText('No results for that search')).toBeInTheDocument()
         expect(screen.getByText('Try different keywords.')).toBeInTheDocument()
-      })
-    })
-
-    it('clears search results when search is cleared', async () => {
-      render(<ForumList />)
-      const searchInput = screen.getByPlaceholderText('Search discussions...') as HTMLInputElement
-
-      await waitFor(() => {
-        expect(screen.getByText('How to study effectively')).toBeInTheDocument()
-      })
-
-      await userEvent.type(searchInput, 'study')
-
-      await waitFor(() => {
-        expect(screen.queryByText('Best resources for algorithms')).not.toBeInTheDocument()
-      })
-
-      await userEvent.clear(searchInput)
-
-      await waitFor(() => {
-        expect(screen.getByText('How to study effectively')).toBeInTheDocument()
-        expect(screen.getByText('Best resources for algorithms')).toBeInTheDocument()
       })
     })
   })

@@ -6,14 +6,11 @@ import { sanitizeText, sanitizeMarkdown, containsXSSPatterns } from '@/lib/sanit
 interface CreatePostInput {
   title: string
   content: string
-  category: string
-  tags?: string[]
 }
 
 interface UpdatePostInput {
   title?: string
   content?: string
-  category?: string
 }
 
 // --- Output types ---
@@ -70,14 +67,21 @@ export class ServiceValidationError extends Error {
 // --- Post functions ---
 
 export async function listForumPosts(
-  category?: string,
+  search?: string,
   page = 1,
   limit = 10,
   userId?: string,
   hasReplies?: boolean
 ): Promise<{ posts: Awaited<ReturnType<typeof prisma.forumPost.findMany>>; total: number }> {
   const where = {
-    ...(category && category !== 'all' ? { category } : {}),
+    ...(search
+      ? {
+          OR: [
+            { title: { contains: search, mode: 'insensitive' as const } },
+            { content: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {}),
     ...(userId ? { userId } : {}),
     ...(hasReplies === true ? { replies: { some: {} } } : {}),
     ...(hasReplies === false ? { replies: { none: {} } } : {}),
@@ -100,7 +104,6 @@ export async function listForumPosts(
           },
         },
       },
-      tags: true,
       _count: {
         select: { replies: true },
       },
@@ -129,14 +132,13 @@ export async function enrichPostsWithUpvotes<T extends { id: string }>(
 }
 
 export async function createForumPost(userId: string, data: CreatePostInput) {
-  const { title, content, category, tags } = data
+  const { title, content } = data
 
   const sanitizedTitle = sanitizeText(title)
   const sanitizedContent = sanitizeMarkdown(content)
-  const sanitizedCategory = sanitizeText(category)
 
-  if (!sanitizedTitle || !sanitizedContent || !sanitizedCategory) {
-    throw new ServiceValidationError('title, content, and category must contain valid text')
+  if (!sanitizedTitle || !sanitizedContent) {
+    throw new ServiceValidationError('title and content must contain valid text')
   }
 
   if (containsXSSPatterns(sanitizedTitle) || containsXSSPatterns(sanitizedContent)) {
@@ -156,15 +158,7 @@ export async function createForumPost(userId: string, data: CreatePostInput) {
     data: {
       title: sanitizedTitle,
       content: sanitizedContent,
-      category: sanitizedCategory,
       userId,
-      tags: tags
-        ? {
-            create: tags.map((tag: string) => ({
-              name: sanitizeText(tag.trim().toLowerCase()) ?? '',
-            })),
-          }
-        : undefined,
     },
     include: {
       user: {
@@ -174,7 +168,6 @@ export async function createForumPost(userId: string, data: CreatePostInput) {
           profile: { select: { displayName: true } },
         },
       },
-      tags: true,
     },
   })
 
@@ -207,7 +200,6 @@ export async function getForumPost(postId: string) {
           },
         },
       },
-      tags: true,
       _count: {
         select: { replies: true },
       },
@@ -249,11 +241,6 @@ export async function updateForumPost(postId: string, data: UpdatePostInput) {
     if (!sanitized) throw new ServiceValidationError('content must contain valid text')
     update.content = sanitized
   }
-  if (data.category !== undefined) {
-    const sanitized = sanitizeText(data.category)
-    if (!sanitized) throw new ServiceValidationError('category must contain valid text')
-    update.category = sanitized
-  }
 
   if (Object.keys(update).length === 0) {
     throw new ServiceValidationError('No valid fields to update')
@@ -264,7 +251,6 @@ export async function updateForumPost(postId: string, data: UpdatePostInput) {
     data: update,
     include: {
       user: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
-      tags: true,
     },
   })
 }

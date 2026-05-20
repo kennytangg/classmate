@@ -75,25 +75,21 @@ describe('listForumPosts', () => {
     expect(result.total).toBe(1)
   })
 
-  it('filters by category when provided', async () => {
+  it('filters by search keyword when provided', async () => {
     mockPrisma.forumPost.count.mockResolvedValue(0 as never)
     mockPrisma.forumPost.findMany.mockResolvedValue([] as never)
 
-    await listForumPosts('math')
+    await listForumPosts('react')
 
     expect(mockPrisma.forumPost.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { category: 'math' } })
-    )
-  })
-
-  it('treats "all" as no filter', async () => {
-    mockPrisma.forumPost.count.mockResolvedValue(0 as never)
-    mockPrisma.forumPost.findMany.mockResolvedValue([] as never)
-
-    await listForumPosts('all')
-
-    expect(mockPrisma.forumPost.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: {} })
+      expect.objectContaining({
+        where: {
+          OR: [
+            { title: { contains: 'react', mode: 'insensitive' } },
+            { content: { contains: 'react', mode: 'insensitive' } },
+          ],
+        },
+      })
     )
   })
 })
@@ -128,14 +124,10 @@ describe('enrichPostsWithUpvotes', () => {
 
 describe('createForumPost', () => {
   it('creates a post and returns data without warning on approve', async () => {
-    const post = { id: 'p1', title: 'Hello', content: 'World', category: 'general' }
+    const post = { id: 'p1', title: 'Hello', content: 'World' }
     mockPrisma.forumPost.create.mockResolvedValue(post as never)
 
-    const result = await createForumPost('u1', {
-      title: 'Hello',
-      content: 'World',
-      category: 'general',
-    })
+    const result = await createForumPost('u1', { title: 'Hello', content: 'World' })
 
     expect(result.data).toBe(post)
     expect(result.warning).toBeUndefined()
@@ -147,11 +139,7 @@ describe('createForumPost', () => {
     const post = { id: 'p1' }
     mockPrisma.forumPost.create.mockResolvedValue(post as never)
 
-    const result = await createForumPost('u1', {
-      title: 'Borderline',
-      content: 'Content',
-      category: 'general',
-    })
+    const result = await createForumPost('u1', { title: 'Borderline', content: 'Content' })
 
     expect(result.data).toBe(post)
     expect(result.warning).toBeDefined()
@@ -161,15 +149,15 @@ describe('createForumPost', () => {
   it('throws ModerationBlockedError when moderation returns block', async () => {
     mockModerate.mockResolvedValue(BLOCK)
 
-    await expect(
-      createForumPost('u1', { title: 'Bad', content: 'Toxic content', category: 'general' })
-    ).rejects.toThrow(ModerationBlockedError)
+    await expect(createForumPost('u1', { title: 'Bad', content: 'Toxic content' })).rejects.toThrow(
+      ModerationBlockedError
+    )
   })
 
   it('throws ServiceValidationError when title is empty', async () => {
-    await expect(
-      createForumPost('u1', { title: '', content: 'Content', category: 'general' })
-    ).rejects.toThrow(ServiceValidationError)
+    await expect(createForumPost('u1', { title: '', content: 'Content' })).rejects.toThrow(
+      ServiceValidationError
+    )
   })
 })
 
