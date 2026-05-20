@@ -84,8 +84,6 @@ function AITutorContent() {
           error={error}
           sendMessage={sendMessage}
           onRegenerate={regenerate}
-          onNewChat={newChat}
-          onOpenSessions={() => setShowMobileSessions(true)}
         />
       </div>
 
