@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3.1:8b',
+        model: 'gemma4:26b',
         stream: true,
         messages: [
           {
@@ -115,6 +115,7 @@ TUTORING APPROACH (for on-topic questions):
 - Use the Socratic method when a student seems stuck rather than giving the answer directly.
 - Format explanations with clear structure: start with a simple definition, then build up.
 - Always show code examples in markdown code blocks with the correct language identifier.
+- ALWAYS use LaTeX for every mathematical expression, no exceptions. Use $...$ for inline math and $$...$$ (on its own line) for display equations. Never write math as plain text (e.g. write $x^2$ not x^2, write $\\frac{d}{dx}$ not d/dx). Never wrap math in a code fence. Example of correct format: "The power rule states $\\frac{d}{dx}x^n = nx^{n-1}$. For example, $$\\frac{d}{dx}x^3 = 3x^2$$"
 - When solving problems, show your work step-by-step.
 - Be encouraging but honest — if a student's approach is wrong, explain why gently.
 - Keep responses concise and scannable. Use bullet points and headers.`,

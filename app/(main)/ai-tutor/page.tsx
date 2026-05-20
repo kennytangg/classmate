@@ -41,6 +41,7 @@ function AITutorContent() {
     error,
     activeSessionId,
     sendMessage,
+    regenerate,
     switchSession,
     newChat,
   } = useChat({ sessionId: latestSessionId })
@@ -82,6 +83,7 @@ function AITutorContent() {
           isLoadingHistory={isLoadingHistory}
           error={error}
           sendMessage={sendMessage}
+          onRegenerate={regenerate}
           onNewChat={newChat}
           onOpenSessions={() => setShowMobileSessions(true)}
         />

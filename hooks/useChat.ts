@@ -57,7 +57,7 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
   }, [initialSessionId, loadMessages])
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, contextOverride?: Message[]) => {
       if (!content.trim() || isLoading) return
 
       const userMessage: Message = {
@@ -83,12 +83,14 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
         },
       ])
 
+      const msgContext = contextOverride ?? messages
+
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: [...messages, userMessage].map((m) => ({
+            messages: [...msgContext, userMessage].map((m) => ({
               role: m.role,
               content: m.content,
             })),
@@ -182,6 +184,31 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     setActiveSessionId(undefined)
   }, [])
 
+  const regenerate = useCallback(async () => {
+    if (isLoading) return
+
+    // Find the last user message from the end
+    let lastUserIndex = -1
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i]
+      if (msg?.role === 'user') {
+        lastUserIndex = i
+        break
+      }
+    }
+    if (lastUserIndex === -1) return
+
+    const targetMessage = messages[lastUserIndex]
+    if (!targetMessage) return
+    const content = targetMessage.content
+    const historyBeforeLastUser = messages.slice(0, lastUserIndex)
+
+    // Remove the last user message and any AI responses that follow it
+    setMessages(historyBeforeLastUser)
+
+    await sendMessage(content, historyBeforeLastUser)
+  }, [messages, isLoading, sendMessage])
+
   return {
     messages,
     isLoading,
@@ -189,6 +216,7 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     error,
     activeSessionId,
     sendMessage,
+    regenerate,
     clearMessages,
     switchSession,
     newChat,

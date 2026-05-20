@@ -7,10 +7,12 @@
 ## 8.1 AI Provider & Overview
 
 **Provider:** BINUS Local LLM (Ollama)  
-**Model:** `llama3.1:8b`  
+**Model:** `gemma4:26b`  
 **Endpoint:** `https://ollama.csbihub.id/v1/chat/completions`  
 **Auth:** None required (internal network endpoint)  
 **Protocol:** OpenAI-compatible REST API
+
+Other models available on the same instance: `llama3.1:8b`, `qwen3.5:9b`, `gemma4:e4b`.
 
 Classmate integrates four AI features, all powered by the BINUS-hosted Ollama instance except Thread Recommendations, which uses a pure algorithmic scoring function with no external AI calls.
 
@@ -39,12 +41,31 @@ User types message in chat UI
   → Rate limit check (aiLimiter: 20 req/hr)
   → Moderate message (moderateContent)
   → Save user message to DB
-  → Stream response from Ollama (llama3.1:8b)
+  → Stream response from Ollama (gemma4:26b)
   → Accumulate and save assistant message to DB
   → Return streaming Response
 ```
 
-**System Prompt:** Uses Socratic method to guide students to answers rather than giving them directly. Formats output in Markdown with code blocks, shows work step-by-step, and keeps responses concise and scannable.
+**System Prompt:** Uses Socratic method to guide students to answers rather than giving them directly. Instructs the model to format output in Markdown with code blocks (correct language identifiers), write all mathematical expressions in LaTeX (`$...$` inline, `$$...$$` display), show work step-by-step, and keep responses concise and scannable.
+
+**Chat UI rendering** (`components/features/ai-tutor/ChatInterface.tsx`):
+
+| Capability                             | Library                                    |
+| -------------------------------------- | ------------------------------------------ |
+| Markdown (GFM tables, lists, headings) | `react-markdown` + `remark-gfm`            |
+| LaTeX / math                           | `remark-math` + `rehype-katex` + KaTeX CSS |
+| Syntax-highlighted code blocks         | `react-syntax-highlighter` (Atom One Dark) |
+| Raw HTML passthrough (`<br>` etc.)     | `rehype-raw`                               |
+
+A `preprocessContent` function normalises quirks in the model's output before parsing:
+
+- Replaces literal `<br>`/`<br/>` tags with newlines (avoids raw tag text in code spans)
+- Decodes HTML entities (`&#39;` → `'`) that the model sometimes emits
+- Unwraps ` ```latex ` / ` ```math ` code fences so `$...$` is visible to remark-math
+- Upgrades inline `$\begin{aligned}...\end{aligned}$` to display `$$...$$` (KaTeX inline mode does not support multi-line environments)
+- Unwraps unlabelled ` ``` ` code fences that contain display math (`$$` or `\begin{`)
+
+Each AI message has **Copy** and **Regenerate** action buttons (appear on hover). The `regenerate` function in `useChat` removes the last exchange and re-streams with the correct conversation context.
 
 **Failure handling:** If Ollama is unavailable → `503 AI service temporarily unavailable`. UI shows error and disables send until retry.
 
@@ -113,16 +134,18 @@ User visits /forums
 
 ## 8.4 Key Design Decisions
 
-| Decision                              | Rationale                                                                                                  |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Streaming via SSE**                 | Ollama response is piped to browser while accumulating for DB persistence. No second API call needed.      |
-| **Fail-closed moderation**            | Any error blocks content. Safety > availability.                                                           |
-| **`temperature: 0.3` for moderation** | Low temperature ensures consistent, deterministic classification.                                          |
-| **`temperature: 0.5` for summaries**  | Balanced between deterministic and creative, giving consistent but not robotic summaries.                  |
-| **Algorithmic recommendations**       | Eliminates AI dependency; always available; no rate limits.                                                |
-| **Content cap at 10,000 chars**       | Prevents token overflow for the local model.                                                               |
-| **Pre-moderation gate**               | User message moderated before DB write or Ollama call. Block result returns HTTP 400 immediately.          |
-| **BINUS-hosted Ollama**               | Uses the institution's own Ollama deployment — no external API key, no per-token cost, data stays on-prem. |
+| Decision                               | Rationale                                                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Streaming via SSE**                  | Ollama response is piped to browser while accumulating for DB persistence. No second API call needed.           |
+| **Fail-closed moderation**             | Any error blocks content. Safety > availability.                                                                |
+| **`temperature: 0.3` for moderation**  | Low temperature ensures consistent, deterministic classification.                                               |
+| **`temperature: 0.5` for summaries**   | Balanced between deterministic and creative, giving consistent but not robotic summaries.                       |
+| **Algorithmic recommendations**        | Eliminates AI dependency; always available; no rate limits.                                                     |
+| **Content cap at 10,000 chars**        | Prevents token overflow for the local model.                                                                    |
+| **Pre-moderation gate**                | User message moderated before DB write or Ollama call. Block result returns HTTP 400 immediately.               |
+| **BINUS-hosted Ollama**                | Uses the institution's own Ollama deployment — no external API key, no per-token cost, data stays on-prem.      |
+| **`gemma4:26b` for chat**              | Switched from `llama3.1:8b` for more consistent LaTeX formatting and better instruction following.              |
+| **Client-side markdown preprocessing** | Normalises model output quirks (HTML entities, misplaced code fences, inline vs display math) before rendering. |
 
 ---
 
@@ -138,12 +161,12 @@ No AI-specific environment variables are required. All AI features connect to th
 
 ## 8.6 Source Code Reference
 
-| Feature                | Core Logic               | API Route                                  | Frontend                                         |
-| ---------------------- | ------------------------ | ------------------------------------------ | ------------------------------------------------ |
-| AI Tutor Chat          | `hooks/useChat.ts`       | `app/api/chat/route.ts`                    | `components/features/ai-tutor/ChatInterface.tsx` |
-| Thread Summarization   | `lib/moderation.ts`      | `app/api/summarize/route.ts`               | `components/features/forums/SummarizeButton.tsx` |
-| Content Moderation     | `lib/moderation.ts`      | (called from multiple routes)              | `components/ui/moderation-alert.tsx`             |
-| Thread Recommendations | `lib/recommendations.ts` | `app/api/recommendations/threads/route.ts` | `app/(main)/forums/page.tsx` (sidebar)           |
+| Feature                | Core Logic                                 | API Route                                  | Frontend                                                                                  |
+| ---------------------- | ------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| AI Tutor Chat          | `hooks/useChat.ts` (streaming, regenerate) | `app/api/chat/route.ts`                    | `components/features/ai-tutor/ChatInterface.tsx` (markdown + LaTeX + syntax highlighting) |
+| Thread Summarization   | `lib/moderation.ts`                        | `app/api/summarize/route.ts`               | `components/features/forums/SummarizeButton.tsx`                                          |
+| Content Moderation     | `lib/moderation.ts`                        | (called from multiple routes)              | `components/ui/moderation-alert.tsx`                                                      |
+| Thread Recommendations | `lib/recommendations.ts`                   | `app/api/recommendations/threads/route.ts` | `app/(main)/forums/page.tsx` (sidebar)                                                    |
 
 ---
 

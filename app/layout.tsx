@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import { ThemeProvider } from 'components/theme-provider'
 import { Toaster } from 'sonner'
 import './globals.css'
+import 'katex/dist/katex.min.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({
