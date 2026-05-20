@@ -13,6 +13,8 @@ import {
 import { flagContent, DuplicateFlagError } from '@/lib/services/moderation.service'
 import { createReplySchema } from '@/lib/schemas'
 import { zodErrorToString } from '@/lib/errors'
+import { prisma } from '@/lib/prisma'
+import { createNotification } from '@/lib/notify'
 
 export async function GET(req: NextRequest) {
   try {
@@ -63,6 +65,22 @@ export async function POST(req: NextRequest) {
           }
         })
       }
+
+      // Notify post author (skip if replier is the author)
+      prisma.forumPost
+        .findUnique({ where: { id: postId }, select: { userId: true, title: true } })
+        .then((post) => {
+          if (!post || post.userId === user.id) return
+          const replierName = user.name ?? user.email?.split('@')[0] ?? 'Someone'
+          return createNotification({
+            userId: post.userId,
+            type: 'forum_reply',
+            message: `${replierName} replied to your post "${post.title.slice(0, 50)}"`,
+            sourceType: 'forum_reply',
+            sourceId: postId,
+          })
+        })
+        .catch((err: unknown) => console.error('[notify] forum_reply notification failed', err))
 
       return NextResponse.json(
         { reply: result.data, ...(result.warning && { warning: result.warning }) },

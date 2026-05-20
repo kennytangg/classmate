@@ -6,6 +6,7 @@ import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
 import { sendMessageSchema } from '@/lib/schemas'
 import { zodErrorToString } from '@/lib/errors'
 import { getConnectionStatus } from '@/lib/connections'
+import { createNotification } from '@/lib/notify'
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 100
@@ -191,6 +192,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ use
         createdAt: true,
       },
     })
+
+    const senderName = session.name ?? session.email?.split('@')[0] ?? 'Someone'
+    createNotification({
+      userId: userId,
+      type: 'chat',
+      message: `${senderName} sent you a message`,
+      sourceType: 'chat',
+      sourceId: userId,
+    }).catch((err: unknown) => console.error('[notify] chat notification failed', err))
 
     return NextResponse.json({ message }, { status: 201 })
   } catch (error) {

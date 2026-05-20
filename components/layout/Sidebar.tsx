@@ -16,6 +16,7 @@ import {
   Compass,
   BookOpen,
   LogOut,
+  Bell,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -38,6 +39,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   UserCog,
   Compass,
   BookOpen,
+  Bell,
 }
 
 interface SidebarProps {

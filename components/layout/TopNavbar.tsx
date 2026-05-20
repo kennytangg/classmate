@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { NotificationDropdown } from '@/components/features/notifications/NotificationDropdown'
 
 const AVATAR_COLORS = [
   'bg-violet-500',
@@ -114,6 +115,9 @@ export function TopNavbar({ onMobileMenuOpen }: TopNavbarProps) {
 
       {/* Right side */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Notification bell */}
+        <NotificationDropdown />
+
         {/* Role badge — only visible to elevated roles */}
         {roleBadge && (
           <span

@@ -25,6 +25,13 @@ export const navigationItems: NavigationItem[] = [
   { href: '/discover', label: 'Find People', group: 'core', icon: 'Compass', section: 'Connect' },
   // Account
   { href: '/profile', label: 'Profile', group: 'core', icon: 'User', section: 'Account' },
+  {
+    href: '/notifications',
+    label: 'Notifications',
+    group: 'core',
+    icon: 'Bell',
+    section: 'Account',
+  },
   // Moderation — visible to MODERATOR and ADMIN (logs section shown only to ADMIN within the page)
   {
     href: '/admin/moderation',
