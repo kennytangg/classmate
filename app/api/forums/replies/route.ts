@@ -31,8 +31,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ replies: repliesWithUpvoted }, { status: 200 })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('[GET /api/forums/replies] error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -59,28 +59,37 @@ export async function POST(req: NextRequest) {
       if (result.warning) {
         const { reason, categories } = result.warning
         const autoFlagReason = `AI auto-flag: ${(categories ?? []).join(', ')} — ${reason}`
-        flagContent(user.id, 'reply', result.data.id, autoFlagReason).catch((err: unknown) => {
-          if (!(err instanceof DuplicateFlagError)) {
-            console.error('[ai-moderation] Failed to auto-flag reply:', err)
+        ;(async () => {
+          try {
+            await flagContent(user.id, 'reply', result.data.id, autoFlagReason)
+          } catch (err) {
+            if (!(err instanceof DuplicateFlagError)) {
+              console.error('[ai-moderation] Failed to auto-flag reply:', err)
+            }
           }
-        })
+        })()
       }
 
       // Notify post author (skip if replier is the author)
-      prisma.forumPost
-        .findUnique({ where: { id: postId }, select: { userId: true, title: true } })
-        .then((post) => {
+      ;(async () => {
+        try {
+          const post = await prisma.forumPost.findUnique({
+            where: { id: postId },
+            select: { userId: true, title: true },
+          })
           if (!post || post.userId === user.id) return
           const replierName = user.name ?? user.email?.split('@')[0] ?? 'Someone'
-          return createNotification({
+          await createNotification({
             userId: post.userId,
             type: 'forum_reply',
             message: `${replierName} replied to your post "${post.title.slice(0, 50)}"`,
             sourceType: 'forum_reply',
             sourceId: postId,
           })
-        })
-        .catch((err: unknown) => console.error('[notify] forum_reply notification failed', err))
+        } catch (err) {
+          console.error('[notify] forum_reply notification failed:', err)
+        }
+      })()
 
       return NextResponse.json(
         { reply: result.data, ...(result.warning && { warning: result.warning }) },
@@ -105,7 +114,7 @@ export async function POST(req: NextRequest) {
       throw err
     }
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('[POST /api/forums/replies] error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

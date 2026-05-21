@@ -82,7 +82,6 @@
     "@types/swagger-ui-react": "^5.18.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "depcheck": "^1.4.7",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
     "eslint-config-prettier": "^10.1.8",
@@ -97,7 +96,6 @@
     "prisma": "^7.4.2",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4",
-    "ts-prune": "^0.10.3",
     "tsx": "^4.21.0",
     "typescript": "^5"
   },

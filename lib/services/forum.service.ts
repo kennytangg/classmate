@@ -343,23 +343,27 @@ export async function createForumReply(userId: string, postId: string, content: 
     throw new ModerationBlockedError(moderationResult.reason, moderationResult.categories)
   }
 
-  const reply = await prisma.forumReply.create({
-    data: { content: sanitizedContent, postId, userId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          profile: { select: { displayName: true } },
+  const reply = await prisma.$transaction(async (tx) => {
+    const created = await tx.forumReply.create({
+      data: { content: sanitizedContent, postId, userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            profile: { select: { displayName: true } },
+          },
         },
       },
-    },
-  })
+    })
 
-  await prisma.forumPost.update({
-    where: { id: postId },
-    data: { repliesCount: { increment: 1 } },
+    await tx.forumPost.update({
+      where: { id: postId },
+      data: { repliesCount: { increment: 1 } },
+    })
+
+    return created
   })
 
   const result: CreateContentResult<typeof reply> = { data: reply }

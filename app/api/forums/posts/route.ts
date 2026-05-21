@@ -68,11 +68,15 @@ export async function POST(req: NextRequest) {
       if (result.warning) {
         const { reason, categories } = result.warning
         const autoFlagReason = `AI auto-flag: ${(categories ?? []).join(', ')} — ${reason}`
-        flagContent(user.id, 'post', result.data.id, autoFlagReason).catch((err: unknown) => {
-          if (!(err instanceof DuplicateFlagError)) {
-            console.error('[ai-moderation] Failed to auto-flag post:', err)
+        ;(async () => {
+          try {
+            await flagContent(user.id, 'post', result.data.id, autoFlagReason)
+          } catch (err) {
+            if (!(err instanceof DuplicateFlagError)) {
+              console.error('[ai-moderation] Failed to auto-flag post:', err)
+            }
           }
-        })
+        })()
       }
 
       return NextResponse.json(

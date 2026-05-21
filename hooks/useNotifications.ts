@@ -37,8 +37,8 @@ export function useNotifications(): UseNotificationsReturn {
       }
       setNotifications(data.notifications)
       setUnreadCount(data.unreadCount)
-    } catch {
-      // silently ignore network errors
+    } catch (error) {
+      console.error('[useNotifications] fetch failed:', error)
     }
   }, [])
 

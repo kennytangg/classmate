@@ -194,13 +194,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ use
     })
 
     const senderName = session.name ?? session.email?.split('@')[0] ?? 'Someone'
-    createNotification({
-      userId: userId,
-      type: 'chat',
-      message: `${senderName} sent you a message`,
-      sourceType: 'chat',
-      sourceId: userId,
-    }).catch((err: unknown) => console.error('[notify] chat notification failed', err))
+    ;(async () => {
+      try {
+        await createNotification({
+          userId: userId,
+          type: 'chat',
+          message: `${senderName} sent you a message`,
+          sourceType: 'chat',
+          sourceId: userId,
+        })
+      } catch (err) {
+        console.error('[notify] chat notification failed:', err)
+      }
+    })()
 
     return NextResponse.json({ message }, { status: 201 })
   } catch (error) {

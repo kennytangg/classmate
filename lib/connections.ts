@@ -69,27 +69,3 @@ export async function getPendingConnectionCount(userId: string): Promise<number>
     where: { recipientId: userId, status: 'PENDING' },
   })
 }
-
-/**
- * Count mutual connections between two users via a single SQL query.
- */
-export async function getMutualConnectionCount(userIdA: string, userIdB: string): Promise<number> {
-  const result = await prisma.$queryRaw<[{ count: bigint }]>`
-    SELECT COUNT(*) AS count
-    FROM (
-      SELECT CASE WHEN "senderId" = ${userIdA} THEN "recipientId" ELSE "senderId" END AS neighbor_id
-      FROM "Connection"
-      WHERE status = 'ACCEPTED'
-        AND ("senderId" = ${userIdA} OR "recipientId" = ${userIdA})
-    ) a
-    WHERE a.neighbor_id IN (
-      SELECT CASE WHEN "senderId" = ${userIdB} THEN "recipientId" ELSE "senderId" END
-      FROM "Connection"
-      WHERE status = 'ACCEPTED'
-        AND ("senderId" = ${userIdB} OR "recipientId" = ${userIdB})
-    )
-    AND a.neighbor_id != ${userIdA}
-    AND a.neighbor_id != ${userIdB}
-  `
-  return Number(result[0].count)
-}

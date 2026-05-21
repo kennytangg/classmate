@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { sanitizeMarkdown } from '@/lib/sanitize'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -18,11 +18,17 @@ const EXT_TO_MIME: Record<string, string> = {
   jpeg: 'image/jpeg',
 }
 
+const PUBLIC_DIR = resolve(process.cwd(), 'public')
+
 async function resolveImageUrl(url: string): Promise<string> {
   if (!url.startsWith('/')) return url
   try {
     const filePath = join(process.cwd(), 'public', url)
-    const buffer = await readFile(filePath)
+    const resolvedPath = resolve(filePath)
+    if (!resolvedPath.startsWith(PUBLIC_DIR + '/') && resolvedPath !== PUBLIC_DIR) {
+      return url
+    }
+    const buffer = await readFile(resolvedPath)
     const ext = url.split('.').pop()?.toLowerCase() ?? 'jpeg'
     const mime = EXT_TO_MIME[ext] ?? 'image/jpeg'
     return `data:${mime};base64,${buffer.toString('base64')}`
@@ -127,7 +133,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gemma4:26b',
+        model: process.env.OLLAMA_MODEL ?? 'gemma4:26b',
         stream: true,
         messages: [
           {
