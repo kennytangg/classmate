@@ -34,14 +34,14 @@ export function NotificationRow({ notification, onClick }: NotificationRowProps)
     <button
       onClick={() => onClick(notification)}
       className={cn(
-        'hover:bg-accent flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
-        !notification.isRead && 'border-l-2 border-blue-500 bg-blue-500/5'
+        'border-border hover:bg-accent/50 flex w-full items-start gap-3 border-b px-4 py-4 text-left transition-colors',
+        !notification.isRead && 'bg-blue-500/[0.04]'
       )}
     >
-      <span className="mt-0.5">{icon}</span>
+      <span className="mt-0.5 shrink-0">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="text-foreground block text-sm leading-snug">{notification.message}</span>
-        <span className="text-muted-foreground mt-0.5 block text-xs">
+        <span className="text-muted-foreground mt-1 block text-xs">
           {formatRelativeTime(notification.createdAt)}
         </span>
       </span>

@@ -30,7 +30,7 @@ export default function NotificationsPage() {
   const hasMore = visibleCount < notifications.length
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 md:px-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Notifications</h1>
@@ -45,19 +45,15 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      <div className="bg-card overflow-hidden rounded-xl border">
+      <div className="border-border border-t">
         {visible.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <Bell className="text-muted-foreground/30 h-12 w-12" />
-            <p className="text-muted-foreground text-lg font-medium">You&apos;re all caught up</p>
+          <div className="flex flex-col items-center gap-2 py-16 text-center">
+            <Bell className="text-muted-foreground/30 h-10 w-10" />
+            <p className="text-muted-foreground mt-1 font-medium">You&apos;re all caught up</p>
             <p className="text-muted-foreground/60 text-sm">New notifications will appear here</p>
           </div>
         ) : (
-          <div className="divide-y">
-            {visible.map((n) => (
-              <NotificationRow key={n.id} notification={n} onClick={handleClick} />
-            ))}
-          </div>
+          visible.map((n) => <NotificationRow key={n.id} notification={n} onClick={handleClick} />)
         )}
       </div>
 

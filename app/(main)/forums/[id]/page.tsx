@@ -21,6 +21,7 @@ interface Post {
   user: {
     id: string
     email: string
+    name?: string | null
     role?: string
     profile?: {
       displayName?: string | null
@@ -43,6 +44,7 @@ interface Reply {
   user: {
     id: string
     email: string
+    name?: string | null
     profile?: {
       displayName?: string | null
     } | null

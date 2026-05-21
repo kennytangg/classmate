@@ -62,11 +62,8 @@ export function ForumCard({
             />
           </span>
 
-          {/* Replies */}
-          <div
-            className="group/comment text-muted-foreground relative flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-blue-500"
-            onClick={(e) => e.preventDefault()}
-          >
+          {/* Replies — clicking navigates to the post reply section */}
+          <div className="group/comment text-muted-foreground relative flex cursor-pointer items-center gap-1 text-xs transition-colors hover:text-blue-500">
             <MessageCircle className="h-3.5 w-3.5" />
             <span>{replies}</span>
             <span className="bg-popover text-popover-foreground pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap opacity-0 shadow-md transition-opacity group-hover/comment:opacity-100">

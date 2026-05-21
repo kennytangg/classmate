@@ -15,6 +15,7 @@ export interface Reply {
   user: {
     id: string
     email: string
+    name?: string | null
     profile?: {
       displayName?: string | null
     } | null
@@ -43,7 +44,10 @@ export function RepliesList({ replies }: RepliesListProps) {
       <div className="space-y-6">
         {replies.map((reply) => {
           const authorName =
-            reply.user.profile?.displayName ?? reply.user.email.split('@')[0] ?? 'Anonymous'
+            reply.user.profile?.displayName ??
+            reply.user.name ??
+            reply.user.email.split('@')[0] ??
+            'Anonymous'
 
           return (
             <div key={reply.id} className="flex items-start gap-3">

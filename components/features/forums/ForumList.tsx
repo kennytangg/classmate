@@ -24,6 +24,7 @@ interface ForumPost {
   user: {
     id: string
     email: string
+    name?: string | null
     profile?: {
       displayName?: string | null
       major?: string | null
@@ -259,7 +260,10 @@ export function ForumList() {
                   title={post.title}
                   content={post.content}
                   author={
-                    post.user.profile?.displayName ?? post.user.email.split('@')[0] ?? 'Anonymous'
+                    post.user.profile?.displayName ??
+                    post.user.name ??
+                    post.user.email.split('@')[0] ??
+                    'Anonymous'
                   }
                   replies={post._count.replies}
                   views={post.views}

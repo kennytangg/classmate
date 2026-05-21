@@ -19,6 +19,7 @@ interface ForumPostDetailProps {
     user: {
       id: string
       email: string
+      name?: string | null
       role?: string
       profile?: {
         displayName?: string | null
@@ -33,7 +34,8 @@ interface ForumPostDetailProps {
 }
 
 export function ForumPostDetail({ post }: ForumPostDetailProps) {
-  const authorName = post.user.profile?.displayName ?? post.user.email.split('@')[0] ?? 'Anonymous'
+  const authorName =
+    post.user.profile?.displayName ?? post.user.name ?? post.user.email.split('@')[0] ?? 'Anonymous'
   const authorRole = post.user.role === 'MODERATOR' ? 'Moderator' : 'Student'
 
   return (

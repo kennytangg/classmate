@@ -202,3 +202,30 @@ body {
 *:hover::-webkit-scrollbar-thumb:hover {
   background-color: color-mix(in srgb, var(--primary) 55%, transparent);
 }
+
+[data-sonner-toaster][data-sonner-theme='dark'] {
+  --normal-bg: #1e1d2e;
+  --normal-bg-hover: #252438;
+  --normal-border: #2e2c45;
+  --normal-border-hover: #3d3b58;
+  --normal-text: #f7f7fb;
+  --error-bg: #1e1d2e;
+  --error-border: #f43f5e;
+  --error-text: #f7f7fb;
+  --success-bg: #1e1d2e;
+  --success-border: #10b981;
+  --success-text: #f7f7fb;
+  --warning-bg: #1e1d2e;
+  --warning-border: hsl(38, 92%, 50%);
+  --warning-text: #f7f7fb;
+}
+
+[data-sonner-toaster][data-sonner-theme='dark'] [data-sonner-toast][data-type='error'] {
+  border-color: #f43f5e;
+  border-left-width: 3px;
+}
+
+[data-sonner-toaster][data-sonner-theme='dark'] [data-sonner-toast][data-type='success'] {
+  border-color: #10b981;
+  border-left-width: 3px;
+}

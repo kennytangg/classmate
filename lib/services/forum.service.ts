@@ -96,6 +96,7 @@ export async function listForumPosts(
         select: {
           id: true,
           email: true,
+          name: true,
           profile: {
             select: {
               displayName: true,
@@ -165,6 +166,7 @@ export async function createForumPost(userId: string, data: CreatePostInput) {
         select: {
           id: true,
           email: true,
+          name: true,
           profile: { select: { displayName: true } },
         },
       },
@@ -190,6 +192,7 @@ export async function getForumPost(postId: string) {
         select: {
           id: true,
           email: true,
+          name: true,
           role: true,
           profile: {
             select: {
@@ -250,7 +253,9 @@ export async function updateForumPost(postId: string, data: UpdatePostInput) {
     where: { id: postId },
     data: update,
     include: {
-      user: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
+      user: {
+        select: { id: true, email: true, name: true, profile: { select: { displayName: true } } },
+      },
     },
   })
 }
@@ -299,6 +304,7 @@ export async function getForumReplies(postId: string) {
         select: {
           id: true,
           email: true,
+          name: true,
           profile: { select: { displayName: true } },
         },
       },
@@ -344,6 +350,7 @@ export async function createForumReply(userId: string, postId: string, content: 
         select: {
           id: true,
           email: true,
+          name: true,
           profile: { select: { displayName: true } },
         },
       },
@@ -374,7 +381,9 @@ export async function updateForumReply(replyId: string, content: string) {
     where: { id: replyId },
     data: { content: sanitized },
     include: {
-      user: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
+      user: {
+        select: { id: true, email: true, name: true, profile: { select: { displayName: true } } },
+      },
     },
   })
 }
