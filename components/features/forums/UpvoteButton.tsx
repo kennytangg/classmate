@@ -9,6 +9,7 @@ interface UpvoteButtonProps {
   contentType: 'post' | 'reply'
   initialUpvotes: number
   initialHasUpvoted: boolean
+  size?: 'sm' | 'lg'
 }
 
 export function UpvoteButton({
@@ -16,6 +17,7 @@ export function UpvoteButton({
   contentType,
   initialUpvotes,
   initialHasUpvoted,
+  size = 'sm',
 }: UpvoteButtonProps) {
   const [upvotes, setUpvotes] = useState(initialUpvotes)
   const [hasUpvoted, setHasUpvoted] = useState(initialHasUpvoted)
@@ -60,6 +62,24 @@ export function UpvoteButton({
     } finally {
       setLoading(false)
     }
+  }
+
+  if (size === 'lg') {
+    return (
+      <button
+        onClick={handleUpvote}
+        disabled={loading}
+        aria-label={hasUpvoted ? 'Remove like' : 'Like'}
+        className={`group/upvote flex cursor-pointer items-center gap-1.5 transition-colors disabled:opacity-50 ${
+          hasUpvoted ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${hasUpvoted ? 'fill-red-500' : ''}`} />
+        <span className="text-sm font-medium">
+          {upvotes} {upvotes === 1 ? 'Like' : 'Likes'}
+        </span>
+      </button>
+    )
   }
 
   return (

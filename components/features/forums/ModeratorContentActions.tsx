@@ -127,7 +127,7 @@ export function ModeratorContentActions({
                 placeholder="e.g. Confirmed community guidelines violation."
                 rows={3}
                 disabled={isDeleting}
-                className="border-input bg-background placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none disabled:opacity-50"
+                className="border-input bg-background placeholder:text-muted-foreground focus:ring-ring w-full resize-none rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none disabled:opacity-50"
               />
               <p className="text-muted-foreground text-xs">{deleteReason.length}/500</p>
             </div>

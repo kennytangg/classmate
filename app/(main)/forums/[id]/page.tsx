@@ -76,7 +76,6 @@ export default function ForumPostPage() {
       setError(null)
 
       try {
-        // Fetch post
         const postResponse = await fetch(`/api/forums/posts/${postId}`)
         if (!postResponse.ok) {
           if (postResponse.status === 404) {
@@ -87,7 +86,6 @@ export default function ForumPostPage() {
         const postData = await postResponse.json()
         setPost(postData)
 
-        // Fetch replies
         await fetchReplies()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load post')
@@ -101,7 +99,6 @@ export default function ForumPostPage() {
     }
   }, [postId, fetchReplies])
 
-  // Build thread content for summarization
   const threadContent = post
     ? [
         `Title: ${post.title}`,
@@ -117,31 +114,29 @@ export default function ForumPostPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto flex max-w-4xl items-center justify-center px-6 py-12 md:px-8">
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
-        <span className="text-muted-foreground ml-3">Loading discussion...</span>
+      <div className="mx-auto flex max-w-3xl items-center justify-center px-4 py-12 sm:px-6 md:px-8">
+        <Loader2 className="text-primary h-6 w-6 animate-spin" />
+        <span className="text-muted-foreground ml-3 text-sm">Loading discussion...</span>
       </div>
     )
   }
 
   if (error || !post) {
     return (
-      <div className="container mx-auto max-w-4xl px-6 py-8 md:px-8">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 md:px-8">
         <Link
           href="/forums"
           className="text-muted-foreground hover:text-primary mb-6 inline-flex items-center"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Forums
+          Back to Discussions
         </Link>
         <div className="border-semantic-error/30 bg-semantic-error/10 flex flex-col items-center justify-center rounded-xl border py-12">
-          <AlertCircle className="text-semantic-error h-12 w-12" />
-          <p className="text-semantic-error mt-4 text-lg font-medium">
-            {error || 'Post not found'}
-          </p>
+          <AlertCircle className="text-semantic-error h-10 w-10" />
+          <p className="text-semantic-error mt-4 font-medium">{error || 'Post not found'}</p>
           <Link href="/forums">
             <Button variant="outline" className="mt-4">
-              Back to Forums
+              Back to Discussions
             </Button>
           </Link>
         </div>
@@ -150,32 +145,37 @@ export default function ForumPostPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl px-6 py-8 md:px-8">
-      <Link
-        href="/forums"
-        className="text-muted-foreground hover:text-primary mb-6 inline-flex items-center"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Forums
-      </Link>
-
-      {/* Main Post */}
-      <div className="mb-8">
-        <ForumPostDetail post={post} />
+    <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 md:px-8">
+      {/* Page header */}
+      <div className="mb-6 flex items-center gap-2">
+        <Link
+          href="/forums"
+          className="text-muted-foreground hover:bg-muted -ml-1 rounded-full p-1.5 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <span className="text-muted-foreground text-sm font-medium">Discussion</span>
       </div>
 
-      {/* AI Summary Button */}
+      {/* Post */}
+      <ForumPostDetail post={post} />
+
+      {/* AI Summary */}
       {(post._count.replies > 0 || post.content.length > 200) && (
-        <div className="mb-8">
+        <div className="mt-5">
           <SummarizeButton threadContent={threadContent} />
         </div>
       )}
 
-      {/* Reply Form */}
-      <ReplyForm postId={postId} onReplyCreated={fetchReplies} />
+      {/* Reply form */}
+      <div className="mt-6">
+        <ReplyForm postId={postId} onReplyCreated={fetchReplies} />
+      </div>
 
-      {/* Replies List */}
-      <RepliesList replies={replies} />
+      {/* Replies */}
+      <div className="mt-6">
+        <RepliesList replies={replies} />
+      </div>
     </div>
   )
 }

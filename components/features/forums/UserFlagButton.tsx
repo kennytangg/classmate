@@ -15,6 +15,7 @@ import {
 interface UserFlagButtonProps {
   contentType: 'post' | 'reply'
   contentId: string
+  size?: 'sm' | 'lg'
 }
 
 const FLAG_CATEGORIES = [
@@ -26,7 +27,7 @@ const FLAG_CATEGORIES = [
   'Other',
 ] as const
 
-export function UserFlagButton({ contentType, contentId }: UserFlagButtonProps) {
+export function UserFlagButton({ contentType, contentId, size = 'sm' }: UserFlagButtonProps) {
   const [open, setOpen] = useState(false)
   const [category, setCategory] = useState<string>('')
   const [details, setDetails] = useState('')
@@ -81,10 +82,12 @@ export function UserFlagButton({ contentType, contentId }: UserFlagButtonProps) 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-muted-foreground hover:text-destructive flex items-center gap-1 text-xs transition-colors"
+        className={`text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors ${
+          size === 'lg' ? 'text-sm font-medium' : 'text-xs'
+        }`}
         title="Report this content"
       >
-        <Flag className="h-3.5 w-3.5" />
+        <Flag className={size === 'lg' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
         <span>Report</span>
       </button>
 
@@ -130,7 +133,7 @@ export function UserFlagButton({ contentType, contentId }: UserFlagButtonProps) 
                 onChange={(e) => setDetails(e.target.value.slice(0, 500))}
                 placeholder="Describe the issue in more detail…"
                 rows={3}
-                className="border-input bg-background placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+                className="border-input bg-background placeholder:text-muted-foreground focus:ring-ring w-full resize-none rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               />
               <p className="text-muted-foreground text-right text-xs">{details.length}/500</p>
             </div>

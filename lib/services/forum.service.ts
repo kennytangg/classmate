@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { moderateContent } from '@/lib/moderation'
-import { sanitizeText, sanitizeMarkdown, containsXSSPatterns } from '@/lib/sanitize'
+import { sanitizeText, containsXSSPatterns } from '@/lib/sanitize'
 
 // --- Input types ---
 interface CreatePostInput {
@@ -135,7 +135,7 @@ export async function createForumPost(userId: string, data: CreatePostInput) {
   const { title, content } = data
 
   const sanitizedTitle = sanitizeText(title)
-  const sanitizedContent = sanitizeMarkdown(content)
+  const sanitizedContent = sanitizeText(content)
 
   if (!sanitizedTitle || !sanitizedContent) {
     throw new ServiceValidationError('title and content must contain valid text')
@@ -237,7 +237,7 @@ export async function updateForumPost(postId: string, data: UpdatePostInput) {
     update.title = sanitized
   }
   if (data.content !== undefined) {
-    const sanitized = sanitizeMarkdown(data.content)
+    const sanitized = sanitizeText(data.content)
     if (!sanitized) throw new ServiceValidationError('content must contain valid text')
     update.content = sanitized
   }
@@ -323,7 +323,7 @@ export async function enrichRepliesWithUpvotes<T extends { id: string }>(
 }
 
 export async function createForumReply(userId: string, postId: string, content: string) {
-  const sanitizedContent = sanitizeMarkdown(content)
+  const sanitizedContent = sanitizeText(content)
   if (!sanitizedContent) {
     throw new ServiceValidationError('content must contain valid text')
   }
@@ -367,7 +367,7 @@ export async function createForumReply(userId: string, postId: string, content: 
 }
 
 export async function updateForumReply(replyId: string, content: string) {
-  const sanitized = sanitizeMarkdown(content)
+  const sanitized = sanitizeText(content)
   if (!sanitized) throw new ServiceValidationError('content must contain valid text')
 
   return prisma.forumReply.update({

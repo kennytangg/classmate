@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ForumCard } from './ForumCard'
+import { CreatePostModal } from './CreatePostModal'
 import { Loader2, AlertCircle, MessageSquarePlus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PaginationControls } from '@/components/ui/pagination-controls'
@@ -49,6 +50,8 @@ export function ForumList() {
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -100,7 +103,7 @@ export function ForumList() {
     return () => {
       cancelled = true
     }
-  }, [page, activeTab, searchQuery])
+  }, [page, activeTab, searchQuery, refreshKey])
 
   useEffect(() => {
     async function fetchRecommendations() {
@@ -123,14 +126,6 @@ export function ForumList() {
   }, [])
 
   const recommendationMap = new Map(recommendations.map((r) => [r.id, r.reason]))
-
-  // Extract topic from AI reason text ("Matches your recent cs activity" → "cs")
-  // Returns null for "general" since it adds no information to the user
-  function extractTopic(reason: string): string | null {
-    const match = reason.match(/recent (\w+) activity/i)
-    if (!match || !match[1] || match[1].toLowerCase() === 'general') return null
-    return match[1]
-  }
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -160,6 +155,12 @@ export function ForumList() {
 
   return (
     <div>
+      <CreatePostModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
+      />
+
       {/* Header */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
         <div>
@@ -183,11 +184,12 @@ export function ForumList() {
               className="border-border bg-card text-foreground focus:ring-ring w-full rounded-lg border py-2 pr-4 pl-9 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
-          <Link href="/forums/create" className="w-full sm:w-auto">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto">
-              <MessageSquarePlus className="mr-2 h-4 w-4" /> Ask a Question
-            </Button>
-          </Link>
+          <Button
+            onClick={() => setCreateModalOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto"
+          >
+            <MessageSquarePlus className="mr-2 h-4 w-4" /> Ask a Question
+          </Button>
         </div>
       </div>
 
@@ -238,11 +240,12 @@ export function ForumList() {
               <p className="text-foreground mt-4 text-lg font-medium">{emptyState.title}</p>
               <p className="text-muted-foreground mt-1 text-sm">{emptyState.sub}</p>
               {emptyState.cta && (
-                <Link href="/forums/create">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 mt-5">
-                    Ask a Question
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => setCreateModalOpen(true)}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 mt-5"
+                >
+                  Ask a Question
+                </Button>
               )}
             </div>
           )}
@@ -283,41 +286,33 @@ export function ForumList() {
         {/* Recommendations sidebar — right, only when there's something to show */}
         {showSidebar && (
           <aside className="w-full lg:w-64 lg:shrink-0">
-            <div className="border-border bg-card sticky top-4 rounded-xl border p-4">
-              <h3 className="text-foreground mb-0.5 text-sm font-semibold">Trending discussions</h3>
-              <p className="text-muted-foreground mb-3 text-xs">
-                Popular threads in your community
-              </p>
+            <div className="border-border bg-background sticky top-4 rounded-xl border p-4">
+              <h3 className="text-foreground mb-3 text-sm font-semibold">Trending discussions</h3>
 
               {recommendationsLoading && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-muted h-14 animate-pulse rounded-lg" />
+                    <div key={i} className="bg-muted h-8 animate-pulse rounded" />
                   ))}
                 </div>
               )}
 
               {!recommendationsLoading && recommendations.length > 0 && (
-                <div className="space-y-2">
-                  {recommendations.slice(0, 5).map((rec) => {
-                    const topic = extractTopic(rec.reason)
-                    return (
-                      <Link
-                        key={rec.id}
-                        href={`/forums/${rec.id}`}
-                        className="border-border hover:border-primary hover:bg-muted block rounded-lg border px-3 py-2 transition-colors"
-                      >
-                        <p className="text-foreground line-clamp-2 text-xs leading-snug font-medium">
-                          {rec.title}
-                        </p>
-                        {topic && (
-                          <span className="text-muted-foreground mt-1 inline-block text-xs">
-                            #{topic}
-                          </span>
-                        )}
-                      </Link>
-                    )
-                  })}
+                <div className="space-y-0.5">
+                  {recommendations.slice(0, 5).map((rec, index) => (
+                    <Link
+                      key={rec.id}
+                      href={`/forums/${rec.id}`}
+                      className="group -mx-2 flex items-start gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/[0.04]"
+                    >
+                      <span className="text-muted-foreground/50 w-4 shrink-0 pt-0.5 text-xs tabular-nums">
+                        {index + 1}
+                      </span>
+                      <p className="text-foreground/70 group-hover:text-foreground line-clamp-2 flex-1 text-xs leading-snug transition-colors">
+                        {rec.title}
+                      </p>
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>

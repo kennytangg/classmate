@@ -128,7 +128,6 @@ export default function CreateForumPostPage() {
               className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus:ring-ring w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none"
               disabled={loading}
             />
-            <p className="text-muted-foreground mt-2 text-xs">Markdown is supported.</p>
           </div>
 
           <div className="border-border flex justify-end gap-4 border-t pt-4">

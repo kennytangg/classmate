@@ -243,7 +243,7 @@ export const swaggerSpec = {
                 required: ['title', 'content', 'category'],
                 properties: {
                   title: { type: 'string', description: 'Post title' },
-                  content: { type: 'string', description: 'Post content (markdown supported)' },
+                  content: { type: 'string', description: 'Post content (plain text)' },
                   category: { type: 'string', description: 'Category (e.g., math, cs, physics)' },
                   tags: {
                     type: 'array',

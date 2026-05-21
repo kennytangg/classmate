@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ModerationAlert } from '@/components/ui/moderation-alert'
-import { Loader2 } from 'lucide-react'
+import { Loader2, User } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ReplyFormProps {
@@ -56,7 +56,6 @@ export function ReplyForm({ postId, onReplyCreated }: ReplyFormProps) {
         return
       }
 
-      // Handle moderation warning
       if (data.warning) {
         toast.warning(`Reply posted with warning: ${data.warning.reason}`)
       } else {
@@ -74,43 +73,47 @@ export function ReplyForm({ postId, onReplyCreated }: ReplyFormProps) {
   }
 
   return (
-    <div className="mb-8">
-      <h3 className="text-foreground mb-4 text-lg font-bold">Post a Reply</h3>
-      <form
-        onSubmit={handleSubmit}
-        className="border-border bg-card rounded-xl border p-6 shadow-sm"
-      >
-        {moderationBlock && (
+    <div className="bg-muted/40 rounded-xl px-4 py-4">
+      {moderationBlock && (
+        <div className="mb-3">
           <ModerationAlert
             reason={moderationBlock.reason}
             categories={moderationBlock.categories}
             onDismiss={() => setModerationBlock(null)}
           />
-        )}
-
-        <textarea
-          rows={4}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="What are your thoughts? Add to the discussion..."
-          className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus:ring-ring mb-4 w-full rounded-lg border px-4 py-3 focus:ring-2 focus:outline-none"
-          disabled={loading}
-        />
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Posting...
-              </>
-            ) : (
-              'Post Reply'
-            )}
-          </Button>
+        </div>
+      )}
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-start gap-3">
+          <div className="bg-muted text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
+            <User className="h-4 w-4" />
+          </div>
+          <div className="flex-1">
+            <textarea
+              rows={2}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Post your reply..."
+              className="text-foreground placeholder:text-muted-foreground w-full resize-none bg-transparent pt-1.5 text-base leading-relaxed focus:outline-none disabled:opacity-50"
+              disabled={loading}
+            />
+            <div className="mt-2 flex justify-end">
+              <Button
+                type="submit"
+                disabled={loading || !content.trim()}
+                className="h-8 rounded-full px-5 text-sm font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    Posting...
+                  </>
+                ) : (
+                  'Reply'
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       </form>
     </div>

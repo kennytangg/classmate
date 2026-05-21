@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageSquare, Eye } from 'lucide-react'
+import { Eye, MessageCircle } from 'lucide-react'
 import { formatDate } from '@/lib/format'
 import { UpvoteButton } from './UpvoteButton'
 import { RoleGate } from '@/components/ui/role-gate'
@@ -37,51 +37,52 @@ export function ForumPostDetail({ post }: ForumPostDetailProps) {
   const authorRole = post.user.role === 'MODERATOR' ? 'Moderator' : 'Student'
 
   return (
-    <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
-      <div className="p-6 md:p-8">
-        <div className="mb-4 flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-muted text-primary flex h-10 w-10 items-center justify-center rounded-full font-bold">
-              {authorName.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h3 className="text-foreground font-medium">{authorName}</h3>
-              <p className="text-muted-foreground text-xs">
-                {authorRole} &bull; {formatDate(post.createdAt)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <RoleGate allowedRoles={['MODERATOR', 'ADMIN']}>
-              <ModeratorContentActions contentId={post.id} contentType="post" />
-            </RoleGate>
-          </div>
+    <div>
+      {/* Author row — time lives here, not below the content */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold">
+          {authorName.charAt(0).toUpperCase()}
         </div>
-
-        <h1 className="text-foreground mb-4 text-2xl font-bold md:text-3xl">{post.title}</h1>
-
-        <div className="prose text-foreground dark:prose-invert mb-6 max-w-none whitespace-pre-line">
-          {post.content}
+        <div className="min-w-0 flex-1">
+          <p className="text-foreground truncate leading-tight font-bold">{authorName}</p>
+          <p className="text-muted-foreground text-sm">
+            {authorRole} · {formatDate(post.createdAt)}
+          </p>
         </div>
+        <RoleGate allowedRoles={['MODERATOR', 'ADMIN']}>
+          <ModeratorContentActions contentId={post.id} contentType="post" />
+        </RoleGate>
+      </div>
 
-        <div className="border-border flex items-center gap-6 border-t pt-6">
-          <UpvoteButton
-            contentId={post.id}
-            contentType="post"
-            initialUpvotes={post.upvotes}
-            initialHasUpvoted={post.hasUpvoted}
-          />
-          <div className="text-muted-foreground flex items-center">
-            <MessageSquare className="mr-2 h-5 w-5" />
-            <span>{post._count.replies} Replies</span>
-          </div>
-          <div className="text-muted-foreground flex items-center">
-            <Eye className="mr-2 h-5 w-5" />
-            <span>{post.views} Views</span>
-          </div>
-          <div className="ml-auto">
-            <UserFlagButton contentType="post" contentId={post.id} />
-          </div>
+      {/* Title */}
+      <h1 className="text-foreground mb-3 text-2xl leading-snug font-bold">{post.title}</h1>
+
+      {/* Content */}
+      <div className="text-foreground mb-5 text-base leading-relaxed whitespace-pre-line">
+        {post.content}
+      </div>
+
+      {/* Action bar — stats merged in left, secondary actions right for visual balance */}
+      <div className="border-border/50 flex items-center gap-2.5 border-t pt-4">
+        <UpvoteButton
+          contentId={post.id}
+          contentType="post"
+          initialUpvotes={post.upvotes}
+          initialHasUpvoted={post.hasUpvoted}
+          size="lg"
+        />
+        <span className="text-muted-foreground/30 select-none">·</span>
+        <span className="text-muted-foreground flex items-center gap-1 text-xs">
+          <Eye className="h-3.5 w-3.5" />
+          {post.views.toLocaleString()} views
+        </span>
+        <span className="text-muted-foreground/30 select-none">·</span>
+        <span className="text-muted-foreground flex items-center gap-1 text-xs">
+          <MessageCircle className="h-3.5 w-3.5" />
+          {post._count.replies} {post._count.replies === 1 ? 'reply' : 'replies'}
+        </span>
+        <div className="ml-auto">
+          <UserFlagButton contentType="post" contentId={post.id} size="lg" />
         </div>
       </div>
     </div>
