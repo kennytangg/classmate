@@ -368,34 +368,72 @@ export default function ChatConversationPage({ params }: { params: Promise<{ use
         {!loading &&
           messages.map((msg) => {
             const isMe = msg.senderId !== userId
+            const hasImageFile = msg.fileUrl && isImage(msg.fileType)
+            const hasNonImageFile = msg.fileUrl && !isImage(msg.fileType)
+            const hasText = !!msg.content
+            const showBubble = hasText || hasNonImageFile
+
             return (
               <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${
-                    isMe
-                      ? 'bg-primary text-primary-foreground rounded-br-none'
-                      : 'border-border bg-card text-foreground rounded-bl-none border'
-                  }`}
+                  className={`flex max-w-[75%] flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}
                 >
-                  {msg.fileUrl && (
-                    <FileAttachment
-                      fileUrl={msg.fileUrl}
-                      fileName={msg.fileName}
-                      fileType={msg.fileType}
-                      fileSize={msg.fileSize}
-                      isMe={isMe}
-                    />
+                  {/* Image shown outside the bubble, above the text */}
+                  {hasImageFile && (
+                    <a
+                      href={msg.fileUrl!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={msg.fileUrl!}
+                        alt={msg.fileName ?? 'image'}
+                        className="max-h-[220px] max-w-[260px] rounded-2xl object-cover shadow-md transition-opacity hover:opacity-90"
+                      />
+                    </a>
                   )}
-                  {msg.content && (
-                    <p className="mt-1 text-sm break-words whitespace-pre-wrap">{msg.content}</p>
+
+                  {/* Text / non-image file bubble */}
+                  {showBubble && (
+                    <div
+                      className={`rounded-2xl px-4 py-2 shadow-sm ${
+                        isMe
+                          ? 'bg-primary text-primary-foreground rounded-br-none'
+                          : 'border-border bg-card text-foreground rounded-bl-none border'
+                      }`}
+                    >
+                      {hasNonImageFile && (
+                        <FileAttachment
+                          fileUrl={msg.fileUrl!}
+                          fileName={msg.fileName}
+                          fileType={msg.fileType}
+                          fileSize={msg.fileSize}
+                          isMe={isMe}
+                        />
+                      )}
+                      {hasText && (
+                        <p className="mt-1 text-sm break-words whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
+                      )}
+                      <p
+                        className={`mt-1 text-right text-[10px] ${
+                          isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {formatMessageTime(msg.createdAt)}
+                      </p>
+                    </div>
                   )}
-                  <p
-                    className={`mt-1 text-right text-[10px] ${
-                      isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {formatMessageTime(msg.createdAt)}
-                  </p>
+
+                  {/* Timestamp for image-only messages (no bubble) */}
+                  {!showBubble && hasImageFile && (
+                    <p className={`text-[10px] ${isMe ? 'opacity-60' : 'text-muted-foreground'}`}>
+                      {formatMessageTime(msg.createdAt)}
+                    </p>
+                  )}
                 </div>
               </div>
             )
@@ -406,30 +444,41 @@ export default function ChatConversationPage({ params }: { params: Promise<{ use
       <div className="border-border bg-card border-t p-4">
         {/* File preview */}
         {pendingFile && (
-          <div className="border-border bg-muted mb-2 flex items-center gap-2 rounded-xl border px-3 py-2">
+          <div className="mb-3 flex justify-end">
             {pendingFile.previewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={pendingFile.previewUrl}
-                alt="preview"
-                className="h-10 w-10 shrink-0 rounded-lg object-cover"
-              />
+              <div className="relative inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={pendingFile.previewUrl}
+                  alt="preview"
+                  className="h-28 w-auto max-w-[220px] rounded-2xl object-cover shadow-md"
+                />
+                <button
+                  onClick={clearPendingFile}
+                  className="bg-background border-border hover:bg-muted absolute -top-2 -right-2 rounded-full border p-1 shadow-sm transition-colors"
+                  aria-label="Remove file"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             ) : (
-              <FileText className="text-muted-foreground h-8 w-8 shrink-0" />
+              <div className="border-border bg-muted flex items-center gap-2 rounded-xl border px-3 py-2">
+                <FileText className="text-muted-foreground h-8 w-8 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{pendingFile.file.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatFileSize(pendingFile.file.size)}
+                  </p>
+                </div>
+                <button
+                  onClick={clearPendingFile}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Remove file"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{pendingFile.file.name}</p>
-              <p className="text-muted-foreground text-xs">
-                {formatFileSize(pendingFile.file.size)}
-              </p>
-            </div>
-            <button
-              onClick={clearPendingFile}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Remove file"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         )}
 

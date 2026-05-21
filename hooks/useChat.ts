@@ -6,6 +6,7 @@ export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  imageUrl?: string
   timestamp: Date
 }
 
@@ -56,14 +57,16 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     }
   }, [initialSessionId, loadMessages])
 
-  const sendMessage = useCallback(
-    async (content: string, contextOverride?: Message[]) => {
-      if (!content.trim() || isLoading) return
+  const sendMessageInternal = useCallback(
+    async (content: string, contextOverride?: Message[], imageUrl?: string) => {
+      if (!content.trim() && !imageUrl) return
+      if (isLoading) return
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
         role: 'user',
         content,
+        imageUrl,
         timestamp: new Date(),
       }
 
@@ -92,7 +95,12 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
           body: JSON.stringify({
             messages: [...msgContext, userMessage].map((m) => ({
               role: m.role,
-              content: m.content,
+              content: m.imageUrl
+                ? [
+                    { type: 'image_url', image_url: { url: m.imageUrl } },
+                    { type: 'text', text: m.content },
+                  ]
+                : m.content,
             })),
             sessionId: activeSessionId,
           }),
@@ -163,6 +171,11 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     [messages, activeSessionId, isLoading]
   )
 
+  const sendMessage = useCallback(
+    (content: string, imageUrl?: string) => sendMessageInternal(content, undefined, imageUrl),
+    [sendMessageInternal]
+  )
+
   const clearMessages = useCallback(() => {
     setMessages([])
     setError(null)
@@ -201,13 +214,14 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     const targetMessage = messages[lastUserIndex]
     if (!targetMessage) return
     const content = targetMessage.content
+    const imageUrl = targetMessage.imageUrl
     const historyBeforeLastUser = messages.slice(0, lastUserIndex)
 
     // Remove the last user message and any AI responses that follow it
     setMessages(historyBeforeLastUser)
 
-    await sendMessage(content, historyBeforeLastUser)
-  }, [messages, isLoading, sendMessage])
+    await sendMessageInternal(content, historyBeforeLastUser, imageUrl)
+  }, [messages, isLoading, sendMessageInternal])
 
   return {
     messages,

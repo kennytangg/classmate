@@ -161,21 +161,18 @@ model ForumPost {
 
   title        String
   content      String
-  category     String
   upvotes      Int     @default(0)
   views        Int     @default(0)
   isAnswered   Boolean @default(false)
   repliesCount Int     @default(0)
 
   replies  ForumReply[]
-  tags     ForumTag[]
   upvoters User[]     @relation("postUpvoters")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([category])
   @@index([createdAt])
   @@index([upvotes])
   @@index([isAnswered])
@@ -201,15 +198,6 @@ model ForumReply {
   @@index([createdAt])
   @@index([upvotes])
   @@index([isAccepted])
-}
-
-model ForumTag {
-  id   String @id @default(cuid())
-  name String @unique
-
-  posts ForumPost[]
-
-  createdAt DateTime @default(now())
 }
 
 // CHAT & MESSAGING
@@ -425,13 +413,15 @@ model ModerationLog {
 // NOTIFICATIONS
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String
+  message    String
+  isRead     Boolean  @default(false)
+  sourceType String?
+  sourceId   String?
+  createdAt  DateTime @default(now())
 
   @@index([userId, isRead])
   @@index([createdAt])

@@ -112,9 +112,14 @@ export const updateProfileSchema = z.object({
 })
 
 // ── Chat / AI Tutor ────────────────────────────────────────────────────────
+const chatContentPartSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('text'), text: z.string().max(10000) }),
+  z.object({ type: z.literal('image_url'), image_url: z.object({ url: z.string().min(1) }) }),
+])
+
 const chatMessageSchema = z.object({
   role: z.string(),
-  content: z.string().max(10000),
+  content: z.union([z.string().max(10000), z.array(chatContentPartSchema).min(1).max(5)]),
 })
 
 export const chatRequestSchema = z.object({

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, GraduationCap, Copy, Check, RotateCcw } from 'lucide-react'
+import { Send, GraduationCap, Copy, Check, RotateCcw, ImageIcon, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -66,7 +67,7 @@ interface ChatInterfaceProps {
   isLoading: boolean
   isLoadingHistory?: boolean
   error: string | null
-  sendMessage: (content: string) => void
+  sendMessage: (content: string, imageUrl?: string) => void
   onRegenerate?: () => void
 }
 
@@ -250,6 +251,9 @@ function MessageActions({ content, isLast, onRegenerate }: MessageActionsProps) 
   )
 }
 
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024
+const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+
 export function ChatInterface({
   messages,
   isLoading,
@@ -259,7 +263,11 @@ export function ChatInterface({
   onRegenerate,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState('')
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null)
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const chatBoxRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const lastAssistantIndex = messages.reduce(
     (last, msg, i) => (msg.role === 'assistant' ? i : last),
@@ -272,17 +280,79 @@ export function ChatInterface({
     }
   }, [messages])
 
-  const handleSend = () => {
-    if (!input.trim() || isLoading) return
+  function attachFile(file: File) {
+    if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
+      toast.error('Only images are supported', {
+        description: 'Please attach a PNG, JPG, or WebP file.',
+      })
+      return
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error('Image too large', { description: 'Maximum file size is 10MB.' })
+      return
+    }
+    if (pendingImageFile) URL.revokeObjectURL(pendingImagePreview ?? '')
+    setPendingImageFile(file)
+    setPendingImagePreview(URL.createObjectURL(file))
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const imageItem = Array.from(e.clipboardData.items).find((item) =>
+      ACCEPTED_IMAGE_TYPES.has(item.type)
+    )
+    if (!imageItem) return
+    const file = imageItem.getAsFile()
+    if (!file) return
+    e.preventDefault()
+    attachFile(file)
+  }
+
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (file) attachFile(file)
+  }
+
+  function clearPendingImage() {
+    if (pendingImagePreview) URL.revokeObjectURL(pendingImagePreview)
+    setPendingImagePreview(null)
+    setPendingImageFile(null)
+  }
+
+  const handleSend = async () => {
+    if ((!input.trim() && !pendingImageFile) || isLoading || isUploading) return
+
+    let imageUrl: string | undefined
+
+    if (pendingImageFile) {
+      setIsUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', pendingImageFile)
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = (await res.json()) as { fileUrl?: string; error?: string }
+        if (!res.ok || !data.fileUrl) throw new Error(data.error ?? 'Upload failed')
+        imageUrl = data.fileUrl
+      } catch (err) {
+        toast.error('Image upload failed', {
+          description: err instanceof Error ? err.message : 'Please try again.',
+        })
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
+    }
+
     const text = input
     setInput('')
-    sendMessage(text)
+    clearPendingImage()
+    sendMessage(text, imageUrl)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      void handleSend()
     }
   }
 
@@ -341,10 +411,29 @@ export function ChatInterface({
             >
               <div className={`min-w-0 ${msg.role === 'user' ? 'max-w-[75%]' : 'w-full'}`}>
                 {msg.role === 'user' ? (
-                  <div className="bg-primary overflow-hidden rounded-2xl rounded-tr-none p-4 shadow-sm">
-                    <p className="text-primary-foreground text-sm leading-relaxed break-words whitespace-pre-wrap">
-                      {msg.content}
-                    </p>
+                  <div className="flex flex-col items-end gap-1">
+                    {msg.imageUrl && (
+                      <a
+                        href={msg.imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={msg.imageUrl}
+                          alt="attached image"
+                          className="max-h-[220px] max-w-[260px] rounded-2xl object-cover shadow-md transition-opacity hover:opacity-90"
+                        />
+                      </a>
+                    )}
+                    {msg.content && (
+                      <div className="bg-primary overflow-hidden rounded-2xl rounded-tr-none p-4 shadow-sm">
+                        <p className="text-primary-foreground text-sm leading-relaxed break-words whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -397,24 +486,68 @@ export function ChatInterface({
 
       {/* Input Area */}
       <div className="border-border border-t p-4">
-        <div className="border-border bg-muted flex items-center gap-3 rounded-2xl border p-2 pr-2 shadow-sm transition-shadow hover:shadow-md">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask a follow-up question..."
-            className="text-foreground placeholder-muted-foreground flex-1 bg-transparent pl-2 text-sm focus:outline-none"
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSend}
-            disabled={isLoading || !input.trim()}
-            className="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 rounded-xl p-2 shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleImageSelect}
+        />
+
+        {/* Single card that contains both the image preview (when present) and the text input */}
+        <div className="border-border bg-muted rounded-2xl border shadow-sm transition-shadow hover:shadow-md">
+          {/* Image preview — lives inside the card, above the text field */}
+          {pendingImagePreview && (
+            <div className="px-3 pt-3">
+              <div className="relative inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={pendingImagePreview}
+                  alt="preview"
+                  className="h-24 w-auto max-w-[200px] rounded-xl object-cover shadow-sm"
+                />
+                <button
+                  onClick={clearPendingImage}
+                  className="bg-background border-border hover:bg-muted absolute -top-1.5 -right-1.5 rounded-full border p-0.5 shadow-sm transition-colors"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Text input row */}
+          <div className="flex items-center gap-2 p-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || isUploading}
+              className="text-muted-foreground hover:text-foreground hover:bg-accent ml-1 rounded-xl p-1.5 transition-colors disabled:opacity-40"
+              aria-label="Attach image (PNG, JPG, WebP)"
+              title="Attach image — PNG, JPG, WebP only"
+            >
+              <ImageIcon className="h-4 w-4" />
+            </button>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              placeholder="Ask a question or attach an image..."
+              className="text-foreground placeholder-muted-foreground flex-1 bg-transparent text-sm focus:outline-none"
+              disabled={isLoading || isUploading}
+            />
+            <button
+              onClick={() => void handleSend()}
+              disabled={isLoading || isUploading || (!input.trim() && !pendingImageFile)}
+              className="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 rounded-xl p-2 shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
         </div>
+
         <p className="text-muted-foreground mt-3 text-center text-xs">
           AI can make mistakes. Consider checking important information.
         </p>
