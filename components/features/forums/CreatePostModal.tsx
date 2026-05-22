@@ -116,7 +116,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
         <DialogHeader className="border-border border-b px-6 pt-6 pb-4">
-          <DialogTitle className="text-base font-semibold">Ask a Question</DialogTitle>
+          <DialogTitle className="text-sm font-semibold">Ask a Question</DialogTitle>
           <DialogDescription className="text-muted-foreground mt-0.5 text-xs">
             Your question stays searchable — others with the same question can find the answer
             later.
@@ -139,7 +139,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="What's your question or topic?"
-                className="text-foreground placeholder:text-muted-foreground w-full border-0 bg-transparent py-1 text-base font-medium focus:ring-0 focus:outline-none"
+                className="text-foreground placeholder:text-muted-foreground w-full border-0 bg-transparent py-1 text-sm font-medium focus:ring-0 focus:outline-none"
                 disabled={loading}
                 autoFocus
               />

@@ -32,7 +32,7 @@ export function GroupDetailHeader({
           </span>
         </div>
 
-        <h1 className="text-foreground text-xl font-bold md:text-2xl">{name}</h1>
+        <h1 className="text-foreground text-lg font-bold">{name}</h1>
 
         {description && <p className="text-muted-foreground text-sm">{description}</p>}
 

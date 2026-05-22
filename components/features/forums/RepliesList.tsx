@@ -37,7 +37,7 @@ export function RepliesList({ replies }: RepliesListProps) {
 
   return (
     <div>
-      <h3 className="text-foreground mb-5 text-base font-bold">
+      <h3 className="text-foreground mb-5 text-sm font-semibold">
         {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
       </h3>
 

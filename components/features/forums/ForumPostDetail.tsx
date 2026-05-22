@@ -42,7 +42,7 @@ export function ForumPostDetail({ post }: ForumPostDetailProps) {
     <div>
       {/* Author row — time lives here, not below the content */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold">
+        <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold">
           {authorName.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
@@ -57,10 +57,10 @@ export function ForumPostDetail({ post }: ForumPostDetailProps) {
       </div>
 
       {/* Title */}
-      <h1 className="text-foreground mb-3 text-2xl leading-snug font-bold">{post.title}</h1>
+      <h1 className="text-foreground mb-3 text-lg leading-snug font-bold">{post.title}</h1>
 
       {/* Content */}
-      <div className="text-foreground mb-5 text-base leading-relaxed whitespace-pre-line">
+      <div className="text-foreground mb-5 text-sm leading-relaxed whitespace-pre-line">
         {post.content}
       </div>
 

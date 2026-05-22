@@ -101,7 +101,7 @@ export function ReplyForm({ postId, onReplyCreated }: ReplyFormProps) {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Post your reply..."
-              className="text-foreground placeholder:text-muted-foreground w-full resize-none bg-transparent pt-1.5 text-base leading-relaxed focus:outline-none disabled:opacity-50"
+              className="text-foreground placeholder:text-muted-foreground w-full resize-none bg-transparent pt-1.5 text-sm leading-relaxed focus:outline-none disabled:opacity-50"
               disabled={loading}
             />
             <div className="mt-2 flex items-center justify-between">

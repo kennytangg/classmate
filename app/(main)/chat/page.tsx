@@ -33,7 +33,7 @@ export default function ChatPage() {
         <div className="bg-accent mb-6 flex h-20 w-20 items-center justify-center rounded-full">
           <Send className="text-primary ml-1 h-10 w-10" />
         </div>
-        <h2 className="text-foreground mb-2 text-2xl font-bold">Select a conversation</h2>
+        <h2 className="text-foreground mb-2 text-lg font-semibold">Select a conversation</h2>
         <p className="text-muted-foreground max-w-md">
           Choose a contact or group from the list to start chatting.
         </p>

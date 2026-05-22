@@ -118,13 +118,13 @@ export default async function AdminModerationPage() {
           <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             Pending Reports
           </p>
-          <p className="text-foreground mt-1 text-2xl font-bold">{enrichedFlags.length}</p>
+          <p className="text-foreground mt-1 text-lg font-bold">{enrichedFlags.length}</p>
         </div>
         <div className="border-border bg-card rounded-xl border p-4">
           <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             Resolved Today
           </p>
-          <p className="text-foreground mt-1 text-2xl font-bold">{resolvedTodayCount}</p>
+          <p className="text-foreground mt-1 text-lg font-bold">{resolvedTodayCount}</p>
         </div>
       </div>
 

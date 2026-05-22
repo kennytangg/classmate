@@ -129,7 +129,7 @@ export default function UploadMaterialPage() {
       </Link>
 
       <div className="border-border bg-card rounded-xl border p-4 shadow-sm sm:p-6 md:p-8">
-        <h1 className="text-foreground mb-2 text-2xl font-bold">Upload Study Material</h1>
+        <h1 className="text-foreground mb-2 text-lg font-bold">Upload Study Material</h1>
         <p className="text-muted-foreground mb-6 text-sm break-words sm:mb-8">
           Share resources with your classmates. Accepted formats: {ALLOWED_EXTENSIONS.join(', ')} ·
           Max 50 MB

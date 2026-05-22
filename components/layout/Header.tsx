@@ -80,18 +80,20 @@ export function Header({ onLogout }: HeaderProps) {
             <div className="bg-primary flex items-center justify-center rounded-lg p-1.5">
               <BookOpen className="h-5 w-5 text-white" />
             </div>
-            <span className="text-foreground text-xl font-bold tracking-tight">ClassMate</span>
+            <span className="text-foreground text-lg font-bold tracking-tight">ClassMate</span>
           </Link>
         </div>
 
         {/* Nav */}
-        <nav className="hidden items-center gap-1 text-sm font-medium md:flex">
+        <nav className="hidden items-center gap-1 text-sm md:flex">
           {coreNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={`relative rounded-md px-3 py-1.5 transition-colors ${
-                isActive(item.href) ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                isActive(item.href)
+                  ? 'text-primary font-medium'
+                  : 'text-muted-foreground hover:text-foreground font-normal'
               }`}
             >
               {item.label}
@@ -172,7 +174,7 @@ export function Header({ onLogout }: HeaderProps) {
                   <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
                     <BookOpen className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-foreground text-base font-bold">ClassMate</span>
+                  <span className="text-foreground text-sm font-bold">ClassMate</span>
                 </div>
 
                 {/* Nav links */}

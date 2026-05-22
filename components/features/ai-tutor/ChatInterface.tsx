@@ -147,17 +147,17 @@ const markdownComponents: React.ComponentProps<typeof ReactMarkdown>['components
     return <p className="mb-3 leading-relaxed last:mb-0">{children}</p>
   },
   h1({ children }: React.HTMLAttributes<HTMLHeadingElement>) {
-    return <h1 className="mt-8 mb-4 text-3xl font-bold tracking-tight first:mt-0">{children}</h1>
+    return <h1 className="mt-8 mb-4 text-lg font-bold tracking-tight first:mt-0">{children}</h1>
   },
   h2({ children }: React.HTMLAttributes<HTMLHeadingElement>) {
     return (
-      <h2 className="border-border mt-7 mb-3 border-b pb-2 text-2xl font-bold tracking-tight first:mt-0">
+      <h2 className="border-border mt-7 mb-3 border-b pb-2 text-lg font-semibold tracking-tight first:mt-0">
         {children}
       </h2>
     )
   },
   h3({ children }: React.HTMLAttributes<HTMLHeadingElement>) {
-    return <h3 className="mt-5 mb-2 text-xl font-semibold first:mt-0">{children}</h3>
+    return <h3 className="mt-5 mb-2 text-lg font-semibold first:mt-0">{children}</h3>
   },
   ul({ children }: React.HTMLAttributes<HTMLUListElement>) {
     return <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>
@@ -385,7 +385,7 @@ export function ChatInterface({
                   <GraduationCap className="text-primary h-8 w-8" />
                 </div>
                 <div>
-                  <p className="text-foreground text-base font-semibold">Your AI Study Companion</p>
+                  <p className="text-foreground text-sm font-semibold">Your AI Study Companion</p>
                   <p className="text-muted-foreground mt-1 text-sm">
                     Ask anything — I&apos;ll help you understand, not just answer.
                   </p>

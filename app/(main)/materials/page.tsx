@@ -130,7 +130,7 @@ export default function MaterialsPage() {
     <div className="px-4 py-4 sm:px-6 md:px-12 lg:px-16">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-foreground text-2xl font-bold">Study Materials</h1>
+          <h1 className="text-foreground text-lg font-bold">Study Materials</h1>
           <p className="text-muted-foreground mt-1">
             Share and discover resources to boost your learning.
           </p>

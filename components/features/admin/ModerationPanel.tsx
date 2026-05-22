@@ -83,7 +83,7 @@ export function ModerationPanel({
     <>
       {/* Moderation Queue */}
       <section>
-        <h1 className="text-foreground text-2xl font-bold">Moderation Queue</h1>
+        <h1 className="text-foreground text-lg font-bold">Moderation Queue</h1>
         <p className="text-muted-foreground mt-2 text-sm">
           Pending reported content requiring review. Use Dismiss to clear false positives or Delete
           to remove content and resolve the report.
@@ -100,7 +100,7 @@ export function ModerationPanel({
       {/* Moderation Logs — admin only */}
       {isAdmin && (
         <section>
-          <h2 className="text-foreground text-xl font-bold">Moderation Logs</h2>
+          <h2 className="text-foreground text-lg font-semibold">Moderation Logs</h2>
           <p className="text-muted-foreground mt-1 text-sm">
             Audit trail of all moderation actions taken by moderators and admins.
           </p>

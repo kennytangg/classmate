@@ -165,7 +165,7 @@ export function ForumList() {
       {/* Header */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <h2 className="text-foreground text-2xl font-bold">Discussions</h2>
+          <h2 className="text-foreground text-lg font-semibold">Discussions</h2>
           <p className="text-muted-foreground mt-1 text-sm">
             Ask questions and get answers — everything stays searchable for everyone.
           </p>
@@ -228,7 +228,7 @@ export function ForumList() {
           {error && !loading && (
             <div className="border-semantic-error/30 bg-semantic-error/10 flex flex-col items-center justify-center rounded-xl border py-12">
               <AlertCircle className="text-semantic-error h-12 w-12" />
-              <p className="text-semantic-error mt-4 text-lg font-medium">{error}</p>
+              <p className="text-semantic-error mt-4 text-lg font-normal">{error}</p>
               <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
                 Try Again
               </Button>
@@ -238,7 +238,7 @@ export function ForumList() {
           {!loading && !error && posts.length === 0 && (
             <div className="border-border bg-muted flex flex-col items-center justify-center rounded-xl border py-16">
               <MessageSquarePlus className="text-muted-foreground h-12 w-12" />
-              <p className="text-foreground mt-4 text-lg font-medium">{emptyState.title}</p>
+              <p className="text-foreground mt-4 text-lg font-semibold">{emptyState.title}</p>
               <p className="text-muted-foreground mt-1 text-sm">{emptyState.sub}</p>
               {emptyState.cta && (
                 <Button

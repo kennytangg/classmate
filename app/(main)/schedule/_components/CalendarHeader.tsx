@@ -22,7 +22,7 @@ export function CalendarHeader({
     <div className="mb-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div>
-          <h1 className="text-foreground text-base font-bold sm:text-xl">My Schedule</h1>
+          <h1 className="text-foreground text-lg font-bold">My Schedule</h1>
           <p className="text-muted-foreground text-sm">{monthLabel}</p>
         </div>
       </div>

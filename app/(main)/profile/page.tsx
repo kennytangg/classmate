@@ -202,7 +202,7 @@ export default function ProfilePage() {
                   <div
                     className={`flex h-20 w-20 items-center justify-center rounded-full ${avatarColor}`}
                   >
-                    <span className="text-2xl font-bold text-white">
+                    <span className="text-lg font-bold text-white">
                       {displayName.charAt(0).toUpperCase()}
                     </span>
                   </div>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-foreground text-2xl font-bold">{displayName}</h1>
+                  <h1 className="text-foreground text-lg font-bold">{displayName}</h1>
                   {role && role !== 'STUDENT' && (
                     <span
                       className={`rounded px-2 py-0.5 text-xs font-semibold ${
@@ -268,7 +268,7 @@ export default function ProfilePage() {
               className="border-border bg-card rounded-2xl border p-4 text-center shadow-sm"
             >
               <Icon className="text-primary mx-auto mb-1 h-5 w-5" />
-              <p className="text-foreground text-xl font-bold">{value}</p>
+              <p className="text-foreground text-lg font-bold">{value}</p>
               <p className="text-muted-foreground text-xs">{label}</p>
             </div>
           ))}

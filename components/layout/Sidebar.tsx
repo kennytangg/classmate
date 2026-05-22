@@ -103,10 +103,10 @@ function NavGroup({
                 onClick={onNavigate}
                 title={item.label}
                 className={cn(
-                  'mb-0.5 flex h-8 items-center gap-2.5 rounded-md px-3 text-[13px] font-normal transition-colors duration-150',
+                  'mb-0.5 flex h-8 items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150',
                   active
-                    ? 'text-sidebar-foreground bg-black/25'
-                    : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                    ? 'text-sidebar-foreground bg-black/25 font-medium'
+                    : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground font-normal'
                 )}
               >
                 <Icon className="h-[15px] w-[15px] shrink-0" />

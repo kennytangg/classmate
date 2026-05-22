@@ -110,7 +110,7 @@ export function TopNavbar({ onMobileMenuOpen }: TopNavbarProps) {
         <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
           <BookOpen className="h-4 w-4 text-white" />
         </div>
-        <span className="text-foreground text-base font-bold tracking-tight">ClassMate</span>
+        <span className="text-foreground text-sm font-bold tracking-tight">ClassMate</span>
       </div>
 
       {/* Right side */}

@@ -192,7 +192,7 @@ export default function DiscoverPage() {
           <div className="bg-primary/10 shrink-0 rounded-xl p-2">
             <Compass className="text-primary h-5 w-5" />
           </div>
-          <h1 className="text-foreground text-xl font-bold">Find &amp; Connect with Classmates</h1>
+          <h1 className="text-foreground text-lg font-bold">Find &amp; Connect with Classmates</h1>
         </div>
 
         {/* Search */}
@@ -316,7 +316,7 @@ export default function DiscoverPage() {
                         <div
                           className={`flex h-14 w-14 items-center justify-center rounded-full ${getAvatarColor(user.id)}`}
                         >
-                          <span className="text-xl font-bold text-white">
+                          <span className="text-lg font-bold text-white">
                             {displayName.charAt(0).toUpperCase()}
                           </span>
                         </div>

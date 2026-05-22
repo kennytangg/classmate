@@ -46,7 +46,7 @@ export function ForumCard({
         </div>
 
         {/* Title */}
-        <h3 className="text-foreground mb-1 text-base leading-snug font-semibold">{title}</h3>
+        <h3 className="text-foreground mb-1 text-sm leading-snug font-semibold">{title}</h3>
 
         {/* Excerpt */}
         <p className="text-muted-foreground mb-2 line-clamp-1 text-sm leading-relaxed">{preview}</p>

@@ -85,7 +85,7 @@ export default function CreateForumPostPage() {
       </Link>
 
       <div className="border-border bg-card rounded-xl border p-8 shadow-sm">
-        <h1 className="text-foreground mb-2 text-2xl font-bold">Ask a Question</h1>
+        <h1 className="text-foreground mb-2 text-lg font-bold">Ask a Question</h1>
         <p className="text-muted-foreground mb-6 text-sm">
           Your question will stay searchable — others with the same question can find the answer
           later.

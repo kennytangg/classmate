@@ -85,7 +85,7 @@ export function ConversationList({
       {/* Header */}
       <div className="border-border border-b p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-foreground text-xl font-bold">Messages</h2>
+          <h2 className="text-foreground text-lg font-semibold">Messages</h2>
           <button
             onClick={onNewMessage}
             title="New message"
@@ -140,7 +140,7 @@ export function ConversationList({
                     <div className="flex items-center gap-3">
                       <div className="relative shrink-0">
                         <div
-                          className={`${avatarColor} flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold text-white`}
+                          className={`${avatarColor} flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-white`}
                         >
                           {initial}
                         </div>
@@ -207,7 +207,7 @@ export function ConversationList({
                     <div className="flex items-center gap-3">
                       <div className="shrink-0">
                         <div
-                          className={`${avatarColor} flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold text-white`}
+                          className={`${avatarColor} flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-white`}
                         >
                           {initial}
                         </div>
