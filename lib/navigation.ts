@@ -10,18 +10,54 @@ export interface NavigationItem {
   icon: string
   section: SidebarSection
   roles?: UserRole[]
+  pinned?: boolean
 }
 
 export const navigationItems: NavigationItem[] = [
-  // Learn — primary purpose of the app
-  { href: '/dashboard', label: 'Home', group: 'core', icon: 'LayoutDashboard', section: 'Learn' },
-  { href: '/materials', label: 'Materials', group: 'core', icon: 'BookOpen', section: 'Learn' },
-  { href: '/ai-tutor', label: 'Learn with AI', group: 'core', icon: 'Bot', section: 'Learn' },
+  // Learn — ordered by importance
+  {
+    href: '/dashboard',
+    label: 'Home',
+    group: 'core',
+    icon: 'LayoutDashboard',
+    section: 'Learn',
+    pinned: true,
+  },
+  {
+    href: '/ai-tutor',
+    label: 'Learn with AI',
+    group: 'core',
+    icon: 'Bot',
+    section: 'Learn',
+    pinned: true,
+  },
+  {
+    href: '/materials',
+    label: 'Materials',
+    group: 'core',
+    icon: 'BookOpen',
+    section: 'Learn',
+    pinned: true,
+  },
   { href: '/schedule', label: 'Schedule', group: 'core', icon: 'Calendar', section: 'Learn' },
-  // Connect — social and collaboration
-  { href: '/groups', label: 'Study Groups', group: 'core', icon: 'Users', section: 'Connect' },
-  { href: '/chat', label: 'Chat', group: 'core', icon: 'MessageCircle', section: 'Connect' },
-  { href: '/forums', label: 'Forums', group: 'core', icon: 'MessageSquare', section: 'Connect' },
+  // Connect — ordered by importance; MessagesSquare (Chat) vs MessageSquare (Forums) are now visually distinct
+  {
+    href: '/forums',
+    label: 'Forums',
+    group: 'core',
+    icon: 'MessageSquare',
+    section: 'Connect',
+    pinned: true,
+  },
+  {
+    href: '/groups',
+    label: 'Study Groups',
+    group: 'core',
+    icon: 'Users',
+    section: 'Connect',
+    pinned: true,
+  },
+  { href: '/chat', label: 'Chat', group: 'core', icon: 'MessagesSquare', section: 'Connect' },
   { href: '/discover', label: 'Find People', group: 'core', icon: 'Compass', section: 'Connect' },
   // Account
   { href: '/profile', label: 'Profile', group: 'core', icon: 'User', section: 'Account' },

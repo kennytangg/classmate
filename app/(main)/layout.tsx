@@ -43,7 +43,7 @@ export default function MainLayout({
 
         {/* Content area — offset by sidebar width on desktop */}
         <div
-          className={`flex h-screen min-w-0 flex-1 flex-col transition-all duration-300 ${collapsed ? 'md:ml-16' : 'md:ml-64'}`}
+          className={`flex h-screen min-w-0 flex-1 flex-col transition-all duration-[300ms] ${collapsed ? 'md:ml-14' : 'md:ml-64'}`}
         >
           <TopNavbar onMobileMenuOpen={() => setMobileOpen(true)} />
           <main

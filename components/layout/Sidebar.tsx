@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   MessageSquare,
+  MessagesSquare,
   Users,
-  MessageCircle,
   Calendar,
   Bot,
   User,
@@ -30,8 +30,8 @@ import { toast } from 'sonner'
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
   MessageSquare,
+  MessagesSquare,
   Users,
-  MessageCircle,
   Calendar,
   Bot,
   User,
@@ -41,6 +41,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   BookOpen,
   Bell,
 }
+
+// Duration that matches the sidebar width transition — keep these in sync.
+const FADE = 'transition-opacity duration-[220ms]'
 
 interface SidebarProps {
   collapsed: boolean
@@ -69,67 +72,56 @@ function NavGroup({
   if (items.length === 0) return null
 
   return (
-    <div className="mb-4">
-      {/* Section header — fades out when collapsed, takes no space */}
+    <div className={cn('transition-[margin-bottom] duration-[220ms]', collapsed ? 'mb-0' : 'mb-4')}>
+      {/* Section header — collapses in height + fades, no snap */}
       <p
         className={cn(
-          'text-sidebar-foreground/40 mb-1.5 overflow-hidden px-2 text-[10px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all duration-200 ease-in-out',
-          collapsed ? 'max-h-0 opacity-0' : 'max-h-6 opacity-100'
+          'text-sidebar-foreground/40 overflow-hidden px-3 text-[10px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all duration-[220ms]',
+          collapsed ? 'mb-0 h-0 opacity-0' : 'mb-1.5 h-4 opacity-100'
         )}
       >
         {section}
       </p>
 
-      <div className="flex flex-col gap-0.5">
+      {/* No flex gap — wrapper divs collapse to max-h-0 so hidden items leave zero space */}
+      <div className="flex flex-col">
         {items.map((item) => {
           const Icon = ICON_MAP[item.icon] ?? User
           const active = isActive(item.href)
           const hasDot = badgeHref === item.href && typeof badgeCount === 'number' && badgeCount > 0
+          const hideInCollapsed = collapsed && !item.pinned
           return (
-            <Link
+            <div
               key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              title={collapsed ? item.label : undefined}
-              className="relative flex h-10 items-center"
+              className={cn(
+                'overflow-hidden transition-[max-height,opacity] duration-[220ms] ease-in-out',
+                hideInCollapsed ? 'max-h-0 opacity-0' : 'max-h-10 opacity-100'
+              )}
             >
-              {/* Collapsed view — centered 40×40 pill, crossfades in */}
-              <span
+              <Link
+                href={item.href}
+                onClick={onNavigate}
+                title={item.label}
                 className={cn(
-                  'absolute inset-0 flex items-center justify-center transition-opacity duration-200',
-                  collapsed ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+                  'mb-0.5 flex h-8 items-center gap-2.5 rounded-md px-3 text-[13px] font-normal transition-colors duration-150',
+                  active
+                    ? 'text-sidebar-foreground bg-black/25'
+                    : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                 )}
               >
+                <Icon className="h-[15px] w-[15px] shrink-0" />
                 <span
                   className={cn(
-                    'relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors duration-150',
-                    active
-                      ? 'bg-sidebar-accent text-sidebar-primary'
-                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                    'flex min-w-0 flex-1 items-center gap-2',
+                    FADE,
+                    collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  {hasDot && (
-                    <span className="bg-primary absolute top-1.5 right-1.5 h-2 w-2 rounded-full" />
-                  )}
+                  <span className="truncate whitespace-nowrap">{item.label}</span>
+                  {hasDot && <span className="bg-primary ml-auto h-2 w-2 rounded-full" />}
                 </span>
-              </span>
-
-              {/* Expanded view — full-width row with label, crossfades in */}
-              <span
-                className={cn(
-                  'absolute inset-0 flex items-center gap-2 rounded-lg px-2 text-sm font-medium transition-opacity duration-200',
-                  collapsed ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100',
-                  active
-                    ? 'bg-sidebar-accent text-sidebar-primary border-sidebar-primary border-l-2'
-                    : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                )}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="truncate">{item.label}</span>
-                {hasDot && <span className="bg-primary ml-auto h-2 w-2 rounded-full" />}
-              </span>
-            </Link>
+              </Link>
+            </div>
           )
         })}
       </div>
@@ -158,18 +150,23 @@ function SidebarLogout({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="px-2 pb-3">
+    <div className="px-2 pb-2">
       <button
         onClick={handleLogout}
         disabled={isLoggingOut}
         title="Sign out"
-        className={cn(
-          'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground flex h-10 w-full items-center rounded-lg transition-colors duration-150 disabled:opacity-50',
-          collapsed ? 'justify-center' : 'gap-2 px-2'
-        )}
+        className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150 disabled:opacity-50"
       >
-        <LogOut className="h-5 w-5 shrink-0" />
-        {!collapsed && <span className="text-sm font-medium">Sign out</span>}
+        <LogOut className="h-[15px] w-[15px] shrink-0" />
+        <span
+          className={cn(
+            'text-[13px] font-normal whitespace-nowrap',
+            FADE,
+            collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+          )}
+        >
+          Sign out
+        </span>
       </button>
     </div>
   )
@@ -201,17 +198,19 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Hamburger toggle (desktop only) — always at same position */}
+      {/* Hamburger — fixed in viewport so it never moves during the sidebar width transition */}
       {onToggleCollapse && (
-        <div className="flex h-14 items-center px-2">
+        <>
+          {/* Spacer keeps the nav content from starting at the very top */}
+          <div className="h-14 shrink-0" />
           <button
             onClick={onToggleCollapse}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground flex h-10 w-10 items-center justify-center rounded-xl transition-colors duration-150"
+            className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground fixed top-3 left-3 z-40 hidden h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 md:flex"
           >
-            <Menu className="h-5 w-5 shrink-0" />
+            <Menu className="h-4 w-4 shrink-0" />
           </button>
-        </div>
+        </>
       )}
 
       {/* Nav groups */}
@@ -247,11 +246,11 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMobileClose
 
   return (
     <>
-      {/* Desktop sidebar — fixed */}
+      {/* Desktop sidebar — overflow-hidden lets the width transition act as a reveal mask */}
       <aside
         className={cn(
-          'border-border bg-card fixed top-0 left-0 z-30 hidden h-full flex-col border-r transition-all duration-300 md:flex',
-          collapsed ? 'w-16' : 'w-64'
+          'border-border bg-card fixed top-0 left-0 z-30 hidden h-full flex-col overflow-hidden border-r transition-all duration-[300ms] md:flex',
+          collapsed ? 'w-14' : 'w-64'
         )}
       >
         <SidebarContent
