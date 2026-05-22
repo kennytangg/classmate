@@ -7,19 +7,19 @@ interface ModerationResult {
   reason: string
 }
 
-const FAIL_OPEN: ModerationResult = {
-  safe: true,
-  toxicity_score: 0,
+const FAIL_CLOSED: ModerationResult = {
+  safe: false,
+  toxicity_score: 100,
   spam_score: 0,
-  categories: [],
-  action: 'approve',
-  reason: 'Moderation service unavailable — content approved by default',
+  categories: ['moderation_error'],
+  action: 'block',
+  reason: 'Moderation service unavailable — content blocked for safety',
 }
 
 const MAX_CONTENT_LENGTH = 10_000
 
 export async function moderateContent(content: string): Promise<ModerationResult> {
-  if (!content || typeof content !== 'string') return FAIL_OPEN
+  if (!content || typeof content !== 'string') return FAIL_CLOSED
 
   const trimmedContent = content.slice(0, MAX_CONTENT_LENGTH)
 
@@ -59,7 +59,7 @@ Categories can include: harassment, hate_speech, spam, off_topic, inappropriate,
     })
 
     if (!response.ok) {
-      return FAIL_OPEN
+      return FAIL_CLOSED
     }
 
     const data = (await response.json()) as {
@@ -68,7 +68,7 @@ Categories can include: harassment, hate_speech, spam, off_topic, inappropriate,
     const aiResponse = data.choices?.[0]?.message?.content
 
     if (!aiResponse) {
-      return FAIL_OPEN
+      return FAIL_CLOSED
     }
 
     // Extract JSON from markdown code blocks if present
@@ -78,11 +78,11 @@ Categories can include: harassment, hate_speech, spam, off_topic, inappropriate,
 
     // Validate that the required action field is a known value
     if (!['approve', 'warn', 'block'].includes(parsed.action as string)) {
-      return FAIL_OPEN
+      return FAIL_CLOSED
     }
 
     return parsed as unknown as ModerationResult
   } catch {
-    return FAIL_OPEN
+    return FAIL_CLOSED
   }
 }

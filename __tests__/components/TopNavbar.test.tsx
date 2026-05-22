@@ -50,6 +50,11 @@ jest.mock('@/lib/contexts/user-role-context', () => ({
   useUserRole: jest.fn(),
 }))
 
+// Mock NotificationDropdown — avoids fetch calls and useNotifications hook in tests
+jest.mock('@/components/features/notifications/NotificationDropdown', () => ({
+  NotificationDropdown: () => null,
+}))
+
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
   ...jest.requireActual('lucide-react'),
@@ -163,7 +168,7 @@ describe('TopNavbar component', () => {
     render(<TopNavbar onMobileMenuOpen={onMobileMenuOpen} />)
 
     // Open dropdown to see the name
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     // After opening dropdown, the name should appear in the label
@@ -185,7 +190,7 @@ describe('TopNavbar component', () => {
     const user = userEvent.setup()
     render(<TopNavbar onMobileMenuOpen={onMobileMenuOpen} />)
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     expect(screen.getByText('jane@example.com')).toBeInTheDocument()
@@ -206,7 +211,7 @@ describe('TopNavbar component', () => {
     const user = userEvent.setup()
     render(<TopNavbar onMobileMenuOpen={onMobileMenuOpen} />)
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     // Name should be extracted from email prefix
@@ -285,7 +290,7 @@ describe('TopNavbar component', () => {
     )
 
     // Open the dropdown by clicking the avatar area
-    const avatarButton = screen.getAllByRole('button')[1] // Skip hamburger, get avatar
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger') // Skip hamburger, get avatar
     await user.click(avatarButton)
 
     // Profile link should be visible
@@ -305,7 +310,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     expect(screen.getByText('Sign Out')).toBeInTheDocument()
@@ -328,7 +333,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     const signOutButton = screen.getByRole('menuitem', { name: /sign out/i })
@@ -362,7 +367,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     const signOutButton = screen.getByRole('menuitem', { name: /sign out/i })
@@ -391,7 +396,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     const signOutButton = screen.getByRole('menuitem', { name: /sign out/i })
@@ -419,7 +424,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     const signOutButton = screen.getByRole('menuitem', { name: /sign out/i })
@@ -456,7 +461,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     const signOutButton = screen.getByRole('menuitem', { name: /sign out/i })
@@ -488,7 +493,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     const darkModeButton = screen.getByRole('menuitem', { name: /dark mode/i })
@@ -539,7 +544,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     expect(screen.getByTestId('moon-icon')).toBeInTheDocument()
@@ -564,7 +569,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    const avatarButton = screen.getAllByRole('button')[1]
+    const avatarButton = screen.getByTestId('avatar-dropdown-trigger')
     await user.click(avatarButton)
 
     expect(screen.getByTestId('sun-icon')).toBeInTheDocument()

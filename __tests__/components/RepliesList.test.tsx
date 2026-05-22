@@ -41,14 +41,14 @@ describe('RepliesList component', () => {
     const replies = [mockReply(), mockReply({ id: 'reply-2' })]
     render(<RepliesList replies={replies} />)
 
-    expect(screen.getByText('2 Answers')).toBeInTheDocument()
+    expect(screen.getByText('2 Replies')).toBeInTheDocument()
   })
 
-  it('displays single reply count as "1 Answers"', () => {
+  it('displays single reply count as "1 Reply"', () => {
     const replies = [mockReply()]
     render(<RepliesList replies={replies} />)
 
-    expect(screen.getByText('1 Answers')).toBeInTheDocument()
+    expect(screen.getByText('1 Reply')).toBeInTheDocument()
   })
 
   it('displays reply author name from profile displayName', () => {
@@ -118,7 +118,7 @@ describe('RepliesList component', () => {
     ]
     render(<RepliesList replies={replies} />)
 
-    expect(screen.getByText('3 Answers')).toBeInTheDocument()
+    expect(screen.getByText('3 Replies')).toBeInTheDocument()
     expect(screen.getByText('First response')).toBeInTheDocument()
     expect(screen.getByText('Second response')).toBeInTheDocument()
     expect(screen.getByText('Third response')).toBeInTheDocument()
@@ -182,7 +182,7 @@ describe('RepliesList component', () => {
     )
     render(<RepliesList replies={replies} />)
 
-    expect(screen.getByText('20 Answers')).toBeInTheDocument()
+    expect(screen.getByText('20 Replies')).toBeInTheDocument()
     expect(screen.getByText('Reply number 1')).toBeInTheDocument()
     expect(screen.getByText('Reply number 20')).toBeInTheDocument()
   })

@@ -130,7 +130,10 @@ export function TopNavbar({ onMobileMenuOpen }: TopNavbarProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="group focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2">
+            <button
+              data-testid="avatar-dropdown-trigger"
+              className="group focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2"
+            >
               <div className="bg-primary h-9 w-9 cursor-pointer rounded-full p-[2px] transition-transform group-hover:scale-105">
                 {userImage ? (
                   <Image

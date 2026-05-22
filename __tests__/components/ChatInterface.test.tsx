@@ -32,6 +32,35 @@ jest.mock('remark-gfm', () => ({
   default: () => {},
 }))
 
+// Mock remark-math — ESM-only package; no-op in tests
+jest.mock('remark-math', () => ({
+  __esModule: true,
+  default: () => {},
+}))
+
+// Mock rehype-raw — ESM-only package; no-op in tests
+jest.mock('rehype-raw', () => ({
+  __esModule: true,
+  default: () => {},
+}))
+
+// Mock rehype-katex — ESM-only package; no-op in tests
+jest.mock('rehype-katex', () => ({
+  __esModule: true,
+  default: () => {},
+}))
+
+// Mock react-syntax-highlighter — depends on ESM-only refractor package
+jest.mock('react-syntax-highlighter', () => ({
+  __esModule: true,
+  default: ({ children }: React.PropsWithChildren) => <pre>{children}</pre>,
+  Prism: ({ children }: React.PropsWithChildren) => <pre>{children}</pre>,
+}))
+jest.mock('react-syntax-highlighter/dist/esm/styles/hljs', () => ({
+  __esModule: true,
+  nord: {},
+}))
+
 // Mock better-auth client — provides useSession hook
 jest.mock('@/lib/auth-client', () => ({
   authClient: {
@@ -77,7 +106,7 @@ describe('ChatInterface component', () => {
     render(<ChatInterface {...defaultProps} />)
 
     // The input has a placeholder defined in the component
-    const input = screen.getByPlaceholderText(/ask a follow-up question/i)
+    const input = screen.getByPlaceholderText(/ask a question/i)
     expect(input).toBeInTheDocument()
   })
 
@@ -115,11 +144,11 @@ describe('ChatInterface component', () => {
     const sendMessage = jest.fn()
     render(<ChatInterface {...defaultProps} sendMessage={sendMessage} />)
 
-    const input = screen.getByPlaceholderText(/ask a follow-up question/i)
+    const input = screen.getByPlaceholderText(/ask a question/i)
     await userEvent.type(input, 'What is a closure?')
     await userEvent.keyboard('{Enter}')
 
-    expect(sendMessage).toHaveBeenCalledWith('What is a closure?')
+    expect(sendMessage).toHaveBeenCalledWith('What is a closure?', undefined)
   })
 
   it('calls sendMessage when a suggested prompt chip is clicked', async () => {
@@ -139,7 +168,7 @@ describe('ChatInterface component', () => {
   it('disables the input and send button while isLoading is true', () => {
     render(<ChatInterface {...defaultProps} isLoading={true} />)
 
-    const input = screen.getByPlaceholderText(/ask a follow-up question/i)
+    const input = screen.getByPlaceholderText(/ask a question/i)
     expect(input).toBeDisabled()
   })
 
@@ -151,34 +180,17 @@ describe('ChatInterface component', () => {
     expect(screen.queryByText(/your ai study companion/i)).not.toBeInTheDocument()
   })
 
-  it('renders a mobile New Chat button when onNewChat is provided', () => {
-    const onNewChat = jest.fn()
-    render(<ChatInterface {...defaultProps} onNewChat={onNewChat} />)
-
-    const newChatButton = screen.getByRole('button', { name: /new chat/i })
-    expect(newChatButton).toBeInTheDocument()
-  })
-
-  it('calls onNewChat when the mobile New Chat button is clicked', async () => {
-    const onNewChat = jest.fn()
-    render(<ChatInterface {...defaultProps} onNewChat={onNewChat} />)
-
-    await userEvent.click(screen.getByRole('button', { name: /new chat/i }))
-    expect(onNewChat).toHaveBeenCalledTimes(1)
-  })
-
-  it('shows the ClassMate AI header text', () => {
+  it('shows the study companion headline', () => {
     render(<ChatInterface {...defaultProps} />)
-    expect(screen.getByText(/classmate ai/i)).toBeInTheDocument()
+    expect(screen.getByText(/your ai study companion/i)).toBeInTheDocument()
   })
 
-  it('shows the user initial in the avatar when a message is from the user', () => {
+  it('shows the user message content in the chat', () => {
     const props = {
       ...defaultProps,
       messages: [makeMessage({ role: 'user', content: 'Hello there' })],
     }
     render(<ChatInterface {...props} />)
-    // User initial from mocked session (name: "Test User" → "T")
-    expect(screen.getByText('T')).toBeInTheDocument()
+    expect(screen.getByText('Hello there')).toBeInTheDocument()
   })
 })

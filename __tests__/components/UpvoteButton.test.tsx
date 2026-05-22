@@ -54,7 +54,7 @@ describe('UpvoteButton component', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: /upvote/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Like' })).toBeInTheDocument()
   })
 
   it('renders button with "Remove upvote" label when already upvoted', () => {
@@ -67,7 +67,7 @@ describe('UpvoteButton component', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: /remove upvote/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove like' })).toBeInTheDocument()
   })
 
   it('optimistically increments count on click when not yet upvoted', async () => {
@@ -91,7 +91,7 @@ describe('UpvoteButton component', () => {
     expect(screen.getByText('4')).toBeInTheDocument()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /remove upvote/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Remove like' })).toBeInTheDocument()
     })
   })
 
@@ -115,7 +115,7 @@ describe('UpvoteButton component', () => {
     expect(screen.getByText('2')).toBeInTheDocument()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Upvote' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Like' })).toBeInTheDocument()
     })
   })
 

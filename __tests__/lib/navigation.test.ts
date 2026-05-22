@@ -14,6 +14,7 @@ describe('navigation config', () => {
       '/forums',
       '/discover',
       '/profile',
+      '/notifications',
     ])
   })
 

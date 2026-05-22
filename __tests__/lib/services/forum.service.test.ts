@@ -346,6 +346,12 @@ describe('createForumReply', () => {
     const reply = { id: 'r1', content: 'Great post!' }
     mockPrisma.forumReply.create.mockResolvedValue(reply as never)
     mockPrisma.forumPost.update.mockResolvedValue({} as never)
+    mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({
+        forumReply: { create: mockPrisma.forumReply.create },
+        forumPost: { update: mockPrisma.forumPost.update },
+      })
+    )
 
     const result = await createForumReply('u1', 'p1', 'Great post!')
 
@@ -373,6 +379,12 @@ describe('createForumReply', () => {
     mockModerate.mockResolvedValue(WARN)
     mockPrisma.forumReply.create.mockResolvedValue({ id: 'r1' } as never)
     mockPrisma.forumPost.update.mockResolvedValue({} as never)
+    mockPrisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({
+        forumReply: { create: mockPrisma.forumReply.create },
+        forumPost: { update: mockPrisma.forumPost.update },
+      })
+    )
 
     const result = await createForumReply('u1', 'p1', 'Borderline content')
 

@@ -105,13 +105,13 @@ describe('AI Tutor — Valid Inputs', () => {
     expect(callBody.messages).toHaveLength(4)
   })
 
-  it('TC-AI-T-03: Ollama model is llama3.1:8b', async () => {
+  it('TC-AI-T-03: Ollama model is gemma4:26b', async () => {
     mockFetch.mockResolvedValueOnce(makeSSEResponse('ok'))
 
     await POST(makeChatRequest([{ role: 'user', content: 'hi' }]))
 
     const callBody = JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string)
-    expect(callBody.model).toBe('llama3.1:8b')
+    expect(callBody.model).toBe('gemma4:26b')
   })
 
   it('TC-AI-T-04: stream flag is true in Groq request', async () => {

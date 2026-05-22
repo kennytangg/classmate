@@ -103,13 +103,13 @@ describe('ForumPostDetail component', () => {
   it('displays replies count', () => {
     render(<ForumPostDetail post={mockPost} />)
 
-    expect(screen.getByText('5 Replies')).toBeInTheDocument()
+    expect(screen.getByText('5 replies')).toBeInTheDocument()
   })
 
   it('displays views count', () => {
     render(<ForumPostDetail post={mockPost} />)
 
-    expect(screen.getByText('42 Views')).toBeInTheDocument()
+    expect(screen.getByText('42 views')).toBeInTheDocument()
   })
 
   it('does not render a Share button', () => {
@@ -151,7 +151,7 @@ describe('ForumPostDetail component', () => {
   it('displays message icon alongside replies count', () => {
     render(<ForumPostDetail post={mockPost} />)
 
-    const repliesSection = screen.getByText('5 Replies').parentElement
+    const repliesSection = screen.getByText('5 replies').parentElement
     expect(repliesSection).toBeInTheDocument()
     expect(repliesSection?.querySelector('svg')).toBeInTheDocument()
   })
@@ -159,7 +159,7 @@ describe('ForumPostDetail component', () => {
   it('displays eye icon alongside views count', () => {
     render(<ForumPostDetail post={mockPost} />)
 
-    const viewsSection = screen.getByText('42 Views').parentElement
+    const viewsSection = screen.getByText('42 views').parentElement
     expect(viewsSection).toBeInTheDocument()
     expect(viewsSection?.querySelector('svg')).toBeInTheDocument()
   })
