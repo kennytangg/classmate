@@ -30,7 +30,7 @@ export function AiTutorInput() {
   }
 
   return (
-    <div className="from-primary/10 border-primary/20 rounded-2xl border bg-gradient-to-br to-violet-500/5 p-6">
+    <div>
       <div className="mb-4 flex items-center gap-3">
         <div className="bg-primary/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
           <Bot className="text-primary h-5 w-5" />

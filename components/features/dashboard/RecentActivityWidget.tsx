@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FileText, MessageSquare, Clock } from 'lucide-react'
 
 type ActivityKind = 'material' | 'post'
 
@@ -20,18 +19,6 @@ function relativeTime(dateStr: string): string {
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return `${hrs}h ago`
   return `${Math.floor(hrs / 24)}d ago`
-}
-
-function SkeletonRow() {
-  return (
-    <div className="flex items-center gap-3 py-3">
-      <div className="bg-muted h-7 w-7 animate-pulse rounded-lg" />
-      <div className="flex-1 space-y-1.5">
-        <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
-        <div className="bg-muted h-3 w-1/4 animate-pulse rounded" />
-      </div>
-    </div>
-  )
 }
 
 export function RecentActivityWidget() {
@@ -68,61 +55,54 @@ export function RecentActivityWidget() {
     Promise.all([materialsPromise, postsPromise]).then(([materials, posts]) => {
       const merged = [...materials, ...posts]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 5)
+        .slice(0, 4)
       setItems(merged)
       setLoading(false)
     })
   }, [])
 
   return (
-    <div className="bg-card border-border rounded-2xl border p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <Clock className="text-muted-foreground h-4 w-4" />
-        <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-          Recent Activity
-        </span>
+    <div>
+      <div className="mb-3">
+        <span className="text-foreground text-lg font-semibold">Recent Activity</span>
       </div>
 
       {loading ? (
-        <div className="divide-border divide-y">
-          <SkeletonRow />
-          <SkeletonRow />
-          <SkeletonRow />
+        <div className="space-y-3.5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <div className="bg-muted mt-1.5 h-1.5 w-1.5 animate-pulse rounded-full" />
+              <div className="flex-1 space-y-1">
+                <div className="bg-muted h-3.5 w-3/4 animate-pulse rounded" />
+                <div className="bg-muted h-3 w-16 animate-pulse rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : items.length === 0 ? (
-        <p className="text-muted-foreground py-4 text-sm">No recent activity yet.</p>
+        <p className="text-muted-foreground py-1 text-sm">No recent activity yet.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-          {items.map((item) => {
-            const Icon = item.kind === 'material' ? FileText : MessageSquare
-            const iconColor =
-              item.kind === 'material'
-                ? 'text-amber-500 bg-amber-500/10'
-                : 'text-blue-500 bg-blue-500/10'
-            return (
-              <li
-                key={`${item.kind}-${item.id}`}
-                className="border-border border-b last:border-0 sm:[&:nth-last-child(-n+2)]:border-0"
-              >
+        <ul className="space-y-3.5">
+          {items.map((item) => (
+            <li key={`${item.kind}-${item.id}`} className="flex items-start gap-2.5">
+              <div
+                className={`mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full ${
+                  item.kind === 'post' ? 'bg-primary/60' : 'bg-amber-400/60'
+                }`}
+              />
+              <div className="min-w-0">
                 <a
                   href={item.href}
-                  className="flex items-center gap-3 py-3 transition-opacity hover:opacity-80"
+                  className="text-foreground hover:text-primary line-clamp-1 text-sm transition-colors"
                 >
-                  <div
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${iconColor}`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                  </div>
-                  <p className="text-foreground min-w-0 flex-1 truncate text-sm font-medium">
-                    {item.title}
-                  </p>
-                  <span className="text-muted-foreground shrink-0 text-xs">
-                    {relativeTime(item.createdAt)}
-                  </span>
+                  {item.title}
                 </a>
-              </li>
-            )
-          })}
+                <p className="text-muted-foreground mt-0.5 text-xs">
+                  {relativeTime(item.createdAt)}
+                </p>
+              </div>
+            </li>
+          ))}
         </ul>
       )}
     </div>

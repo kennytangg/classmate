@@ -39,28 +39,37 @@ export async function GET() {
       where: {
         id: { notIn: Array.from(excludedPostIds) },
       },
+      include: {
+        user: { select: { name: true } },
+      },
       orderBy: {
         createdAt: 'desc',
       },
       take: 100,
     })
 
+    const postMap = new Map(posts.map((p) => [p.id, p]))
     const hasHistory = (historyUser?.forumPosts.length ?? 0) > 0
     const ranked = scoreAndRankPosts(posts, new Set(), new Set())
     const top = ranked.slice(0, 5)
 
     return NextResponse.json(
       {
-        recommendations: top.map((item) => ({
-          id: item.id,
-          title: item.title,
-          createdAt: item.createdAt,
-          upvotes: item.upvotes,
-          views: item.views,
-          repliesCount: item.repliesCount,
-          reason: item.reasons[0],
-          score: item.score,
-        })),
+        recommendations: top.map((item) => {
+          const post = postMap.get(item.id)
+          return {
+            id: item.id,
+            title: item.title,
+            content: post?.content ?? '',
+            author: post?.user?.name ?? 'Unknown',
+            createdAt: item.createdAt,
+            upvotes: item.upvotes,
+            views: item.views,
+            repliesCount: item.repliesCount,
+            reason: item.reasons[0],
+            score: item.score,
+          }
+        }),
         fallbackUsed: !hasHistory,
       },
       { status: 200 }

@@ -11,18 +11,6 @@ interface Group {
   _count: { members: number }
 }
 
-function SkeletonRow() {
-  return (
-    <div className="flex items-center gap-3 py-3">
-      <div className="bg-muted h-8 w-8 animate-pulse rounded-lg" />
-      <div className="flex-1 space-y-1.5">
-        <div className="bg-muted h-4 w-1/2 animate-pulse rounded" />
-        <div className="bg-muted h-3 w-1/3 animate-pulse rounded" />
-      </div>
-    </div>
-  )
-}
-
 export function ActiveGroupsWidget() {
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,45 +24,42 @@ export function ActiveGroupsWidget() {
   }, [])
 
   return (
-    <div className="bg-card border-border rounded-2xl border p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="text-muted-foreground h-4 w-4" />
-          <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Users className="text-muted-foreground h-3.5 w-3.5" />
+          <span className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
             My Groups
           </span>
         </div>
         <Link
           href="/groups"
-          className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"
+          className="text-primary flex items-center gap-0.5 text-xs font-medium hover:underline"
         >
           Browse <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
 
       {loading ? (
-        <div className="divide-border divide-y">
-          <SkeletonRow />
-          <SkeletonRow />
-          <SkeletonRow />
-          <SkeletonRow />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="bg-muted h-7 w-7 animate-pulse rounded-lg" />
+              <div className="flex-1 space-y-1">
+                <div className="bg-muted h-3.5 w-1/2 animate-pulse rounded" />
+                <div className="bg-muted h-3 w-1/3 animate-pulse rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : groups.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10">
-            <Users className="h-6 w-6 text-emerald-500" />
-          </div>
-          <div>
-            <p className="text-foreground text-sm font-medium">No groups yet</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">
-              Find classmates studying the same subjects
-            </p>
-          </div>
+        <div className="flex items-center justify-between py-1">
+          <p className="text-muted-foreground text-sm">No groups yet</p>
           <Link
             href="/groups"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 py-1.5 text-xs font-medium transition-colors"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-3 py-1 text-xs font-medium transition-colors"
           >
-            Browse groups
+            Browse
           </Link>
         </div>
       ) : (
@@ -83,23 +68,18 @@ export function ActiveGroupsWidget() {
             <li key={group.id}>
               <Link
                 href={`/groups/${group.id}`}
-                className="flex items-center gap-3 py-3 transition-opacity first:pt-0 last:pb-0 hover:opacity-80"
+                className="flex items-center gap-3 py-2.5 transition-opacity first:pt-0 last:pb-0 hover:opacity-75"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <Users className="h-4 w-4 text-emerald-500" />
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                  <Users className="h-3.5 w-3.5 text-emerald-500" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground truncate text-sm font-medium">{group.name}</p>
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <span className="bg-muted text-muted-foreground inline-block rounded-full px-2 py-0.5 text-xs">
-                      {group.subject}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {group._count.members} members
-                    </span>
-                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    {group.subject} · {group._count.members} members
+                  </p>
                 </div>
-                <ArrowRight className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                <ArrowRight className="text-muted-foreground h-3 w-3 shrink-0" />
               </Link>
             </li>
           ))}
