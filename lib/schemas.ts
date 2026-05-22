@@ -2,13 +2,13 @@ import { z } from 'zod'
 
 // ── Forums ─────────────────────────────────────────────────────────────────
 export const createPostSchema = z.object({
-  title: z.string().min(1).max(300),
-  content: z.string().min(1).max(20000),
+  title: z.string().min(1).max(100),
+  content: z.string().min(1).max(500),
 })
 
 export const updatePostSchema = z.object({
-  title: z.string().min(1).max(300).optional(),
-  content: z.string().min(1).max(20000).optional(),
+  title: z.string().min(1).max(100).optional(),
+  content: z.string().min(1).max(500).optional(),
 })
 
 export const deleteWithReasonSchema = z.object({
@@ -17,11 +17,11 @@ export const deleteWithReasonSchema = z.object({
 
 export const createReplySchema = z.object({
   postId: z.string().min(1),
-  content: z.string().min(1).max(10000),
+  content: z.string().min(1).max(300),
 })
 
 export const updateReplySchema = z.object({
-  content: z.string({ error: 'content is required' }).min(1, 'content is required').max(10000),
+  content: z.string({ error: 'content is required' }).min(1, 'content is required').max(300),
 })
 
 // ── Study Groups ───────────────────────────────────────────────────────────

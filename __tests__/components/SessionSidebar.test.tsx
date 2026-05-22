@@ -54,14 +54,14 @@ describe('SessionSidebar component', () => {
     // Never resolves — keeps the component in loading state
     mockFetch.mockReturnValueOnce(new Promise(() => {}))
     render(<SessionSidebar {...defaultProps} />)
-    expect(screen.getByText(/loading sessions/i)).toBeInTheDocument()
+    expect(screen.getByText(/loading/i)).toBeInTheDocument()
   })
 
   it('shows empty state when there are no sessions', async () => {
     mockFetch.mockImplementationOnce(() => mockJsonResponse({ sessions: [] }))
     render(<SessionSidebar {...defaultProps} />)
     await waitFor(() => {
-      expect(screen.getByText(/no past sessions yet/i)).toBeInTheDocument()
+      expect(screen.getByText(/no past chats yet/i)).toBeInTheDocument()
     })
   })
 
@@ -102,7 +102,37 @@ describe('SessionSidebar component', () => {
     expect(onNewChat).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onDeleteSession and removes session from list after successful delete', async () => {
+  it('shows confirmation dialog when delete button is clicked', async () => {
+    mockFetch.mockImplementationOnce(() => mockJsonResponse({ sessions: MOCK_SESSIONS }))
+    render(<SessionSidebar {...defaultProps} />)
+
+    await waitFor(() => screen.getByText('Calculus Help'))
+
+    const deleteButtons = screen.getAllByRole('button', { name: /delete session/i })
+    await userEvent.click(deleteButtons[0])
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText(/delete chat/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^delete$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+  })
+
+  it('cancels deletion when Cancel is clicked', async () => {
+    const onDeleteSession = jest.fn()
+    mockFetch.mockImplementationOnce(() => mockJsonResponse({ sessions: MOCK_SESSIONS }))
+    render(<SessionSidebar {...defaultProps} onDeleteSession={onDeleteSession} />)
+
+    await waitFor(() => screen.getByText('Calculus Help'))
+
+    const deleteButtons = screen.getAllByRole('button', { name: /delete session/i })
+    await userEvent.click(deleteButtons[0])
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+
+    expect(onDeleteSession).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('calls onDeleteSession and removes session after confirming delete', async () => {
     const onDeleteSession = jest.fn()
     mockFetch
       .mockImplementationOnce(() => mockJsonResponse({ sessions: MOCK_SESSIONS }))
@@ -118,9 +148,9 @@ describe('SessionSidebar component', () => {
 
     await waitFor(() => screen.getByText('Calculus Help'))
 
-    // Hover to reveal delete button, then click
     const deleteButtons = screen.getAllByRole('button', { name: /delete session/i })
     await userEvent.click(deleteButtons[0])
+    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
 
     await waitFor(() => {
       expect(onDeleteSession).toHaveBeenCalledWith('session-1')
@@ -128,14 +158,12 @@ describe('SessionSidebar component', () => {
     })
   })
 
-  it('shows singular "msg" for sessions with exactly 1 message', async () => {
+  it('renders session titles without message count metadata', async () => {
     mockFetch.mockImplementationOnce(() => mockJsonResponse({ sessions: MOCK_SESSIONS }))
     render(<SessionSidebar {...defaultProps} />)
     await waitFor(() => {
-      // session-2 has 1 message → "1 msg" (no "s")
-      expect(screen.getByText(/1 msg$/)).toBeInTheDocument()
-      // session-1 has 5 messages → "5 msgs"
-      expect(screen.getByText(/5 msgs/)).toBeInTheDocument()
+      expect(screen.getByText('Calculus Help')).toBeInTheDocument()
+      expect(screen.queryByText(/msg/i)).not.toBeInTheDocument()
     })
   })
 })

@@ -239,7 +239,7 @@ async function main() {
       data: {
         userId: alice.id,
         title: 'How do I properly use useEffect with async functions?',
-        content: `I keep running into issues with async functions inside useEffect. I've tried:\n\n\`\`\`js\nuseEffect(async () => {\n  const data = await fetchData();\n  setData(data);\n}, []);\n\`\`\`\n\nBut I get a warning about returning a Promise. What's the correct pattern?`,
+        content: `I keep running into issues with async functions inside useEffect. When I make the callback async directly I get a warning about returning a Promise. I know useEffect expects either nothing or a cleanup function but I am not sure how to structure this correctly. What is the right pattern?`,
         upvotes: 12,
         views: 145,
         isAnswered: true,
@@ -260,8 +260,8 @@ async function main() {
     prisma.forumPost.create({
       data: {
         userId: fiona.id,
-        title: 'TypeScript generics — when to use them vs. `any`?',
-        content: `I understand the basics of generics in TypeScript but I'm unsure when it's appropriate to use them versus just using \`any\`. Can someone explain with practical examples? I want to write more type-safe code.`,
+        title: 'TypeScript generics — when to use them vs. any?',
+        content: `I understand the basics of generics in TypeScript but I'm unsure when it's appropriate to use them versus just using any. Can someone explain with practical examples? I want to write more type-safe code.`,
         upvotes: 15,
         views: 210,
         isAnswered: true,
@@ -272,7 +272,7 @@ async function main() {
       data: {
         userId: carol.id,
         title: '[Resource] Complete React Hooks Cheat Sheet 2026',
-        content: `Here's a comprehensive cheat sheet I put together for all core React hooks:\n\n- **useState** — state management in functional components\n- **useEffect** — side effects, data fetching, subscriptions\n- **useContext** — consume context values without prop drilling\n- **useReducer** — complex state logic (alternative to useState)\n- **useMemo** — memoize expensive computations\n- **useCallback** — memoize callback functions\n- **useRef** — mutable reference that doesn't trigger re-renders\n\nFeel free to bookmark and share!`,
+        content: `Here is a quick reference for all core React hooks. useState handles local state. useEffect manages side effects and data fetching. useContext reads context values. useReducer handles complex state logic. useMemo caches expensive computed values. useCallback prevents unnecessary function recreation. useRef holds mutable values without triggering re-renders. Feel free to save and share!`,
         upvotes: 24,
         views: 387,
         isAnswered: false,
@@ -283,7 +283,7 @@ async function main() {
       data: {
         userId: george.id,
         title: 'Database normalisation — 1NF, 2NF, 3NF explained clearly',
-        content: `Database normalisation is a critical skill but often poorly explained. Here's my concise breakdown:\n\n**1NF**: Each column contains atomic values; no repeating groups.\n**2NF**: Must be in 1NF; every non-key attribute is fully dependent on the primary key.\n**3NF**: Must be in 2NF; no transitive dependencies — non-key attributes depend only on the primary key.\n\nAsk me any questions in the replies!`,
+        content: `Database normalisation is often poorly explained so here is a clear breakdown. 1NF means each column has atomic values with no repeating groups. 2NF requires 1NF and that every non-key column fully depends on the primary key. 3NF requires 2NF and no transitive dependencies so non-key columns only depend on the primary key. Ask me anything in the replies!`,
         upvotes: 19,
         views: 256,
         isAnswered: false,
@@ -305,7 +305,7 @@ async function main() {
       data: {
         userId: evan.id,
         title: 'ClassMate platform update — study groups, AI tutor & more',
-        content: `Excited to announce the latest ClassMate features!\n\n✅ **Study Groups** — create or join private/public groups to collaborate with peers\n✅ **AI Tutor** — get instant answers to your study questions powered by AI\n✅ **Forum Summarisation** — summarise long discussion threads with one click\n✅ **Thread Recommendations** — personalised forum recommendations based on your activity\n\nFeedback and bug reports are welcome!`,
+        content: `Excited to share the latest ClassMate updates. Study Groups let you create or join private or public groups to collaborate with peers. The AI Tutor gives instant answers to your study questions. Forum Summarisation condenses long threads with one click. Thread Recommendations surface posts based on your activity. Feedback and bug reports are always welcome!`,
         upvotes: 31,
         views: 512,
         isAnswered: false,
@@ -339,7 +339,7 @@ async function main() {
       data: {
         userId: diana.id,
         title: 'CSS Flexbox vs Grid — when to use which?',
-        content: `I keep going back and forth between Flexbox and CSS Grid and I'm not sure I'm picking the right one. My understanding:\n- Flexbox = one-dimensional (row or column)\n- Grid = two-dimensional (rows AND columns)\n\nBut in practice they seem interchangeable a lot of the time. Can someone give me clear rules for when to reach for each?`,
+        content: `I keep going back and forth between Flexbox and CSS Grid. My understanding is that Flexbox is one-dimensional for rows or columns while Grid is two-dimensional for both at once. But in practice they seem interchangeable a lot of the time. Can someone give me clear rules for when to reach for each?`,
         upvotes: 11,
         views: 167,
         isAnswered: true,
@@ -372,7 +372,7 @@ async function main() {
       data: {
         userId: carol.id,
         title: 'Study tips that actually worked for me in CS — share yours!',
-        content: `After two years of CS I've figured out what actually works for me:\n\n1. **Active recall over passive reading** — close the notes and try to explain it from memory\n2. **Pomodoro for coding** — 25 min focus, 5 min break keeps me sharp\n3. **Rubber duck debugging** — explaining the problem out loud catches more bugs than staring at the screen\n4. **Spaced repetition** — Anki for flashcards of algorithms and patterns\n5. **Build something real** — tutorials alone don't stick; build a project using what you learned\n\nWhat are your go-to study strategies?`,
+        content: `After two years of CS here is what has actually worked for me. Active recall beats passive reading so close your notes and try to explain things from memory. Pomodoro timers keep focus sharp for coding. Rubber duck debugging out loud finds bugs faster than staring at the screen. Spaced repetition with Anki helps for algorithm patterns. Building a real project makes things stick far better than tutorials. What are your go-to strategies?`,
         upvotes: 27,
         views: 445,
         isAnswered: false,
@@ -401,7 +401,7 @@ async function main() {
         postId: posts[0].id,
         userId: carol.id,
         content:
-          'You need to define the async function *inside* the effect and call it:\n\n```js\nuseEffect(() => {\n  const load = async () => {\n    const data = await fetchData();\n    setData(data);\n  };\n  load();\n}, []);\n```\n\nThis avoids the cleanup warning because the outer callback is synchronous.',
+          'You need to define the async function inside the effect and call it immediately. Create a named async function inside the useEffect callback, then invoke it right away. The outer callback stays synchronous so it returns nothing, which is why the cleanup warning goes away.',
         upvotes: 8,
         isAccepted: true,
       },
@@ -411,7 +411,7 @@ async function main() {
         postId: posts[0].id,
         userId: fiona.id,
         content:
-          'You can also use an IIFE for a more compact style:\n\n```js\nuseEffect(() => {\n  (async () => {\n    const data = await fetchData();\n    setData(data);\n  })();\n}, []);\n```',
+          'You can also use an immediately invoked async function inside the effect for a more compact style. It achieves the same result as the named function approach, just in fewer lines.',
         upvotes: 4,
         isAccepted: false,
       },
@@ -475,7 +475,7 @@ async function main() {
         postId: posts[2].id,
         userId: fiona.id,
         content:
-          'Use generics when you want type safety without sacrificing reusability:\n\n```typescript\nfunction first<T>(arr: T[]): T | undefined {\n  return arr[0];\n}\n// Works with string[], number[], any array — fully type-safe\n```\n\nNever use `any` in production — use `unknown` and narrow the type instead.',
+          'Use generics when you want type safety without losing reusability. A generic function like first(arr) can work with string arrays, number arrays, or any typed array while remaining fully safe. In production code, avoid any entirely and use unknown with type narrowing instead.',
         upvotes: 11,
         isAccepted: true,
       },
@@ -485,7 +485,7 @@ async function main() {
         postId: posts[2].id,
         userId: carol.id,
         content:
-          "`any` is a code smell in TypeScript. The only acceptable exception is in test mocks where you genuinely don't care about types. For production code: generics > `any`, always.",
+          'The any type is a code smell in TypeScript. The only acceptable exception is in test mocks where you genuinely do not care about types. For production code, generics are always the right choice over any.',
         upvotes: 7,
         isAccepted: false,
       },
@@ -625,7 +625,7 @@ async function main() {
         postId: posts[7].id,
         userId: bob.id,
         content:
-          "Key difference: **lists are mutable** (you can change elements after creation), **tuples are immutable** (you can't). Use tuples for fixed data like coordinates `(x, y)` or RGB `(255, 0, 128)`. Use lists when you need to add or remove items.",
+          'Key difference: lists are mutable so you can change elements after creation, but tuples are immutable so you cannot. Use tuples for fixed data like coordinates or RGB values. Use lists whenever you need to add, remove, or modify items.',
         upvotes: 6,
         isAccepted: true,
       },
@@ -645,7 +645,7 @@ async function main() {
         postId: posts[7].id,
         userId: carol.id,
         content:
-          'Named tuples from `collections.namedtuple` are a great middle ground — immutable like tuples but with named fields for readability. Worth looking up!',
+          'Named tuples from the collections module are a great middle ground, immutable like tuples but with named fields for readability. Worth looking up if you want the benefits of both.',
         upvotes: 3,
         isAccepted: false,
       },
@@ -657,7 +657,7 @@ async function main() {
         postId: posts[8].id,
         userId: carol.id,
         content:
-          'JWT is a signed token with 3 base64-encoded parts: **header** (algorithm), **payload** (claims like userId, expiry), and **signature**.\n\nThe server signs it with a secret key. On each request, the server re-signs the payload and checks if it matches — no database lookup needed, hence "stateless".\n\n**Storage**: use HttpOnly cookies (not localStorage) — localStorage is vulnerable to XSS. HttpOnly cookies cannot be read by JavaScript at all.',
+          'JWT has three parts: a header with the algorithm, a payload with user claims and expiry, and a signature. The server re-signs the payload on each request to verify it without a database lookup, which is what makes it stateless. Store tokens in HttpOnly cookies, not localStorage, which is exposed to XSS attacks.',
         upvotes: 14,
         isAccepted: true,
       },
@@ -679,7 +679,7 @@ async function main() {
         postId: posts[9].id,
         userId: fiona.id,
         content:
-          "My rule of thumb:\n- **Flexbox** when you have a list of things in a row or column and you want them to flow naturally (nav links, card rows, button groups)\n- **Grid** when you're designing a page layout where items need to align across both axes simultaneously (header/sidebar/main/footer, image galleries)\n\nIf you're only thinking in one dimension, Flexbox. If you're thinking about rows AND columns at once, Grid.",
+          'Rule of thumb: use Flexbox when you have items flowing in one direction like a nav bar, button row, or card list. Use Grid when you need to control rows and columns at the same time, like a page layout with a header, sidebar, and main content area.',
         upvotes: 13,
         isAccepted: true,
       },
@@ -701,7 +701,7 @@ async function main() {
         postId: posts[10].id,
         userId: george.id,
         content:
-          "Recommended path for a Python developer:\n1. **Statistics & linear algebra basics** — 3Blue1Brown's Essence of Linear Algebra (YouTube, free)\n2. **scikit-learn** — start here, not PyTorch. It handles the boring parts so you can focus on understanding models\n3. **Andrew Ng's ML Specialisation** (Coursera) — still the gold standard intro course\n4. **Build a project** — Kaggle competitions for practise with real datasets\n5. **Then** move to deep learning (PyTorch is now preferred over TensorFlow for new learners)\n\nDon't try to learn everything at once.",
+          "Start with 3Blue1Brown linear algebra on YouTube, then learn scikit-learn before touching PyTorch since it handles complexity so you can focus on understanding models. Andrew Ng's ML Specialisation on Coursera is still the best structured intro. Then do Kaggle competitions for practice with real data.",
         upvotes: 19,
         isAccepted: false,
       },
@@ -713,7 +713,7 @@ async function main() {
         postId: posts[11].id,
         userId: evan.id,
         content:
-          'For 3 people, a simple **GitHub Flow** is perfect:\n1. `main` is always deployable\n2. Create a feature branch for each task: `feature/user-auth`, `fix/login-bug`\n3. Open a pull request when done, have one teammate review\n4. Merge and delete the branch\n\nGit Flow (with develop, release, hotfix branches) is overkill until you have scheduled releases and multiple parallel workstreams.',
+          'For 3 people, GitHub Flow is ideal: keep main always deployable, create a feature branch for each task, open a PR when done and have one teammate review, then merge and delete the branch. Git Flow with develop and release branches is overkill until you have a much larger team.',
         upvotes: 11,
         isAccepted: true,
       },
@@ -723,7 +723,7 @@ async function main() {
         postId: posts[11].id,
         userId: carol.id,
         content:
-          'Also: set branch protection on `main` so nobody can push directly — only merges via PR. It takes 30 seconds in GitHub settings and saves a lot of pain.',
+          'Also set branch protection on main so nobody can push directly, only merges via PR. It takes 30 seconds in GitHub settings and saves a lot of pain.',
         upvotes: 7,
         isAccepted: false,
       },

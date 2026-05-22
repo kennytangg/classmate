@@ -360,132 +360,133 @@ export function ChatInterface({
     <div className="bg-card flex h-full min-w-0 flex-col overflow-hidden">
       {/* Chat Area */}
       <div className="relative flex-1 overflow-hidden">
-        {/* Top fade — softens content appearing from the edge */}
+        {/* Top fade */}
         <div className="from-card pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b to-transparent" />
+        {/* Bottom fade — subtler than the top so it doesn't distract */}
+        <div className="from-card/60 pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t to-transparent" />
 
-        <div
-          ref={chatBoxRef}
-          className="h-full space-y-6 overflow-x-hidden overflow-y-auto px-6 pt-10 pb-4"
-        >
-          {error && (
-            <div className="bg-semantic-error/10 text-semantic-error rounded-xl p-3 text-center text-sm">
-              {error}
-            </div>
-          )}
-
-          {isLoadingHistory && (
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-center opacity-50">
-              <p className="text-muted-foreground text-sm">Loading conversation...</p>
-            </div>
-          )}
-
-          {messages.length === 0 && !isLoading && !isLoadingHistory && (
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-              <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
-                <GraduationCap className="text-primary h-8 w-8" />
+        <div ref={chatBoxRef} className="h-full overflow-x-hidden overflow-y-auto">
+          <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-6 px-6 pt-10 pb-4">
+            {error && (
+              <div className="bg-semantic-error/10 text-semantic-error rounded-xl p-3 text-center text-sm">
+                {error}
               </div>
-              <div>
-                <p className="text-foreground text-base font-semibold">Your AI Study Companion</p>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Ask anything — I&apos;ll help you understand, not just answer.
-                </p>
+            )}
+
+            {isLoadingHistory && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center opacity-50">
+                <p className="text-muted-foreground text-sm">Loading conversation...</p>
               </div>
-              <div className="mt-2 flex flex-wrap justify-center gap-2">
-                {SUGGESTED_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    onClick={() => sendMessage(prompt)}
-                    className="border-border bg-muted hover:bg-accent text-foreground rounded-full border px-4 py-2 text-xs transition-colors"
-                  >
-                    {prompt}
-                  </button>
+            )}
+
+            {messages.length === 0 && !isLoading && !isLoadingHistory && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+                <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
+                  <GraduationCap className="text-primary h-8 w-8" />
+                </div>
+                <div>
+                  <p className="text-foreground text-base font-semibold">Your AI Study Companion</p>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    Ask anything — I&apos;ll help you understand, not just answer.
+                  </p>
+                </div>
+                <div className="mt-2 flex flex-wrap justify-center gap-2">
+                  {SUGGESTED_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      onClick={() => sendMessage(prompt)}
+                      className="border-border bg-muted hover:bg-accent text-foreground rounded-full border px-4 py-2 text-xs transition-colors"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg, index) => (
+              <div
+                key={msg.id}
+                className={`group flex min-w-0 ${msg.role === 'user' ? 'justify-end' : ''}`}
+              >
+                <div className={`min-w-0 ${msg.role === 'user' ? 'max-w-[75%]' : 'w-full'}`}>
+                  {msg.role === 'user' ? (
+                    <div className="flex flex-col items-end gap-1">
+                      {msg.imageUrl && (
+                        <a
+                          href={msg.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={msg.imageUrl}
+                            alt="attached image"
+                            className="max-h-[220px] max-w-[260px] rounded-2xl object-cover shadow-md transition-opacity hover:opacity-90"
+                          />
+                        </a>
+                      )}
+                      {msg.content && (
+                        <div className="bg-primary overflow-hidden rounded-2xl rounded-tr-none p-4 shadow-sm">
+                          <p className="text-primary-foreground text-sm leading-relaxed break-words whitespace-pre-wrap">
+                            {msg.content}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="prose dark:prose-invert max-w-none overflow-hidden font-[family-name:var(--font-playfair)] leading-loose break-words [&_code]:font-mono [&_pre]:font-mono">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[
+                            rehypeRaw,
+                            [
+                              rehypeKatex,
+                              { throwOnError: false, errorColor: '#6b7280', strict: false },
+                            ],
+                          ]}
+                          components={markdownComponents}
+                        >
+                          {preprocessContent(msg.content)}
+                        </ReactMarkdown>
+                      </div>
+                      {msg.content && (
+                        <MessageActions
+                          content={msg.content}
+                          isLast={index === lastAssistantIndex && !isLoading}
+                          onRegenerate={onRegenerate}
+                        />
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex h-5 items-center gap-1 px-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                      delay: i * 0.15,
+                    }}
+                    className="bg-primary/60 h-2 w-2 rounded-full"
+                  />
                 ))}
               </div>
-            </div>
-          )}
-
-          {messages.map((msg, index) => (
-            <div
-              key={msg.id}
-              className={`group flex min-w-0 ${msg.role === 'user' ? 'justify-end' : ''}`}
-            >
-              <div className={`min-w-0 ${msg.role === 'user' ? 'max-w-[75%]' : 'w-full'}`}>
-                {msg.role === 'user' ? (
-                  <div className="flex flex-col items-end gap-1">
-                    {msg.imageUrl && (
-                      <a
-                        href={msg.imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={msg.imageUrl}
-                          alt="attached image"
-                          className="max-h-[220px] max-w-[260px] rounded-2xl object-cover shadow-md transition-opacity hover:opacity-90"
-                        />
-                      </a>
-                    )}
-                    {msg.content && (
-                      <div className="bg-primary overflow-hidden rounded-2xl rounded-tr-none p-4 shadow-sm">
-                        <p className="text-primary-foreground text-sm leading-relaxed break-words whitespace-pre-wrap">
-                          {msg.content}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="prose dark:prose-invert max-w-none overflow-hidden font-[family-name:var(--font-playfair)] leading-loose break-words [&_code]:font-mono [&_pre]:font-mono">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[
-                          rehypeRaw,
-                          [
-                            rehypeKatex,
-                            { throwOnError: false, errorColor: '#6b7280', strict: false },
-                          ],
-                        ]}
-                        components={markdownComponents}
-                      >
-                        {preprocessContent(msg.content)}
-                      </ReactMarkdown>
-                    </div>
-                    {msg.content && (
-                      <MessageActions
-                        content={msg.content}
-                        isLast={index === lastAssistantIndex && !isLoading}
-                        onRegenerate={onRegenerate}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex h-5 items-center gap-1 px-1">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{
-                    duration: 0.6,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                  }}
-                  className="bg-primary/60 h-2 w-2 rounded-full"
-                />
-              ))}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* Input Area */}
-      <div className="border-border border-t p-4">
+      <div className="px-6 py-4">
         <input
           ref={fileInputRef}
           type="file"
@@ -494,63 +495,65 @@ export function ChatInterface({
           onChange={handleImageSelect}
         />
 
-        {/* Single card that contains both the image preview (when present) and the text input */}
-        <div className="border-border bg-muted rounded-2xl border shadow-sm transition-shadow hover:shadow-md">
-          {/* Image preview — lives inside the card, above the text field */}
-          {pendingImagePreview && (
-            <div className="px-3 pt-3">
-              <div className="relative inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={pendingImagePreview}
-                  alt="preview"
-                  className="h-24 w-auto max-w-[200px] rounded-xl object-cover shadow-sm"
-                />
-                <button
-                  onClick={clearPendingImage}
-                  className="bg-background border-border hover:bg-muted absolute -top-1.5 -right-1.5 rounded-full border p-0.5 shadow-sm transition-colors"
-                  aria-label="Remove image"
-                >
-                  <X className="h-3 w-3" />
-                </button>
+        <div className="mx-auto max-w-3xl">
+          {/* Single card that contains both the image preview (when present) and the text input */}
+          <div className="border-border bg-muted rounded-2xl border shadow-sm transition-shadow hover:shadow-md">
+            {/* Image preview — lives inside the card, above the text field */}
+            {pendingImagePreview && (
+              <div className="px-3 pt-3">
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={pendingImagePreview}
+                    alt="preview"
+                    className="h-24 w-auto max-w-[200px] rounded-xl object-cover shadow-sm"
+                  />
+                  <button
+                    onClick={clearPendingImage}
+                    className="bg-background border-border hover:bg-muted absolute -top-1.5 -right-1.5 rounded-full border p-0.5 shadow-sm transition-colors"
+                    aria-label="Remove image"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
+            )}
+
+            {/* Text input row */}
+            <div className="flex items-center gap-2 p-2">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isUploading}
+                className="text-muted-foreground hover:text-foreground hover:bg-accent ml-1 rounded-xl p-1.5 transition-colors disabled:opacity-40"
+                aria-label="Attach image (PNG, JPG, WebP)"
+                title="Attach image — PNG, JPG, WebP only"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </button>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                placeholder="Ask a question or attach an image..."
+                className="text-foreground placeholder-muted-foreground flex-1 bg-transparent text-sm focus:outline-none"
+                disabled={isLoading || isUploading}
+              />
+              <button
+                onClick={() => void handleSend()}
+                disabled={isLoading || isUploading || (!input.trim() && !pendingImageFile)}
+                className="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 rounded-xl p-2 shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Send className="h-4 w-4" />
+              </button>
             </div>
-          )}
-
-          {/* Text input row */}
-          <div className="flex items-center gap-2 p-2">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || isUploading}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent ml-1 rounded-xl p-1.5 transition-colors disabled:opacity-40"
-              aria-label="Attach image (PNG, JPG, WebP)"
-              title="Attach image — PNG, JPG, WebP only"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </button>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              placeholder="Ask a question or attach an image..."
-              className="text-foreground placeholder-muted-foreground flex-1 bg-transparent text-sm focus:outline-none"
-              disabled={isLoading || isUploading}
-            />
-            <button
-              onClick={() => void handleSend()}
-              disabled={isLoading || isUploading || (!input.trim() && !pendingImageFile)}
-              className="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 rounded-xl p-2 shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" />
-            </button>
           </div>
-        </div>
 
-        <p className="text-muted-foreground mt-3 text-center text-xs">
-          AI can make mistakes. Consider checking important information.
-        </p>
+          <p className="text-muted-foreground mt-3 text-center text-xs">
+            AI can make mistakes. Consider checking important information.
+          </p>
+        </div>
       </div>
     </div>
   )

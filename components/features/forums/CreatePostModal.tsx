@@ -43,11 +43,24 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     onOpenChange(open)
   }
 
+  const TITLE_LIMIT = 100
+  const CONTENT_LIMIT = 500
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
     if (!title.trim() || !content.trim()) {
       toast.error('Please fill in all required fields')
+      return
+    }
+
+    if (title.trim().length > TITLE_LIMIT) {
+      toast.error(`Title is too long (${title.trim().length} / ${TITLE_LIMIT} characters)`)
+      return
+    }
+
+    if (content.trim().length > CONTENT_LIMIT) {
+      toast.error(`Content is too long (${content.trim().length} / ${CONTENT_LIMIT} characters)`)
       return
     }
 
@@ -145,10 +158,10 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           </div>
 
           <div className="border-border bg-muted/30 flex items-center justify-between border-t px-6 py-3">
-            <p className="text-muted-foreground text-xs">
-              {title.length > 0 || content.length > 0
-                ? `${title.length} / ${content.length} chars`
-                : ''}
+            <p
+              className={`text-xs ${content.length > CONTENT_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}
+            >
+              {content.length > 0 ? `${content.length} / ${CONTENT_LIMIT} characters` : ''}
             </p>
             <div className="flex gap-2">
               <Button

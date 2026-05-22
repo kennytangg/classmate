@@ -1,15 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useRef, useEffect, Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { X } from 'lucide-react'
 import { ChatInterface } from 'components/features/ai-tutor/ChatInterface'
 import { SessionSidebar } from 'components/features/ai-tutor/SessionSidebar'
 import { useChat } from '../../../hooks/useChat'
-
-interface ChatSession {
-  id: string
-}
 
 function AITutorContent() {
   const router = useRouter()
@@ -17,26 +13,10 @@ function AITutorContent() {
   const initialQuery = searchParams.get('q') ?? ''
   const autoSentRef = useRef(false)
 
-  const [latestSessionId, setLatestSessionId] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    // When arriving from the dashboard with a pre-filled query, start a fresh
-    // chat instead of continuing the last session.
-    if (initialQuery) return
-
-    fetch('/api/sessions')
-      .then((r) => (r.ok ? (r.json() as Promise<{ sessions: ChatSession[] }>) : null))
-      .then((data) => {
-        if (data?.sessions?.[0]) {
-          setLatestSessionId(data.sessions[0].id)
-        }
-      })
-      .catch(() => {})
-  }, [initialQuery])
-
   const {
     messages,
-    isLoading,
+    isCurrentSessionLoading,
+    streamingSessionId,
     isLoadingHistory,
     error,
     activeSessionId,
@@ -44,7 +24,7 @@ function AITutorContent() {
     regenerate,
     switchSession,
     newChat,
-  } = useChat({ sessionId: latestSessionId })
+  } = useChat({})
 
   // Auto-send the query typed on the dashboard
   useEffect(() => {
@@ -72,6 +52,7 @@ function AITutorContent() {
           onSelectSession={switchSession}
           onNewChat={newChat}
           onDeleteSession={handleDeleteSession}
+          streamingSessionId={streamingSessionId}
         />
       </div>
 
@@ -79,7 +60,7 @@ function AITutorContent() {
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <ChatInterface
           messages={messages}
-          isLoading={isLoading}
+          isLoading={isCurrentSessionLoading}
           isLoadingHistory={isLoadingHistory}
           error={error}
           sendMessage={sendMessage}
@@ -117,6 +98,7 @@ function AITutorContent() {
                   setShowMobileSessions(false)
                 }}
                 onDeleteSession={handleDeleteSession}
+                streamingSessionId={streamingSessionId}
               />
             </div>
           </div>

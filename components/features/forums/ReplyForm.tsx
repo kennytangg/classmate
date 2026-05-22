@@ -16,6 +16,8 @@ interface ModerationBlock {
   categories?: string[]
 }
 
+const REPLY_LIMIT = 300
+
 export function ReplyForm({ postId, onReplyCreated }: ReplyFormProps) {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
@@ -26,6 +28,11 @@ export function ReplyForm({ postId, onReplyCreated }: ReplyFormProps) {
 
     if (!content.trim()) {
       toast.error('Please enter a reply')
+      return
+    }
+
+    if (content.trim().length > REPLY_LIMIT) {
+      toast.error(`Reply is too long (${content.trim().length} / ${REPLY_LIMIT} characters)`)
       return
     }
 
@@ -97,7 +104,12 @@ export function ReplyForm({ postId, onReplyCreated }: ReplyFormProps) {
               className="text-foreground placeholder:text-muted-foreground w-full resize-none bg-transparent pt-1.5 text-base leading-relaxed focus:outline-none disabled:opacity-50"
               disabled={loading}
             />
-            <div className="mt-2 flex justify-end">
+            <div className="mt-2 flex items-center justify-between">
+              <span
+                className={`text-xs ${content.length > REPLY_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}
+              >
+                {content.length > 0 ? `${content.length} / ${REPLY_LIMIT} characters` : ''}
+              </span>
               <Button
                 type="submit"
                 disabled={loading || !content.trim()}

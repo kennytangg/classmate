@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 
 export interface Message {
   id: string
@@ -21,12 +21,26 @@ interface StoredMessage {
   createdAt: string
 }
 
+// Sentinel key for a new chat that has no session ID yet.
+const NEW_CHAT_KEY = '__new__'
+
 export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  // Per-session message storage so switching sessions never loses in-progress streaming.
+  const [sessionMessages, setSessionMessages] = useState<Map<string, Message[]>>(new Map())
+  // Tracks which session key has an in-flight request (per-session, not global).
+  const [streamingSessionId, setStreamingSessionId] = useState<string | undefined>(undefined)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeSessionId, setActiveSessionId] = useState<string | undefined>(initialSessionId)
+
+  const sessionKey = activeSessionId ?? NEW_CHAT_KEY
+  const messages = useMemo(
+    () => sessionMessages.get(sessionKey) ?? [],
+    [sessionMessages, sessionKey]
+  )
+  const isLoading = streamingSessionId !== undefined
+  const isCurrentSessionLoading =
+    streamingSessionId !== undefined && streamingSessionId === sessionKey
 
   const loadMessages = useCallback(async (sessionId: string) => {
     setIsLoadingHistory(true)
@@ -34,14 +48,19 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
       const res = await fetch(`/api/sessions/${sessionId}/messages`)
       if (!res.ok) return
       const data = (await res.json()) as { messages: StoredMessage[] }
-      setMessages(
-        data.messages.map((m) => ({
-          id: m.id,
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-          timestamp: new Date(m.createdAt),
-        }))
-      )
+      const loaded = data.messages.map((m) => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        timestamp: new Date(m.createdAt),
+      }))
+      setSessionMessages((prev) => {
+        const existing = prev.get(sessionId) ?? []
+        // If DB returned fewer messages than what we have in memory (race with DB write
+        // after streaming finished), keep the in-memory version.
+        if (loaded.length < existing.length) return prev
+        return new Map(prev).set(sessionId, loaded)
+      })
     } catch {
       // Silently fail — user can still start a new conversation
     } finally {
@@ -49,7 +68,6 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     }
   }, [])
 
-  // Load message history when an initial session is provided
   useEffect(() => {
     if (initialSessionId) {
       setActiveSessionId(initialSessionId)
@@ -60,7 +78,8 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
   const sendMessageInternal = useCallback(
     async (content: string, contextOverride?: Message[], imageUrl?: string) => {
       if (!content.trim() && !imageUrl) return
-      if (isLoading) return
+      const thisKey = activeSessionId ?? NEW_CHAT_KEY
+      if (streamingSessionId === thisKey) return
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -70,23 +89,33 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
         timestamp: new Date(),
       }
 
-      setMessages((prev) => [...prev, userMessage])
-      setIsLoading(true)
+      setSessionMessages((prev) => {
+        const current = prev.get(thisKey) ?? []
+        return new Map(prev).set(thisKey, [...current, userMessage])
+      })
+      setStreamingSessionId(thisKey)
       setError(null)
 
       const assistantMessageId = crypto.randomUUID()
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: assistantMessageId,
-          role: 'assistant',
-          content: '',
-          timestamp: new Date(),
-        },
-      ])
+      setSessionMessages((prev) => {
+        const current = prev.get(thisKey) ?? []
+        return new Map(prev).set(thisKey, [
+          ...current,
+          {
+            id: assistantMessageId,
+            role: 'assistant' as const,
+            content: '',
+            timestamp: new Date(),
+          },
+        ])
+      })
 
-      const msgContext = contextOverride ?? messages
+      // Read context before we updated state (userMessage added separately in the body).
+      const msgContext = contextOverride ?? sessionMessages.get(thisKey) ?? []
+
+      // Mutable so it can be updated when the server returns a real session ID.
+      let currentKey = thisKey
 
       try {
         const response = await fetch('/api/chat', {
@@ -111,10 +140,22 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
           throw new Error(errData.error ?? 'Failed to get response')
         }
 
-        // Capture new session ID from header (set when server auto-creates a session)
+        // Capture new session ID from header (set when server auto-creates a session).
         const returnedSessionId = response.headers.get('X-Session-Id')
         if (returnedSessionId && returnedSessionId !== activeSessionId) {
           setActiveSessionId(returnedSessionId)
+          setStreamingSessionId(returnedSessionId)
+          // Move messages from '__new__' slot to the real session ID.
+          setSessionMessages((prev) => {
+            const next = new Map(prev)
+            const msgs = next.get(currentKey) ?? []
+            if (currentKey !== returnedSessionId) {
+              next.delete(currentKey)
+              next.set(returnedSessionId, msgs)
+            }
+            return next
+          })
+          currentKey = returnedSessionId
         }
 
         if (!response.body) throw new Error('No response body')
@@ -129,8 +170,6 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
 
           buffer += decoder.decode(value, { stream: true })
           const lines = buffer.split('\n')
-
-          // Keep the last incomplete line in the buffer
           buffer = lines.pop() ?? ''
 
           for (const line of lines) {
@@ -146,15 +185,18 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
                 text?: string
               }
 
-              // OpenAI / Groq format: choices[0].delta.content
               const text = parsed.choices?.[0]?.delta?.content ?? parsed.text ?? ''
 
               if (text) {
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId ? { ...msg, content: msg.content + text } : msg
+                setSessionMessages((prev) => {
+                  const msgs = prev.get(currentKey) ?? []
+                  return new Map(prev).set(
+                    currentKey,
+                    msgs.map((msg) =>
+                      msg.id === assistantMessageId ? { ...msg, content: msg.content + text } : msg
+                    )
                   )
-                )
+                })
               }
             } catch {
               // Skip malformed chunks
@@ -163,12 +205,18 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong')
-        setMessages((prev) => prev.filter((m) => m.id !== assistantMessageId))
+        setSessionMessages((prev) => {
+          const msgs = prev.get(currentKey) ?? []
+          return new Map(prev).set(
+            currentKey,
+            msgs.filter((m) => m.id !== assistantMessageId)
+          )
+        })
       } finally {
-        setIsLoading(false)
+        setStreamingSessionId(undefined)
       }
     },
-    [messages, activeSessionId, isLoading]
+    [sessionMessages, activeSessionId, streamingSessionId]
   )
 
   const sendMessage = useCallback(
@@ -177,30 +225,39 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
   )
 
   const clearMessages = useCallback(() => {
-    setMessages([])
+    setSessionMessages((prev) => new Map(prev).set(sessionKey, []))
     setError(null)
-  }, [])
+  }, [sessionKey])
 
   const switchSession = useCallback(
     async (sessionId: string) => {
-      setMessages([])
       setError(null)
       setActiveSessionId(sessionId)
+
+      if (streamingSessionId === sessionId) {
+        // This session is actively streaming — show the live in-memory content,
+        // skip the DB reload so we don't overwrite the partial response.
+        return
+      }
+
       await loadMessages(sessionId)
     },
-    [loadMessages]
+    [loadMessages, streamingSessionId]
   )
 
   const newChat = useCallback(() => {
-    setMessages([])
     setError(null)
     setActiveSessionId(undefined)
+    setSessionMessages((prev) => {
+      const next = new Map(prev)
+      next.delete(NEW_CHAT_KEY)
+      return next
+    })
   }, [])
 
   const regenerate = useCallback(async () => {
-    if (isLoading) return
+    if (streamingSessionId !== undefined) return
 
-    // Find the last user message from the end
     let lastUserIndex = -1
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i]
@@ -217,15 +274,16 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
     const imageUrl = targetMessage.imageUrl
     const historyBeforeLastUser = messages.slice(0, lastUserIndex)
 
-    // Remove the last user message and any AI responses that follow it
-    setMessages(historyBeforeLastUser)
+    setSessionMessages((prev) => new Map(prev).set(sessionKey, historyBeforeLastUser))
 
     await sendMessageInternal(content, historyBeforeLastUser, imageUrl)
-  }, [messages, isLoading, sendMessageInternal])
+  }, [messages, sessionKey, streamingSessionId, sendMessageInternal])
 
   return {
     messages,
     isLoading,
+    isCurrentSessionLoading,
+    streamingSessionId,
     isLoadingHistory,
     error,
     activeSessionId,
