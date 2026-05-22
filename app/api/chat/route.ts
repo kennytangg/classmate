@@ -1,8 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { join, resolve } from 'path'
 import { sanitizeMarkdown } from '@/lib/sanitize'
+import { getFileStream } from '@/lib/storage'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { moderateContent } from '@/lib/moderation'
@@ -18,17 +17,22 @@ const EXT_TO_MIME: Record<string, string> = {
   jpeg: 'image/jpeg',
 }
 
-const PUBLIC_DIR = resolve(process.cwd(), 'public')
+const MAX_IMAGE_BUFFER = 5 * 1024 * 1024 // 5MB
 
 async function resolveImageUrl(url: string): Promise<string> {
-  if (!url.startsWith('/')) return url
+  if (!url.startsWith('/uploads/')) return url
   try {
-    const filePath = join(process.cwd(), 'public', url)
-    const resolvedPath = resolve(filePath)
-    if (!resolvedPath.startsWith(PUBLIC_DIR + '/') && resolvedPath !== PUBLIC_DIR) {
-      return url
+    const stream = await getFileStream(url)
+    const chunks: Buffer[] = []
+    let totalSize = 0
+    for await (const chunk of stream) {
+      totalSize += (chunk as Buffer).length
+      if (totalSize > MAX_IMAGE_BUFFER) {
+        throw new Error('Image too large to process')
+      }
+      chunks.push(chunk as Buffer)
     }
-    const buffer = await readFile(resolvedPath)
+    const buffer = Buffer.concat(chunks)
     const ext = url.split('.').pop()?.toLowerCase() ?? 'jpeg'
     const mime = EXT_TO_MIME[ext] ?? 'image/jpeg'
     return `data:${mime};base64,${buffer.toString('base64')}`

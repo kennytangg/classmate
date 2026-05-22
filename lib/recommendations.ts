@@ -16,7 +16,7 @@ type PostInput = {
   upvotes: number
   views: number
   repliesCount: number
-  tags: { name: string }[]
+  tags?: { name: string }[]
 }
 
 function daysSince(date: Date): number {
@@ -45,7 +45,7 @@ export function scoreAndRankPosts(
   const hasHistory = userTags.size > 0
 
   const scored: RecommendationItem[] = posts.map((post) => {
-    const postTagNames = post.tags.map((tag) => tag.name.toLowerCase())
+    const postTagNames = (post.tags ?? []).map((tag) => tag.name.toLowerCase())
     const matchingTags = postTagNames.filter((tag) => userTags.has(tag)).length
 
     const recency = recencyScore(post.createdAt)

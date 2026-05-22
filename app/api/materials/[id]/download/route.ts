@@ -1,10 +1,10 @@
-import fs from 'fs'
-import path from 'path'
+import { Readable } from 'stream'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
+import { getFileStream } from '@/lib/storage'
 
 export async function POST(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -31,15 +31,9 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ i
       return NextResponse.json({ error: 'Invalid file path' }, { status: 400 })
     }
 
-    const uploadsBase = path.resolve(process.cwd(), 'public', 'uploads')
-    // path.join keeps absolute fileUrl segments relative to cwd; path.resolve then normalizes ..
-    const filePath = path.resolve(path.join(process.cwd(), 'public', material.fileUrl))
-    if (!filePath.startsWith(uploadsBase + path.sep)) {
+    // Guard against path traversal
+    if (material.fileUrl.includes('..')) {
       return NextResponse.json({ error: 'Invalid file path' }, { status: 400 })
-    }
-
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: 'File not found on server' }, { status: 404 })
     }
 
     await prisma.studyMaterial.update({
@@ -47,14 +41,17 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ i
       data: { downloads: { increment: 1 } },
     })
 
-    const fileBuffer = fs.readFileSync(filePath)
+    const nodeStream = await getFileStream(material.fileUrl)
+    if (!nodeStream) {
+      return NextResponse.json({ error: 'Failed to retrieve file' }, { status: 500 })
+    }
+    const webStream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>
     const filename = `${material.title}.${material.fileType}`
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(webStream, {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
-        'Content-Length': String(fileBuffer.length),
       },
     })
   } catch (error) {

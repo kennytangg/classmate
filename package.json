@@ -48,6 +48,7 @@
     "firebase-admin": "^13.7.0",
     "framer-motion": "^12.34.0",
     "lucide-react": "^0.564.0",
+    "minio": "^8.0.7",
     "next": "16.1.4",
     "next-themes": "^0.4.6",
     "pg": "^8.19.0",

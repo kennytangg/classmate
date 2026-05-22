@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
+import { uploadRaw } from '@/lib/storage'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const ALLOWED_EXTENSIONS = new Set([
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'webp',
+  'pdf',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'txt',
+  'zip',
+])
 const ALLOWED_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -46,16 +59,17 @@ export async function POST(request: Request) {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return NextResponse.json({ error: 'File type not allowed' }, { status: 400 })
+    }
     const safeName = `${randomUUID()}.${ext}`
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'chat')
-
-    await mkdir(uploadDir, { recursive: true })
+    const objectKey = `uploads/chat/${safeName}`
 
     const bytes = await file.arrayBuffer()
-    await writeFile(join(uploadDir, safeName), Buffer.from(bytes))
+    await uploadRaw(objectKey, Buffer.from(bytes), file.type)
 
     return NextResponse.json({
-      fileUrl: `/uploads/chat/${safeName}`,
+      fileUrl: `/${objectKey}`,
       fileName: file.name,
       fileType: file.type,
       fileSize: file.size,

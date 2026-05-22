@@ -124,6 +124,13 @@ jobs:
           FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
           FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+          MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+          MINIO_PORT=${{ secrets.MINIO_PORT }}
+          MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+          MINIO_BUCKET_NAME=${{ secrets.MINIO_BUCKET_NAME }}
+          MINIO_USE_SSL=${{ secrets.MINIO_USE_SSL }}
           EOF
 
       - name: Login to Docker Hub
@@ -132,15 +139,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build DB migration image
-        run: docker compose --profile migrate build --pull db-schema-sync
-
       - name: Run DB Migration
-        run: docker compose --profile migrate run --rm db-schema-sync
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
 
       - name: Deploy app
         run: |
+          set -a && source .env.production && set +a
           docker compose pull app
+          docker compose up -d --no-deps minio
           docker compose up -d --wait --no-deps app
 
       - name: Smoke test

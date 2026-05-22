@@ -41,19 +41,6 @@ ENV NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
 RUN npx prisma generate
 RUN npm run build
 
-# ─── migrator ────────────────────────────────────────────────────────────────
-# One-off stage: run migrations (and optionally seed) against Postgres.
-# Usage: docker compose --profile migrate run --rm db-schema-sync
-FROM base AS migrator
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY prisma ./prisma
-COPY prisma.config.ts ./
-ENV DATABASE_URL=postgresql://migrate:migrate@127.0.0.1:5432/migrate?sslmode=disable
-RUN npx prisma generate
-CMD ["npx", "prisma", "migrate", "deploy"]
-
 # ─── runner ──────────────────────────────────────────────────────────────────
 FROM base AS runner
 
@@ -67,9 +54,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/generated ./generated
-
-RUN mkdir -p ./public/uploads/chat \
-    && chown -R nextjs:nodejs ./public/uploads
 
 USER nextjs
 

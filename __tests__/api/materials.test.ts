@@ -1,4 +1,4 @@
-import fs from 'fs'
+import { Readable } from 'stream'
 import { NextRequest } from 'next/server'
 import { GET, POST } from '@/app/api/materials/route'
 import { POST as downloadPOST } from '@/app/api/materials/[id]/download/route'
@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { uploadFile } from '@/lib/storage'
 
-jest.mock('fs')
 jest.mock('@/lib/prisma')
 jest.mock('@/lib/auth', () => ({
   getSession: jest.fn(),
@@ -14,6 +13,7 @@ jest.mock('@/lib/auth', () => ({
 jest.mock('@/lib/storage', () => ({
   uploadFile: jest.fn(),
   deleteFile: jest.fn(),
+  getFileStream: jest.fn(),
 }))
 
 afterEach(() => {
@@ -182,8 +182,8 @@ describe('/api/materials POST', () => {
 
 describe('/api/materials/[id]/download POST', () => {
   it('streams file and increments download count', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(Buffer.from('file content') as unknown as string)
+    const { getFileStream } = jest.requireMock('@/lib/storage') as { getFileStream: jest.Mock }
+    getFileStream.mockResolvedValue(Readable.from(Buffer.from('file content')))
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user1' })
     ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({
       id: 'material-1',

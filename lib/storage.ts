@@ -1,7 +1,6 @@
-import fs from 'fs/promises'
 import path from 'path'
-
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads')
+import { Client } from 'minio'
+import type { Readable } from 'stream'
 
 const ALLOWED_EXTENSIONS = new Set([
   '.pdf',
@@ -59,7 +58,45 @@ async function validateMimeFromBuffer(file: File, ext: string): Promise<void> {
   }
 }
 
+let _client: Client | null = null
+
+function getClient(): Client {
+  if (!_client) {
+    const accessKey = process.env.MINIO_ACCESS_KEY
+    const secretKey = process.env.MINIO_SECRET_KEY
+    if (!accessKey || !secretKey) {
+      throw new Error('MINIO_ACCESS_KEY and MINIO_SECRET_KEY environment variables are required')
+    }
+    _client = new Client({
+      endPoint: process.env.MINIO_ENDPOINT ?? 'localhost',
+      port: parseInt(process.env.MINIO_PORT ?? '9000', 10),
+      useSSL: process.env.MINIO_USE_SSL === 'true',
+      accessKey,
+      secretKey,
+    })
+  }
+  return _client
+}
+
+function getBucket(): string {
+  return process.env.MINIO_BUCKET_NAME ?? 'classmate'
+}
+
+let _bucketReady = false
+
+async function ensureBucket(): Promise<void> {
+  if (_bucketReady) return
+  const client = getClient()
+  const bucket = getBucket()
+  const exists = await client.bucketExists(bucket)
+  if (!exists) {
+    await client.makeBucket(bucket)
+  }
+  _bucketReady = true
+}
+
 export async function uploadFile(file: File, userId: string): Promise<string> {
+  await ensureBucket()
   const ext = path.extname(file.name).toLowerCase()
   if (!ALLOWED_EXTENSIONS.has(ext)) {
     throw new Error(`File extension ${ext} is not allowed`)
@@ -68,21 +105,38 @@ export async function uploadFile(file: File, userId: string): Promise<string> {
   await validateMimeFromBuffer(file, ext)
 
   const uniqueName = `${crypto.randomUUID()}${ext}`
-  const userDir = path.join(UPLOADS_DIR, userId)
-  await fs.mkdir(userDir, { recursive: true })
-
-  const filePath = path.join(userDir, uniqueName)
+  const objectKey = `uploads/${userId}/${uniqueName}`
   const buffer = Buffer.from(await file.arrayBuffer())
-  await fs.writeFile(filePath, buffer)
 
-  return `/uploads/${userId}/${uniqueName}`
+  await getClient().putObject(getBucket(), objectKey, buffer, buffer.length, {
+    'Content-Type': file.type || 'application/octet-stream',
+  })
+
+  return `/${objectKey}`
+}
+
+export async function uploadRaw(
+  objectKey: string,
+  buffer: Buffer,
+  contentType: string
+): Promise<void> {
+  await ensureBucket()
+  await getClient().putObject(getBucket(), objectKey, buffer, buffer.length, {
+    'Content-Type': contentType,
+  })
+}
+
+export async function getFileStream(fileUrl: string): Promise<Readable> {
+  await ensureBucket()
+  const objectKey = fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl
+  return getClient().getObject(getBucket(), objectKey)
 }
 
 export async function deleteFile(fileUrl: string): Promise<void> {
   if (!fileUrl.startsWith('/uploads/')) return
-  const filePath = path.join(process.cwd(), 'public', fileUrl)
+  const objectKey = fileUrl.slice(1)
   try {
-    await fs.unlink(filePath)
+    await getClient().removeObject(getBucket(), objectKey)
   } catch {
     // File may not exist; ignore
   }

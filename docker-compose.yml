@@ -19,15 +19,15 @@ services:
       retries: 5
     restart: unless-stopped
 
-  db-schema-sync:
-    profiles: ["migrate"]
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: migrator
-    env_file:
-      - .env.production
-    restart: "no"
+  minio:
+    image: minio/minio:latest
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
 
   app:
     image: ${DOCKER_USERNAME:-local}/classmate:${IMAGE_TAG:-latest}
@@ -46,8 +46,6 @@ services:
       - .env.production
     ports:
       - "3010:3010"
-    volumes:
-      - uploads_data:/app/public/uploads
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3010/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
@@ -72,4 +70,4 @@ services:
 
 volumes:
   postgres_data:
-  uploads_data:
+  minio_data:

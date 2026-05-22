@@ -1,10 +1,26 @@
-import path from 'path'
-import fs from 'fs/promises'
 import { uploadFile, deleteFile } from '@/lib/storage'
 
-jest.mock('fs/promises')
+// Expose mock functions via globalThis to work around jest.mock hoisting
+jest.mock('minio', () => {
+  const putObject = jest.fn().mockResolvedValue(undefined)
+  const removeObject = jest.fn().mockResolvedValue(undefined)
+  const getObject = jest.fn()
+  const bucketExists = jest.fn().mockResolvedValue(true)
+  const makeBucket = jest.fn().mockResolvedValue(undefined)
+  const g = globalThis as Record<string, unknown>
+  g.__minioPutObject = putObject
+  g.__minioRemoveObject = removeObject
+  g.__minioGetObject = getObject
+  return {
+    Client: jest
+      .fn()
+      .mockReturnValue({ putObject, removeObject, getObject, bucketExists, makeBucket }),
+  }
+})
 
-const mockFs = fs as jest.Mocked<typeof fs>
+const g = globalThis as Record<string, unknown>
+const getMockPutObject = (): jest.Mock => g.__minioPutObject as jest.Mock
+const getMockRemoveObject = (): jest.Mock => g.__minioRemoveObject as jest.Mock
 
 // Stable UUID for predictable assertions
 const FIXED_UUID = '00000000-0000-0000-0000-000000000001'
@@ -19,11 +35,16 @@ function makeTextFile(name: string, content = 'hello'): File {
   return new File([content], name, { type: 'text/plain' })
 }
 
+beforeAll(() => {
+  process.env.MINIO_ACCESS_KEY = 'testkey'
+  process.env.MINIO_SECRET_KEY = 'testsecret'
+  process.env.MINIO_BUCKET_NAME = 'classmate'
+})
+
 beforeEach(() => {
   jest.clearAllMocks()
-  mockFs.mkdir.mockResolvedValue(undefined)
-  mockFs.writeFile.mockResolvedValue(undefined)
-  mockFs.unlink.mockResolvedValue(undefined)
+  getMockPutObject().mockResolvedValue(undefined)
+  getMockRemoveObject().mockResolvedValue(undefined)
 })
 
 describe('uploadFile', () => {
@@ -112,22 +133,16 @@ describe('uploadFile', () => {
     })
   })
 
-  describe('file storage', () => {
-    it('creates user directory with recursive flag', async () => {
+  describe('MinIO upload', () => {
+    it('calls putObject with the correct bucket and object key', async () => {
       const file = makeFile('notes.pdf', [0x25, 0x50, 0x44, 0x46])
       await uploadFile(file, 'user42')
-      expect(mockFs.mkdir).toHaveBeenCalledWith(
-        expect.stringContaining(path.join('uploads', 'user42')),
-        { recursive: true }
-      )
-    })
-
-    it('writes file to disk', async () => {
-      const file = makeFile('notes.pdf', [0x25, 0x50, 0x44, 0x46])
-      await uploadFile(file, 'user42')
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining('user42'),
-        expect.any(Buffer)
+      expect(getMockPutObject()).toHaveBeenCalledWith(
+        'classmate',
+        `uploads/user42/${FIXED_UUID}.pdf`,
+        expect.any(Buffer),
+        expect.any(Number),
+        expect.any(Object)
       )
     })
 
@@ -147,26 +162,23 @@ describe('uploadFile', () => {
 })
 
 describe('deleteFile', () => {
-  it('deletes an existing upload file', async () => {
+  it('calls removeObject with the correct bucket and key', async () => {
     await deleteFile('/uploads/user1/some-file.pdf')
-    expect(mockFs.unlink).toHaveBeenCalledWith(
-      expect.stringContaining(path.join('public', 'uploads', 'user1', 'some-file.pdf'))
-    )
+    expect(getMockRemoveObject()).toHaveBeenCalledWith('classmate', 'uploads/user1/some-file.pdf')
   })
 
   it('ignores URLs that do not start with /uploads/', async () => {
     await deleteFile('https://example.com/file.pdf')
-    expect(mockFs.unlink).not.toHaveBeenCalled()
+    expect(getMockRemoveObject()).not.toHaveBeenCalled()
   })
 
-  it('silently swallows ENOENT (file not found)', async () => {
-    const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
-    mockFs.unlink.mockRejectedValueOnce(err)
+  it('silently swallows removeObject errors', async () => {
+    getMockRemoveObject().mockRejectedValueOnce(new Error('NoSuchKey'))
     await expect(deleteFile('/uploads/user1/gone.pdf')).resolves.toBeUndefined()
   })
 
-  it('silently swallows any unlink error', async () => {
-    mockFs.unlink.mockRejectedValueOnce(new Error('permission denied'))
+  it('silently swallows any storage error', async () => {
+    getMockRemoveObject().mockRejectedValueOnce(new Error('network error'))
     await expect(deleteFile('/uploads/user1/gone.pdf')).resolves.toBeUndefined()
   })
 })

@@ -19,13 +19,8 @@ export async function GET() {
         where: { id: session.id },
         select: {
           forumPosts: {
-            orderBy: { createdAt: 'desc' },
-            take: 20,
-            select: {
-              tags: {
-                select: { name: true },
-              },
-            },
+            take: 1,
+            select: { id: true },
           },
         },
       }),
@@ -44,25 +39,14 @@ export async function GET() {
       where: {
         id: { notIn: Array.from(excludedPostIds) },
       },
-      include: {
-        tags: {
-          select: { name: true },
-        },
-      },
       orderBy: {
         createdAt: 'desc',
       },
       take: 100,
     })
 
-    const userTags = new Set(
-      (historyUser?.forumPosts ?? [])
-        .flatMap((post) => post.tags)
-        .map((tag) => tag.name.toLowerCase())
-    )
-
-    const hasHistory = userTags.size > 0
-    const ranked = scoreAndRankPosts(posts, new Set(), userTags)
+    const hasHistory = (historyUser?.forumPosts.length ?? 0) > 0
+    const ranked = scoreAndRankPosts(posts, new Set(), new Set())
     const top = ranked.slice(0, 5)
 
     return NextResponse.json(
