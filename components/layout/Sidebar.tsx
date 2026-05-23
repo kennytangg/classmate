@@ -76,7 +76,7 @@ function NavGroup({
       {/* Section header — collapses in height + fades, no snap */}
       <p
         className={cn(
-          'text-sidebar-foreground/40 overflow-hidden px-3 text-[10px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all duration-[220ms]',
+          'text-sidebar-foreground/60 dark:text-sidebar-foreground/40 overflow-hidden px-3 text-[10px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all duration-[220ms]',
           collapsed ? 'mb-0 h-0 opacity-0' : 'mb-1.5 h-4 opacity-100'
         )}
       >
@@ -106,7 +106,7 @@ function NavGroup({
                   'mb-0.5 flex h-8 items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150',
                   active
                     ? 'text-sidebar-foreground bg-black/25 font-medium'
-                    : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground font-normal'
+                    : 'text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground font-normal'
                 )}
               >
                 <Icon className="h-[15px] w-[15px] shrink-0" />
@@ -155,7 +155,7 @@ function SidebarLogout({ collapsed }: { collapsed: boolean }) {
         onClick={handleLogout}
         disabled={isLoggingOut}
         title="Sign out"
-        className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150 disabled:opacity-50"
+        className="text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150 disabled:opacity-50"
       >
         <LogOut className="h-[15px] w-[15px] shrink-0" />
         <span
@@ -206,7 +206,7 @@ function SidebarContent({
           <button
             onClick={onToggleCollapse}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground fixed top-3 left-3 z-40 hidden h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 md:flex"
+            className="text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground fixed top-3 left-3 z-40 hidden h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 md:flex"
           >
             <Menu className="h-4 w-4 shrink-0" />
           </button>
@@ -249,8 +249,10 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMobileClose
       {/* Desktop sidebar — overflow-hidden lets the width transition act as a reveal mask */}
       <aside
         className={cn(
-          'border-border bg-card fixed top-0 left-0 z-30 hidden h-full flex-col overflow-hidden border-r transition-all duration-[300ms] md:flex',
-          collapsed ? 'w-14' : 'w-64'
+          'fixed top-0 left-0 z-30 hidden h-full flex-col overflow-hidden transition-all duration-[300ms] md:flex',
+          collapsed
+            ? 'bg-background w-14 border-r border-transparent'
+            : 'bg-card border-border w-64 border-r'
         )}
       >
         <SidebarContent

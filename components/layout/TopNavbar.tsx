@@ -18,7 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { NotificationDropdown } from '@/components/features/notifications/NotificationDropdown'
 
 const AVATAR_COLORS = [
   'bg-violet-500',
@@ -58,9 +57,10 @@ const ROLE_BADGE: Record<string, { label: string; className: string }> = {
 
 interface TopNavbarProps {
   onMobileMenuOpen: () => void
+  transparent?: boolean
 }
 
-export function TopNavbar({ onMobileMenuOpen }: TopNavbarProps) {
+export function TopNavbar({ onMobileMenuOpen, transparent }: TopNavbarProps) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -93,31 +93,50 @@ export function TopNavbar({ onMobileMenuOpen }: TopNavbarProps) {
   }
 
   return (
-    <header className="bg-background sticky top-0 z-40 flex h-16 items-center gap-4 px-4">
-      {/* Mobile hamburger — leftmost on mobile only */}
+    <header
+      className={`relative sticky top-0 z-40 flex h-16 items-center gap-4 px-4 transition-[background-color] duration-300 ease-in-out ${transparent ? 'bg-background/0' : 'bg-background'}`}
+    >
+      {/* Dark gradient fades out as solid fades in — both opacity-only, invisible to peripheral vision */}
+      <div
+        className={`pointer-events-none absolute inset-0 z-[-1] bg-gradient-to-b from-black/50 to-transparent transition-opacity duration-300 ease-in-out ${transparent ? 'opacity-100' : 'opacity-0'}`}
+      />
+      {/* Mobile hamburger — more visible, adapts to transparent state */}
       <Button
         variant="ghost"
         size="icon"
-        className="text-muted-foreground rounded-lg md:hidden"
+        className={`rounded-lg md:hidden ${transparent ? 'text-white hover:bg-white/15' : 'text-foreground hover:bg-muted'}`}
         onClick={onMobileMenuOpen}
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-6 w-6" />
         <span className="sr-only">Open navigation</span>
       </Button>
 
-      {/* Logo — desktop only (sidebar handles branding on mobile) */}
+      {/* Mobile centered logo — absolute so it doesn't push other elements */}
+      <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 md:hidden">
+        <div className="bg-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
+          <BookOpen className="h-3.5 w-3.5 text-white" />
+        </div>
+        <span
+          className={`text-sm font-bold tracking-tight ${transparent ? 'text-white' : 'text-foreground'}`}
+        >
+          ClassMate
+        </span>
+      </div>
+
+      {/* Logo — desktop only */}
       <div className="hidden items-center gap-3 md:flex">
         <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
           <BookOpen className="h-4 w-4 text-white" />
         </div>
-        <span className="text-foreground text-sm font-bold tracking-tight">ClassMate</span>
+        <span
+          className={`text-sm font-bold tracking-tight ${transparent ? 'text-white' : 'text-foreground'}`}
+        >
+          ClassMate
+        </span>
       </div>
 
       {/* Right side */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Notification bell */}
-        <NotificationDropdown />
-
         {/* Role badge — only visible to elevated roles */}
         {roleBadge && (
           <span

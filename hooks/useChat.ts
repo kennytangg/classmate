@@ -145,12 +145,15 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
         if (returnedSessionId && returnedSessionId !== activeSessionId) {
           setActiveSessionId(returnedSessionId)
           setStreamingSessionId(returnedSessionId)
-          // Move messages from '__new__' slot to the real session ID.
+          // Snapshot currentKey NOW — React defers functional updaters to reconciliation,
+          // by which point the `let currentKey` would already be mutated to returnedSessionId,
+          // causing prev.get(currentKey) to find nothing and silently drop all messages.
+          const keyToMove = currentKey
           setSessionMessages((prev) => {
             const next = new Map(prev)
-            const msgs = next.get(currentKey) ?? []
-            if (currentKey !== returnedSessionId) {
-              next.delete(currentKey)
+            const msgs = next.get(keyToMove) ?? []
+            if (keyToMove !== returnedSessionId) {
+              next.delete(keyToMove)
               next.set(returnedSessionId, msgs)
             }
             return next

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Bot, Zap, Users, BookOpen, MessageSquare, Sparkles, ArrowRight } from 'lucide-react'
+import { Bot, Zap, Users, BookOpen, MessageSquare, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ScheduleWidget } from '@/components/features/dashboard/ScheduleWidget'
 import { TrendingThreadsWidget } from '@/components/features/dashboard/TrendingThreadsWidget'
@@ -90,12 +90,6 @@ export default function Dashboard() {
 
         {/* Content */}
         <div className="relative z-20 flex h-full flex-col px-6 py-5 sm:px-10 md:px-12">
-          {/* Top: welcome label */}
-          <div className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-white/80 uppercase">
-            <Sparkles className="h-3.5 w-3.5" />
-            Welcome back
-          </div>
-
           {/* Image breathing room */}
           <div className="flex-1" />
 
@@ -127,7 +121,7 @@ export default function Dashboard() {
                   className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:-translate-y-0.5 active:scale-95"
                 >
                   <Bot className="h-3.5 w-3.5" />
-                  Ask AI Tutor
+                  <span className="hidden sm:inline">Ask AI Tutor</span>
                 </Link>
               </div>
             </motion.div>
@@ -146,8 +140,8 @@ export default function Dashboard() {
                       onClick={() => setCurrent(i)}
                       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors ${
                         i === current
-                          ? 'border-white/40 bg-white/20 text-white'
-                          : 'border-white/20 text-white/60 hover:border-white/40 hover:text-white/90'
+                          ? 'text-foreground border-white/60 bg-white/80 dark:border-white/40 dark:bg-white/20 dark:text-white'
+                          : 'text-foreground/70 hover:text-foreground border-white/40 bg-white/50 hover:bg-white/70 dark:border-white/20 dark:bg-transparent dark:text-white/60 dark:hover:border-white/40 dark:hover:text-white/90'
                       }`}
                     >
                       <PillIcon className="h-3.5 w-3.5" />
@@ -164,17 +158,19 @@ export default function Dashboard() {
                     onClick={() => setCurrent(i)}
                     aria-label={`View slide ${i + 1}`}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === current ? 'w-5 bg-white' : 'w-1.5 bg-white/35 hover:bg-white/60'
+                      i === current
+                        ? 'bg-foreground w-5 dark:bg-white'
+                        : 'bg-foreground/35 hover:bg-foreground/60 w-1.5 dark:bg-white/35 dark:hover:bg-white/60'
                     }`}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Right: Explore CTA — contextual to current slide */}
+            {/* Right: Explore CTA — hidden on mobile, visible sm+ */}
             <Link
               href={slide.href}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/20 hover:text-white"
+              className="text-foreground/80 hover:text-foreground hidden shrink-0 items-center gap-1.5 rounded-full border border-white/50 bg-white/60 px-3.5 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors hover:bg-white/80 sm:inline-flex dark:border-white/25 dark:bg-white/10 dark:text-white/80 dark:hover:border-white/40 dark:hover:bg-white/20 dark:hover:text-white"
             >
               Explore {slide.label}
               <ArrowRight className="h-3 w-3" />
@@ -182,7 +178,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Cloud — behind content (z-10), pills float above it (z-20) */}
+        {/* Sentinel at 50% hero height — layout observes this to trigger navbar background */}
+        <div
+          id="hero-nav-sentinel"
+          className="pointer-events-none absolute inset-x-0"
+          style={{ top: '50%' }}
+        />
+
+        {/* Cloud — fades image into page background in both modes */}
         <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 z-10 h-36 bg-gradient-to-t to-transparent" />
       </section>
 
