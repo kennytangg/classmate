@@ -359,13 +359,14 @@ export function ChatInterface({
   }
 
   return (
-    <div className="bg-card flex h-full min-w-0 flex-col overflow-hidden">
+    <div className="bg-background flex h-full min-w-0 flex-col overflow-hidden">
       {/* Chat Area */}
       <div className="relative flex-1 overflow-hidden">
         {/* Top fade */}
-        <div className="from-card pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b to-transparent" />
+        <div className="from-background pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b to-transparent" />
+
         {/* Bottom fade — subtler than the top so it doesn't distract */}
-        <div className="from-card/60 pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t to-transparent" />
+        <div className="from-background/60 pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t to-transparent" />
 
         <div ref={chatBoxRef} className="h-full overflow-x-hidden overflow-y-auto">
           <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-6 px-6 pt-10 pb-4">

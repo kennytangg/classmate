@@ -15,17 +15,19 @@ import {
   Menu,
   Compass,
   BookOpen,
-  LogOut,
   Bell,
+  LogOut,
+  Loader2,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { getNavigationBySection, type NavigationItem, type SidebarSection } from '@/lib/navigation'
 import { useUserRole } from '@/lib/contexts/user-role-context'
-import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
-import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -103,7 +105,7 @@ function NavGroup({
                 onClick={onNavigate}
                 title={item.label}
                 className={cn(
-                  'mb-0.5 flex h-8 items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150',
+                  'focus-visible:ring-sidebar-foreground/40 mb-0.5 flex h-8 items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150 focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset',
                   active
                     ? 'text-sidebar-foreground bg-black/25 font-medium'
                     : 'text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground font-normal'
@@ -129,8 +131,22 @@ function NavGroup({
   )
 }
 
-function SidebarLogout({ collapsed }: { collapsed: boolean }) {
+function SidebarContent({
+  collapsed,
+  onToggleCollapse,
+  isActive,
+  onNavigate,
+}: {
+  collapsed: boolean
+  onToggleCollapse?: () => void
+  isActive: (href: string) => boolean
+  onNavigate?: () => void
+}) {
   const router = useRouter()
+  const { role } = useUserRole()
+  const sections = getNavigationBySection(role)
+  const [pendingCount, setPendingCount] = useState(0)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   async function handleLogout() {
@@ -148,44 +164,6 @@ function SidebarLogout({ collapsed }: { collapsed: boolean }) {
       setIsLoggingOut(false)
     }
   }
-
-  return (
-    <div className="px-2 pb-2">
-      <button
-        onClick={handleLogout}
-        disabled={isLoggingOut}
-        title="Sign out"
-        className="text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors duration-150 disabled:opacity-50"
-      >
-        <LogOut className="h-[15px] w-[15px] shrink-0" />
-        <span
-          className={cn(
-            'text-[13px] font-normal whitespace-nowrap',
-            FADE,
-            collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
-          )}
-        >
-          Sign out
-        </span>
-      </button>
-    </div>
-  )
-}
-
-function SidebarContent({
-  collapsed,
-  onToggleCollapse,
-  isActive,
-  onNavigate,
-}: {
-  collapsed: boolean
-  onToggleCollapse?: () => void
-  isActive: (href: string) => boolean
-  onNavigate?: () => void
-}) {
-  const { role } = useUserRole()
-  const sections = getNavigationBySection(role)
-  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     fetch('/api/connections/count')
@@ -206,7 +184,7 @@ function SidebarContent({
           <button
             onClick={onToggleCollapse}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground fixed top-3 left-3 z-40 hidden h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 md:flex"
+            className="text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-sidebar-foreground/40 fixed top-3 left-3 z-40 hidden h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset md:flex"
           >
             <Menu className="h-4 w-4 shrink-0" />
           </button>
@@ -229,8 +207,41 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* Logout */}
-      <SidebarLogout collapsed={collapsed} />
+      {/* Sign out — bottom of sidebar */}
+      <div className="px-2 pb-3">
+        <button
+          onClick={() => setConfirmOpen(true)}
+          disabled={isLoggingOut}
+          title="Sign out"
+          className={cn(
+            'text-sidebar-foreground/85 dark:text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground focus-visible:ring-sidebar-foreground/40 mb-0.5 flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-[13px] font-normal transition-colors duration-150 focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset disabled:opacity-50'
+          )}
+        >
+          {isLoggingOut ? (
+            <Loader2 className="h-[15px] w-[15px] shrink-0 animate-spin" />
+          ) : (
+            <LogOut className="h-[15px] w-[15px] shrink-0" />
+          )}
+          <span
+            className={cn(
+              'truncate whitespace-nowrap',
+              FADE,
+              collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+            )}
+          >
+            {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+          </span>
+        </button>
+      </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Sign out"
+        description="Are you sure you want to sign out?"
+        confirmLabel="Sign out"
+        onConfirm={handleLogout}
+      />
     </div>
   )
 }

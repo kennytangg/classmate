@@ -307,12 +307,6 @@ export default function GroupChatPage({ params }: { params: Promise<{ groupId: s
             </span>
           </div>
         </div>
-        <Link
-          href={`/groups/${groupId}`}
-          className="text-muted-foreground hover:text-foreground text-xs transition-colors"
-        >
-          View group
-        </Link>
       </div>
 
       {/* Chat Messages */}

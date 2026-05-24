@@ -141,7 +141,7 @@ export default function Dashboard() {
                       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition-colors ${
                         i === current
                           ? 'text-foreground border-white/60 bg-white/80 dark:border-white/40 dark:bg-white/20 dark:text-white'
-                          : 'text-foreground/70 hover:text-foreground border-white/40 bg-white/50 hover:bg-white/70 dark:border-white/20 dark:bg-transparent dark:text-white/60 dark:hover:border-white/40 dark:hover:text-white/90'
+                          : 'text-foreground/70 cursor-pointer border-white/40 bg-white/50 dark:border-white/20 dark:bg-transparent dark:text-white/60'
                       }`}
                     >
                       <PillIcon className="h-3.5 w-3.5" />

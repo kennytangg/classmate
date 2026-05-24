@@ -236,7 +236,7 @@ export function ForumList() {
           )}
 
           {!loading && !error && posts.length === 0 && (
-            <div className="border-border bg-muted flex flex-col items-center justify-center rounded-xl border py-16">
+            <div className="border-border bg-card flex flex-col items-center justify-center rounded-xl border py-16">
               <MessageSquarePlus className="text-muted-foreground h-12 w-12" />
               <p className="text-foreground mt-4 text-lg font-semibold">{emptyState.title}</p>
               <p className="text-muted-foreground mt-1 text-sm">{emptyState.sub}</p>

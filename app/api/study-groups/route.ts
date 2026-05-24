@@ -8,14 +8,23 @@ import { sanitizeText } from '@/lib/sanitize'
 import { getErrorResponse, zodErrorToString } from '@/lib/errors'
 import { createStudyGroupSchema } from '@/lib/schemas'
 
-// GET /api/study-groups?subject=Math&myGroups=true&excludeMyGroups=true
+// GET /api/study-groups?search=math&myGroups=true&excludeMyGroups=true
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const subject = searchParams.get('subject')
+  const search = searchParams.get('search')?.trim() ?? ''
   const myGroups = searchParams.get('myGroups')
   const excludeMyGroups = searchParams.get('excludeMyGroups') === 'true'
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '12', 10) || 12))
+
+  const searchFilter = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { subject: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }
+    : {}
 
   try {
     let groups
@@ -31,7 +40,7 @@ export async function GET(req: NextRequest) {
       }
       const where = {
         members: { some: { userId: session.id } },
-        ...(subject ? { subject } : {}),
+        ...searchFilter,
       }
       total = await prisma.studyGroup.count({ where })
       groups = await prisma.studyGroup.findMany({
@@ -54,7 +63,7 @@ export async function GET(req: NextRequest) {
 
       const where = {
         isPrivate: false,
-        ...(subject ? { subject } : {}),
+        ...searchFilter,
         ...(excludeUserId ? { members: { none: { userId: excludeUserId } } } : {}),
       }
       total = await prisma.studyGroup.count({ where })

@@ -47,7 +47,6 @@
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
     "framer-motion": "^12.34.0",
-    "jszip": "^3.10.1",
     "lucide-react": "^0.564.0",
     "minio": "^8.0.7",
     "next": "16.1.4",

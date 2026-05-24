@@ -128,6 +128,7 @@ export default function StudyGroupsPage() {
   const [yourGroupsTotalPages, setYourGroupsTotalPages] = useState(1)
 
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [activeSort, setActiveSort] = useState('Most Popular')
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -145,6 +146,15 @@ export default function StudyGroupsPage() {
   }, [])
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query)
+      setDiscoverPage(1)
+      setYourGroupsPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  useEffect(() => {
     async function fetchDiscover() {
       setLoadingDiscover(true)
       try {
@@ -152,6 +162,7 @@ export default function StudyGroupsPage() {
         params.set('page', String(discoverPage))
         params.set('limit', '12')
         params.set('excludeMyGroups', 'true')
+        if (debouncedQuery) params.set('search', debouncedQuery)
         const res = await fetch(`/api/study-groups?${params.toString()}`)
         const data = await res.json()
         const mapped: Group[] = (data.groups ?? []).map((g: ApiGroup) => mapApiGroup(g))
@@ -164,7 +175,7 @@ export default function StudyGroupsPage() {
       }
     }
     void fetchDiscover()
-  }, [discoverPage])
+  }, [discoverPage, debouncedQuery])
 
   useEffect(() => {
     async function fetchYourGroups() {
@@ -174,6 +185,7 @@ export default function StudyGroupsPage() {
         params.set('myGroups', 'true')
         params.set('page', String(yourGroupsPage))
         params.set('limit', '12')
+        if (debouncedQuery) params.set('search', debouncedQuery)
         const res = await fetch(`/api/study-groups?${params.toString()}`)
         const data = await res.json()
         setRawJoinedGroups(data.groups ?? [])
@@ -185,31 +197,27 @@ export default function StudyGroupsPage() {
       }
     }
     void fetchYourGroups()
-  }, [yourGroupsPage])
+  }, [yourGroupsPage, debouncedQuery])
 
   const joined = useMemo(() => {
-    let list = joinedGroups.filter(
-      (g) => query.trim().length === 0 || g.name.toLowerCase().includes(query.toLowerCase())
-    )
+    let list = [...joinedGroups]
     if (activeSort === 'Most Popular') {
-      list = [...list].sort((a, b) => b.capacity - a.capacity)
+      list = list.sort((a, b) => b.capacity - a.capacity)
     } else if (activeSort === 'Newest') {
-      list = [...list].reverse()
+      list = list.reverse()
     }
     return list
-  }, [joinedGroups, query, activeSort])
+  }, [joinedGroups, activeSort])
 
   const discover = useMemo(() => {
-    let list = discoverGroups.filter(
-      (g) => query.trim().length === 0 || g.name.toLowerCase().includes(query.toLowerCase())
-    )
+    let list = [...discoverGroups]
     if (activeSort === 'Most Popular') {
-      list = [...list].sort((a, b) => b.capacity - a.capacity)
+      list = list.sort((a, b) => b.capacity - a.capacity)
     } else if (activeSort === 'Newest') {
-      list = [...list].reverse()
+      list = list.reverse()
     }
     return list
-  }, [discoverGroups, query, activeSort])
+  }, [discoverGroups, activeSort])
 
   async function handleCreate() {
     const trimmedName = formName.trim()
@@ -296,7 +304,7 @@ export default function StudyGroupsPage() {
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search groups..."
+              placeholder="Search by name or subject..."
               className="border-border bg-card text-foreground placeholder:text-muted-foreground focus:ring-ring/40 w-full rounded-lg border py-2 pr-4 pl-10 text-sm focus:ring-2 focus:outline-none sm:w-64"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

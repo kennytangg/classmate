@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Trash2, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Loader2, PanelRight } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -24,6 +24,7 @@ interface SessionSidebarProps {
   onNewChat: () => void
   onDeleteSession: (sessionId: string) => void
   streamingSessionId?: string
+  onClose?: () => void
 }
 
 type SessionGroup = 'Today' | 'Yesterday' | 'This Week' | 'Older'
@@ -47,6 +48,7 @@ export function SessionSidebar({
   onNewChat,
   onDeleteSession,
   streamingSessionId,
+  onClose,
 }: SessionSidebarProps) {
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -106,15 +108,24 @@ export function SessionSidebar({
 
   return (
     <>
-      <div className="flex h-full flex-col">
-        <div className="p-3">
+      <div className="flex h-full w-72 flex-col">
+        <div className="flex items-center gap-1 px-2 pt-2 pb-1">
           <button
             onClick={onNewChat}
-            className="hover:bg-muted text-foreground flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
+            className="text-foreground/80 flex flex-1 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors hover:bg-black/10 dark:hover:bg-white/5"
           >
             <Plus className="h-4 w-4" />
             New chat
           </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              title="Close chat history"
+              className="text-muted-foreground hover:text-foreground shrink-0 rounded-lg p-1.5 transition-colors hover:bg-black/10 dark:hover:bg-white/5"
+            >
+              <PanelRight className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-2 pb-2">
@@ -126,7 +137,7 @@ export function SessionSidebar({
 
           {GROUP_ORDER.filter((g) => grouped.has(g)).map((group) => (
             <div key={group}>
-              <p className="text-muted-foreground px-3 py-2 text-xs">{group}</p>
+              <p className="text-muted-foreground px-3 pt-3 pb-0.5 text-xs">{group}</p>
               {grouped.get(group)!.map((session) => (
                 <div
                   key={session.id}
@@ -134,11 +145,17 @@ export function SessionSidebar({
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && onSelectSession(session.id)}
-                  className={`group hover:bg-muted flex cursor-pointer items-center justify-between gap-1 rounded-lg px-3 py-1.5 transition-colors ${
-                    session.id === activeSessionId ? 'bg-accent' : ''
+                  className={`group flex cursor-pointer items-center justify-between gap-1 rounded-lg px-3 py-1 transition-colors ${
+                    session.id === activeSessionId
+                      ? 'bg-black/20 dark:bg-white/10'
+                      : 'hover:bg-black/10 dark:hover:bg-white/5'
                   }`}
                 >
-                  <p className="text-foreground truncate text-sm">{session.title}</p>
+                  <p
+                    className={`truncate text-sm ${session.id === activeSessionId ? 'text-foreground font-medium' : 'text-foreground/80'}`}
+                  >
+                    {session.title}
+                  </p>
                   <div className="ml-auto flex shrink-0 items-center gap-1">
                     {streamingSessionId === session.id && session.id !== activeSessionId && (
                       <span

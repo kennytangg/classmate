@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { X } from 'lucide-react'
+import { X, PanelRight } from 'lucide-react'
 import { ChatInterface } from 'components/features/ai-tutor/ChatInterface'
 import { SessionSidebar } from 'components/features/ai-tutor/SessionSidebar'
 import { useChat } from '../../../hooks/useChat'
@@ -36,6 +36,7 @@ function AITutorContent() {
   }, [initialQuery, isLoadingHistory, sendMessage, router])
 
   const [showMobileSessions, setShowMobileSessions] = useState(false)
+  const [sessionSidebarOpen, setSessionSidebarOpen] = useState(true)
 
   const handleDeleteSession = (sessionId: string) => {
     if (sessionId === activeSessionId) {
@@ -45,17 +46,6 @@ function AITutorContent() {
 
   return (
     <div className="flex h-full w-full overflow-hidden">
-      {/* Session Sidebar — desktop only */}
-      <div className="border-border hidden h-full w-80 min-w-[280px] shrink-0 flex-col border-r md:flex">
-        <SessionSidebar
-          activeSessionId={activeSessionId}
-          onSelectSession={switchSession}
-          onNewChat={newChat}
-          onDeleteSession={handleDeleteSession}
-          streamingSessionId={streamingSessionId}
-        />
-      </div>
-
       {/* Chat Interface */}
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <ChatInterface
@@ -65,6 +55,35 @@ function AITutorContent() {
           error={error}
           sendMessage={sendMessage}
           onRegenerate={regenerate}
+        />
+      </div>
+
+      {/* Re-open button — desktop only, visible only when sidebar is closed */}
+      {!sessionSidebarOpen && (
+        <div className="hidden h-full w-9 shrink-0 flex-col items-center pt-[10px] md:flex">
+          <button
+            onClick={() => setSessionSidebarOpen(true)}
+            title="Open chat history"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg p-1.5 transition-colors"
+          >
+            <PanelRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Session Sidebar — RIGHT, desktop only */}
+      <div
+        className={`bg-background hidden h-full shrink-0 flex-col overflow-hidden transition-all duration-300 md:flex ${
+          sessionSidebarOpen ? 'w-72' : 'w-0'
+        }`}
+      >
+        <SessionSidebar
+          activeSessionId={activeSessionId}
+          onSelectSession={switchSession}
+          onNewChat={newChat}
+          onDeleteSession={handleDeleteSession}
+          streamingSessionId={streamingSessionId}
+          onClose={() => setSessionSidebarOpen(false)}
         />
       </div>
 
