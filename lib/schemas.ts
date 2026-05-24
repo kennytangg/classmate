@@ -130,7 +130,6 @@ export const chatRequestSchema = z.object({
 // ── Sessions ───────────────────────────────────────────────────────────────
 export const createSessionSchema = z.object({
   title: z.string().max(200).optional(),
-  subject: z.string().max(100).optional(),
 })
 
 // ── Moderation ─────────────────────────────────────────────────────────────
@@ -162,7 +161,6 @@ export const summarizeSchema = z.object({
 export const updateMaterialSchema = z.object({
   title: z.string().min(1).max(300).optional(),
   description: z.string().max(2000).optional().nullable(),
-  subject: z.string().max(100).optional().nullable(),
 })
 
 // ── Admin ──────────────────────────────────────────────────────────────────

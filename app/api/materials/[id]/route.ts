@@ -2,11 +2,12 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import { canModerate } from '@/lib/authorize'
+import { canModerate, requireRole } from '@/lib/authorize'
 import { sanitizeText } from '@/lib/sanitize'
 import { checkRateLimit, generalLimiter, writeLimiter, getClientIp } from '@/lib/rate-limit'
 import { updateMaterialSchema } from '@/lib/schemas'
 import { zodErrorToString } from '@/lib/errors'
+import { deleteFile } from '@/lib/storage'
 
 const USER_SELECT = {
   select: {
@@ -68,7 +69,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (!matParsed.success) {
       return NextResponse.json({ error: zodErrorToString(matParsed.error) }, { status: 400 })
     }
-    const { title: titleRaw, description: descriptionRaw, subject: subjectRaw } = matParsed.data
+    const { title: titleRaw, description: descriptionRaw } = matParsed.data
 
     const data: Record<string, unknown> = {}
     if (titleRaw !== undefined) {
@@ -79,12 +80,6 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
     if (descriptionRaw !== undefined) {
       data.description = descriptionRaw ? sanitizeText(descriptionRaw) || null : null
-    }
-    if (subjectRaw !== undefined) {
-      const sanitized = sanitizeText(subjectRaw)
-      if (!sanitized)
-        return NextResponse.json({ error: 'subject must contain valid text' }, { status: 400 })
-      data.subject = sanitized
     }
 
     if (Object.keys(data).length === 0) {
@@ -117,19 +112,21 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
 
     const material = await prisma.studyMaterial.findUnique({
       where: { id },
-      select: { userId: true },
+      select: { userId: true, fileUrl: true },
     })
 
     if (!material) {
       return NextResponse.json({ error: 'Material not found' }, { status: 404 })
     }
 
-    const authorized = await canModerate(session, material.userId)
-    if (!authorized) {
+    const isUploader = session.id === material.userId
+    const isOwnerRole = await requireRole(session, ['OWNER'])
+    if (!isUploader && !isOwnerRole) {
       return NextResponse.json({ error: 'Not authorized to delete this material' }, { status: 403 })
     }
 
     await prisma.studyMaterial.delete({ where: { id } })
+    await deleteFile(material.fileUrl)
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch {

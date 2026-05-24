@@ -50,21 +50,6 @@ describe('/api/materials GET', () => {
     expect(response.status).toBe(200)
     expect(data.materials).toEqual(mockMaterials)
   })
-
-  it('filters by subject', async () => {
-    ;(getSession as jest.Mock).mockResolvedValue({ id: 'user1' })
-    ;(prisma.studyMaterial.count as jest.Mock).mockResolvedValue(0)
-    ;(prisma.studyMaterial.findMany as jest.Mock).mockResolvedValue([])
-
-    const request = new NextRequest('http://localhost/api/materials?subject=Physics')
-    await GET(request)
-
-    expect(prisma.studyMaterial.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { subject: 'Physics' },
-      })
-    )
-  })
 })
 
 describe('/api/materials POST', () => {
@@ -81,7 +66,6 @@ describe('/api/materials POST', () => {
     const fd = makeFormData({
       file: makePdfFile('test.pdf'),
       title: 'Test Material',
-      subject: 'Math',
     })
 
     const request = new NextRequest('http://localhost/api/materials', {
@@ -99,7 +83,6 @@ describe('/api/materials POST', () => {
     const fd = makeFormData({
       file: makePdfFile(),
       title: 'Test',
-      subject: 'Math',
     })
 
     const request = new NextRequest('http://localhost/api/materials', {
@@ -118,7 +101,6 @@ describe('/api/materials POST', () => {
     const fd = makeFormData({
       file: exeFile,
       title: 'Test',
-      subject: 'Math',
     })
 
     const request = new NextRequest('http://localhost/api/materials', {
@@ -139,7 +121,6 @@ describe('/api/materials POST', () => {
     const fd = new FormData()
     fd.append('file', largeFile)
     fd.append('title', 'Test')
-    fd.append('subject', 'Math')
 
     const request = new NextRequest('http://localhost/api/materials', {
       method: 'POST',
@@ -160,7 +141,6 @@ describe('/api/materials POST', () => {
     const fd = makeFormData({
       file: makePdfFile(),
       title: '<script>alert("xss")</script>Safe Title',
-      subject: 'Math',
     })
 
     const request = new NextRequest('http://localhost/api/materials', {

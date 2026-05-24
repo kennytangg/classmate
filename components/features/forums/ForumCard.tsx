@@ -27,8 +27,6 @@ export function ForumCard({
   createdAt,
   isRecommended,
 }: ForumCardProps) {
-  const preview = content.length > 120 ? content.slice(0, 120).trimEnd() + '…' : content
-
   return (
     <Link href={`/forums/${id}`} className="group block cursor-pointer">
       <div className="border-border border-b px-4 py-5 transition-colors hover:bg-black/5 dark:hover:bg-white/[0.04]">
@@ -49,7 +47,7 @@ export function ForumCard({
         <h3 className="text-foreground mb-1 text-sm leading-snug font-semibold">{title}</h3>
 
         {/* Excerpt */}
-        <p className="text-muted-foreground mb-2 line-clamp-1 text-sm leading-relaxed">{preview}</p>
+        <p className="text-muted-foreground mb-2 text-sm leading-relaxed">{content}</p>
 
         {/* Stats row */}
         <div className="flex items-center gap-8">

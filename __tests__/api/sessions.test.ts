@@ -30,7 +30,6 @@ describe('GET /api/sessions', () => {
         id: 'session-1',
         userId: 'user-1',
         title: 'Calculus Help',
-        subject: 'Mathematics',
         updatedAt: new Date(),
         _count: { messages: 5 },
       },
@@ -83,7 +82,6 @@ describe('POST /api/sessions', () => {
       id: 'new-session-id',
       userId: 'user-1',
       title: 'New Session',
-      subject: 'General',
     }
     ;(prisma.chatSession.create as jest.Mock).mockResolvedValueOnce(mockSession)
 
@@ -103,25 +101,23 @@ describe('POST /api/sessions', () => {
         data: expect.objectContaining({
           userId: 'user-1',
           title: 'New Session',
-          subject: 'General',
         }),
       })
     )
   })
 
-  it('returns 200 and creates a session with the provided title and subject', async () => {
+  it('returns 200 and creates a session with the provided title', async () => {
     mockGetSession.mockResolvedValueOnce(AUTHED_USER)
     const mockSession = {
       id: 'session-cs',
       userId: 'user-1',
       title: 'Data Structures Q&A',
-      subject: 'Computer Science',
     }
     ;(prisma.chatSession.create as jest.Mock).mockResolvedValueOnce(mockSession)
 
     const req = new NextRequest('http://localhost/api/sessions', {
       method: 'POST',
-      body: JSON.stringify({ title: 'Data Structures Q&A', subject: 'Computer Science' }),
+      body: JSON.stringify({ title: 'Data Structures Q&A' }),
       headers: { 'Content-Type': 'application/json' },
     })
     const res = await POST(req)

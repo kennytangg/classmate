@@ -14,7 +14,6 @@ import {
 interface ChatSession {
   id: string
   title: string
-  subject: string
   updatedAt: string
   _count: { messages: number }
 }

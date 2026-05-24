@@ -50,11 +50,6 @@ jest.mock('@/lib/contexts/user-role-context', () => ({
   useUserRole: jest.fn(),
 }))
 
-// Mock NotificationDropdown — avoids fetch calls and useNotifications hook in tests
-jest.mock('@/components/features/notifications/NotificationDropdown', () => ({
-  NotificationDropdown: () => null,
-}))
-
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
   ...jest.requireActual('lucide-react'),

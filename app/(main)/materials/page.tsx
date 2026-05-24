@@ -1,23 +1,26 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PaginationControls } from '@/components/ui/pagination-controls'
 import { MaterialCard } from 'components/features/materials/MaterialCard'
-import { Search, Filter, Upload } from 'lucide-react'
+import { MaterialPreviewModal } from 'components/features/materials/MaterialPreviewModal'
+import { UploadMaterialModal } from 'components/features/materials/UploadMaterialModal'
+import { Search, Upload, Loader2, AlertCircle, BookOpen } from 'lucide-react'
 
 interface MaterialApiItem {
   id: string
   title: string
-  description: string | null
   fileUrl: string
-  subject: string
   fileType: string | null
+  fileSize: number | null
   downloads: number
   createdAt: string
   user: {
+    id: string
     email: string
     profile: {
       displayName: string | null
@@ -37,16 +40,27 @@ export default function MaterialsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [selectedSubject, setSelectedSubject] = useState('All Subjects')
   const [sortBy, setSortBy] = useState<SortOption>('downloads')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [previewMaterial, setPreviewMaterial] = useState<MaterialApiItem | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
-  async function loadMaterials(
-    activeSortBy: SortOption,
-    activeSubject: string,
-    activePage: number
-  ) {
+  useEffect(() => {
+    fetch('/api/user/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { id?: string; role?: string } | null) => {
+        if (data?.id) setCurrentUserId(data.id)
+        if (data?.role) setCurrentUserRole(data.role)
+      })
+      .catch(() => null)
+  }, [])
+
+  async function loadMaterials(activeSortBy: SortOption, activePage: number) {
     setLoading(true)
     setError(null)
     try {
@@ -54,14 +68,9 @@ export default function MaterialsPage() {
       params.set('sortBy', activeSortBy)
       params.set('page', String(activePage))
       params.set('limit', '10')
-      if (activeSubject && activeSubject !== 'All Subjects') {
-        params.set('subject', activeSubject)
-      }
 
       const response = await fetch(`/api/materials?${params.toString()}`)
-      if (!response.ok) {
-        throw new Error('Failed to load materials')
-      }
+      if (!response.ok) throw new Error('Failed to load materials')
 
       const data = (await response.json()) as {
         materials: MaterialApiItem[]
@@ -78,26 +87,18 @@ export default function MaterialsPage() {
   }
 
   useEffect(() => {
-    void loadMaterials(sortBy, selectedSubject, page)
-  }, [sortBy, selectedSubject, page])
+    void loadMaterials(sortBy, page)
+  }, [sortBy, page, refreshKey])
 
   const filteredMaterials = useMemo(() => {
     const normalizedSearch = search.toLowerCase().trim()
-
-    return materials.filter((material) => {
-      return (
-        !normalizedSearch ||
-        material.title.toLowerCase().includes(normalizedSearch) ||
-        material.subject.toLowerCase().includes(normalizedSearch) ||
-        (material.description ?? '').toLowerCase().includes(normalizedSearch)
-      )
-    })
+    return materials.filter(
+      (material) => !normalizedSearch || material.title.toLowerCase().includes(normalizedSearch)
+    )
   }, [materials, search])
 
   async function handleDownload(materialId: number | string) {
-    const response = await fetch(`/api/materials/${materialId}/download`, {
-      method: 'POST',
-    })
+    const response = await fetch(`/api/materials/${materialId}/download`, { method: 'POST' })
 
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string }
@@ -124,147 +125,181 @@ export default function MaterialsPage() {
     )
   }
 
-  const dynamicSubjects = Array.from(new Set(materials.map((material) => material.subject))).sort()
+  async function handleDelete(materialId: number | string) {
+    const id = String(materialId)
+    setMaterials((current) => current.filter((item) => item.id !== id))
+    setPreviewMaterial((prev) => (prev?.id === id ? null : prev))
+
+    const response = await fetch(`/api/materials/${id}`, { method: 'DELETE' })
+    if (!response.ok) {
+      toast.error('Failed to delete material.')
+      void loadMaterials(sortBy, page)
+    } else {
+      toast.success('Material deleted.')
+    }
+  }
 
   return (
     <div className="px-4 py-4 sm:px-6 md:px-12 lg:px-16">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+      {/* Header */}
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
         <div>
           <h1 className="text-foreground text-lg font-bold">Study Materials</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             Share and discover resources to boost your learning.
           </p>
         </div>
-        <Link href="/materials/upload" className="w-full sm:w-auto">
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto">
+
+        <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search materials..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border-border bg-card text-foreground focus:ring-ring w-full rounded-lg border py-2 pr-4 pl-9 text-sm focus:ring-2 focus:outline-none"
+            />
+          </div>
+          <Button
+            onClick={() => setUploadModalOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto"
+          >
             <Upload className="mr-2 h-4 w-4" />
             Upload Material
           </Button>
-        </Link>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-        {/* Sidebar Filters — below content on mobile, left column on desktop */}
-        <div className="order-2 space-y-6 lg:order-1 lg:col-span-1">
-          <div className="border-border bg-card rounded-xl border p-5 shadow-sm">
-            <div className="relative mb-4">
-              <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search resources..."
-                className="border-border bg-card text-foreground focus:ring-ring placeholder:text-muted-foreground w-full rounded-lg border py-2 pr-4 pl-9 text-sm focus:ring-2 focus:outline-none"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </div>
+      {/* Sort + results count */}
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-muted-foreground text-sm">
+          <span className="text-foreground font-medium">{filteredMaterials.length}</span> resources
+        </span>
+        <select
+          className="border-border bg-card text-foreground focus:border-ring focus:ring-ring rounded-md text-sm"
+          value={sortBy}
+          onChange={(e) => {
+            setSortBy(e.target.value as SortOption)
+            setPage(1)
+          }}
+        >
+          {sortOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-foreground mb-3 flex items-center font-semibold">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Subject
-                </h3>
-                <div className="max-h-48 space-y-2 overflow-y-auto">
-                  {['All Subjects', ...dynamicSubjects].map((subject) => (
-                    <div key={subject} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        name="subject"
-                        id={`subject-${subject}`}
-                        className="border-border text-primary focus:ring-ring rounded"
-                        checked={selectedSubject === subject}
-                        onChange={() => {
-                          setSelectedSubject(subject)
-                          setPage(1)
-                        }}
-                      />
-                      <label
-                        htmlFor={`subject-${subject}`}
-                        className="text-foreground cursor-pointer text-sm select-none"
-                      >
-                        {subject}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
+          <span className="text-muted-foreground ml-3 text-sm">Loading materials...</span>
         </div>
+      )}
 
-        {/* Materials Grid */}
-        <div className="order-1 lg:order-2 lg:col-span-3">
-          <div className="border-border bg-card mb-6 flex items-center justify-between rounded-lg border p-4 shadow-sm">
-            <div className="text-muted-foreground text-sm">
-              Showing{' '}
-              <span className="text-foreground font-medium">{filteredMaterials.length}</span>{' '}
-              resources
-            </div>
-            <select
-              className="border-border bg-card text-foreground focus:border-ring focus:ring-ring rounded-md text-sm"
-              value={sortBy}
-              onChange={(event) => {
-                setSortBy(event.target.value as SortOption)
-                setPage(1)
-              }}
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Error */}
+      {!loading && error && (
+        <div className="border-semantic-error/30 bg-semantic-error/10 flex flex-col items-center justify-center rounded-xl border py-12">
+          <AlertCircle className="text-semantic-error h-10 w-10" />
+          <p className="text-semantic-error mt-4 text-sm">{error}</p>
+        </div>
+      )}
 
-          {loading && (
-            <div className="border-border bg-card text-muted-foreground rounded-lg border p-6 text-sm">
-              Loading materials...
-            </div>
-          )}
-
-          {!loading && error && (
-            <div className="border-semantic-error/30 bg-semantic-error/10 text-semantic-error rounded-lg border p-6 text-sm">
-              {error}
-            </div>
-          )}
-
-          {!loading && !error && filteredMaterials.length === 0 && (
-            <div className="border-border bg-card text-muted-foreground rounded-lg border p-6 text-sm">
-              {page > 1
+      {/* Empty state */}
+      {!loading && !error && filteredMaterials.length === 0 && (
+        <div className="border-border flex flex-col items-center justify-center rounded-xl border py-16">
+          <BookOpen className="text-muted-foreground h-10 w-10" />
+          <p className="text-foreground mt-4 text-sm font-semibold">No materials found</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {search
+              ? 'Try different keywords or clear the search.'
+              : page > 1
                 ? 'No materials on this page.'
-                : 'No materials found for the current filters.'}
-            </div>
-          )}
-
-          {!loading && !error && filteredMaterials.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {filteredMaterials.map((material) => (
-                <MaterialCard
-                  key={material.id}
-                  id={material.id}
-                  title={material.title}
-                  author={material.user.profile?.displayName || material.user.email}
-                  subject={material.subject}
-                  type={(material.fileType || 'unknown').toUpperCase()}
-                  downloads={material.downloads}
-                  uploadedAt={formatDistanceToNow(new Date(material.createdAt), {
-                    addSuffix: true,
-                  })}
-                  onDownload={handleDownload}
-                />
-              ))}
-            </div>
-          )}
-
-          <PaginationControls
-            currentPage={page}
-            totalPages={totalPages}
-            onPrevious={() => setPage((p) => p - 1)}
-            onNext={() => setPage((p) => p + 1)}
-            isLoading={loading}
-          />
+                : 'Be the first to upload a resource.'}
+          </p>
         </div>
-      </div>
+      )}
+
+      {/* Materials grid */}
+      {!loading && !error && filteredMaterials.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredMaterials.map((material) => (
+            <MaterialCard
+              key={material.id}
+              id={material.id}
+              title={material.title}
+              author={material.user.profile?.displayName || material.user.email}
+              type={(material.fileType || 'unknown').toUpperCase()}
+              fileType={material.fileType}
+              downloads={material.downloads}
+              uploadedAt={formatDistanceToNow(new Date(material.createdAt), { addSuffix: true })}
+              isOwner={
+                !!currentUserId &&
+                (material.user.id === currentUserId || currentUserRole === 'OWNER')
+              }
+              onDownload={handleDownload}
+              onPreview={() => setPreviewMaterial(material)}
+              onDelete={(id) => setPendingDeleteId(String(id))}
+            />
+          ))}
+        </div>
+      )}
+
+      <PaginationControls
+        currentPage={page}
+        totalPages={totalPages}
+        onPrevious={() => setPage((p) => p - 1)}
+        onNext={() => setPage((p) => p + 1)}
+        isLoading={loading}
+      />
+
+      <MaterialPreviewModal
+        open={!!previewMaterial}
+        onOpenChange={(open) => {
+          if (!open) setPreviewMaterial(null)
+        }}
+        material={
+          previewMaterial
+            ? {
+                id: previewMaterial.id,
+                title: previewMaterial.title,
+                fileType: previewMaterial.fileType,
+                fileSize: previewMaterial.fileSize,
+                author: previewMaterial.user.profile?.displayName || previewMaterial.user.email,
+                uploadedAt: formatDistanceToNow(new Date(previewMaterial.createdAt), {
+                  addSuffix: true,
+                }),
+                downloads: previewMaterial.downloads,
+              }
+            : null
+        }
+        isOwner={!!currentUserId && previewMaterial?.user.id === currentUserId}
+        onDownload={(id) => void handleDownload(id)}
+        onDelete={(id) => setPendingDeleteId(id)}
+      />
+
+      <UploadMaterialModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null)
+        }}
+        title="Delete material"
+        description="This will permanently remove the file. This action cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (pendingDeleteId) void handleDelete(pendingDeleteId)
+        }}
+      />
     </div>
   )
 }

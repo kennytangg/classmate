@@ -33,8 +33,8 @@ describe('Theme parity component guards', () => {
         id="mat-1"
         title="Linear Algebra Notes"
         author="Bob"
-        subject="Mathematics"
         type="PDF"
+        fileType={null}
         downloads={120}
         uploadedAt="today"
       />

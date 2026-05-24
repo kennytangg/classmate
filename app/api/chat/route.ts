@@ -112,7 +112,6 @@ export async function POST(req: NextRequest) {
         data: {
           userId: currentSession.id,
           title: titleText,
-          subject: 'General',
         },
       })
       activeSessionId = newSession.id

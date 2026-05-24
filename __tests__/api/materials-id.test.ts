@@ -18,7 +18,6 @@ const MOCK_MATERIAL = {
   id: 'material-1',
   title: 'Test Notes',
   description: 'Great notes',
-  subject: 'Math',
   fileUrl: 'https://example.com/file.pdf',
   userId: 'user-1',
   user: {
@@ -207,15 +206,15 @@ describe('PATCH /api/materials/[id]', () => {
     expect(data.error).not.toMatch(/postgres|secret|db\.internal/i)
   })
 
-  it('updates title, description, and subject when all provided', async () => {
-    const updatedMaterial = { ...MOCK_MATERIAL, title: 'T', description: 'D', subject: 'S' }
+  it('updates title and description when both provided', async () => {
+    const updatedMaterial = { ...MOCK_MATERIAL, title: 'T', description: 'D' }
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
     ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({ userId: 'user-1' })
     ;(prisma.studyMaterial.update as jest.Mock).mockResolvedValue(updatedMaterial)
 
     const req = new NextRequest('http://localhost/api/materials/material-1', {
       method: 'PATCH',
-      body: JSON.stringify({ title: 'T', description: 'D', subject: 'S' }),
+      body: JSON.stringify({ title: 'T', description: 'D' }),
       headers: { 'Content-Type': 'application/json' },
     })
     const res = await PATCH(req, { params: Promise.resolve({ id: 'material-1' }) })
@@ -223,7 +222,7 @@ describe('PATCH /api/materials/[id]', () => {
     expect(res.status).toBe(200)
     expect(prisma.studyMaterial.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ title: 'T', subject: 'S' }),
+        data: expect.objectContaining({ title: 'T', description: 'D' }),
       })
     )
   })

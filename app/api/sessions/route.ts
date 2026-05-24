@@ -39,14 +39,13 @@ export async function POST(req: NextRequest) {
 
   const rawBody = await req.json().catch(() => ({}))
   const bodyParsed = createSessionSchema.safeParse(rawBody)
-  const { title, subject } = bodyParsed.success ? bodyParsed.data : {}
+  const { title } = bodyParsed.success ? bodyParsed.data : {}
 
   try {
     const chatSession = await prisma.chatSession.create({
       data: {
         userId: session.id,
         title: title || 'New Session',
-        subject: subject || 'General',
       },
     })
     return NextResponse.json({ session: chatSession })

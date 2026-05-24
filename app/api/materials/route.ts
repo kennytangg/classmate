@@ -8,18 +8,7 @@ import { sanitizeText } from '@/lib/sanitize'
 import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
 import { getErrorResponse } from '@/lib/errors'
 
-const ALLOWED_FILE_TYPES = [
-  'pdf',
-  'doc',
-  'docx',
-  'ppt',
-  'pptx',
-  'xls',
-  'xlsx',
-  'txt',
-  'md',
-  'zip',
-] as const
+const ALLOWED_FILE_TYPES = ['pdf'] as const
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024
 
@@ -40,16 +29,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const subject = searchParams.get('subject')
     const userId = searchParams.get('userId')
     const sortBy = normalizeSortBy(searchParams.get('sortBy'))
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '10', 10) || 10))
 
-    const where: { subject?: string; userId?: string } = {}
-    if (subject) {
-      where.subject = sanitizeText(subject)
-    }
+    const where: { userId?: string } = {}
     if (userId) {
       where.userId = userId
     }
@@ -104,11 +89,9 @@ export async function POST(request: NextRequest) {
 
     const file = formData.get('file')
     const titleRaw = formData.get('title')
-    const descriptionRaw = formData.get('description')
-    const subjectRaw = formData.get('subject')
 
-    if (!(file instanceof File) || !titleRaw || !subjectRaw) {
-      return NextResponse.json({ error: 'file, title, and subject are required' }, { status: 400 })
+    if (!(file instanceof File) || !titleRaw) {
+      return NextResponse.json({ error: 'file and title are required' }, { status: 400 })
     }
 
     const fileExt = path.extname(file.name).toLowerCase().replace('.', '')
@@ -127,14 +110,13 @@ export async function POST(request: NextRequest) {
     }
 
     const sanitizedTitle = sanitizeText(String(titleRaw))
-    const sanitizedDescription = descriptionRaw ? sanitizeText(String(descriptionRaw)) : null
-    const sanitizedSubject = sanitizeText(String(subjectRaw))
 
-    if (!sanitizedTitle || !sanitizedSubject) {
-      return NextResponse.json(
-        { error: 'title and subject must contain valid text' },
-        { status: 400 }
-      )
+    if (!sanitizedTitle) {
+      return NextResponse.json({ error: 'title must contain valid text' }, { status: 400 })
+    }
+
+    if (sanitizedTitle.length > 60) {
+      return NextResponse.json({ error: 'Title must be 60 characters or fewer' }, { status: 400 })
     }
 
     const fileUrl = await uploadFile(file, session.id)
@@ -143,10 +125,9 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.id,
         title: sanitizedTitle,
-        description: sanitizedDescription,
         fileUrl,
-        subject: sanitizedSubject,
         fileType: fileExt,
+        fileSize: file.size,
       },
       include: {
         user: {
