@@ -56,7 +56,7 @@ export function UserManagementTable({ viewerRole }: UserManagementTableProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  const limit = 20
+  const limit = 10
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true)
@@ -232,11 +232,17 @@ export function UserManagementTable({ viewerRole }: UserManagementTableProps) {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-xs">
-            {total} user{total !== 1 ? 's' : ''} total
-          </p>
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground text-xs">
+          {total} user{total !== 1 ? 's' : ''} total
+          {totalPages > 1 && (
+            <span>
+              {' '}
+              · Page {page} of {totalPages}
+            </span>
+          )}
+        </p>
+        {totalPages > 1 && (
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -255,8 +261,8 @@ export function UserManagementTable({ viewerRole }: UserManagementTableProps) {
               Next
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

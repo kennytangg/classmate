@@ -66,7 +66,7 @@ export function RepliesList({ replies }: RepliesListProps) {
                     {formatDate(reply.createdAt)}
                   </span>
                   <div className="ml-auto">
-                    <RoleGate allowedRoles={['MODERATOR', 'ADMIN']}>
+                    <RoleGate allowedRoles={['MODERATOR', 'ADMIN', 'OWNER']}>
                       <ModeratorContentActions contentId={reply.id} contentType="reply" />
                     </RoleGate>
                   </div>

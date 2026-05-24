@@ -51,7 +51,7 @@ export function ForumPostDetail({ post }: ForumPostDetailProps) {
             {authorRole} · {formatDate(post.createdAt)}
           </p>
         </div>
-        <RoleGate allowedRoles={['MODERATOR', 'ADMIN']}>
+        <RoleGate allowedRoles={['MODERATOR', 'ADMIN', 'OWNER']}>
           <ModeratorContentActions contentId={post.id} contentType="post" />
         </RoleGate>
       </div>

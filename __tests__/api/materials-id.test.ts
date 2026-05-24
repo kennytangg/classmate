@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }))
 jest.mock('@/lib/prisma')
+jest.mock('@/lib/storage', () => ({ deleteFile: jest.fn() }))
 jest.mock('@/lib/sanitize', () => ({
   sanitizeText: jest.fn((v: string) => v?.trim() || ''),
   sanitizeMarkdown: jest.fn((v: string) => v?.trim() || ''),
@@ -299,7 +300,10 @@ describe('DELETE /api/materials/[id]', () => {
 
   it('returns 200 when owner deletes their material', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
-    ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({ userId: 'user-1' })
+    ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      fileUrl: '/uploads/user-1/file.pdf',
+    })
 
     const req = new NextRequest('http://localhost/api/materials/material-1', {
       method: 'DELETE',
@@ -313,7 +317,10 @@ describe('DELETE /api/materials/[id]', () => {
 
   it('calls studyMaterial.delete with the correct id', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'u1@test.com' })
-    ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({ userId: 'user-1' })
+    ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      fileUrl: '/uploads/user-1/file.pdf',
+    })
 
     const req = new NextRequest('http://localhost/api/materials/material-1', {
       method: 'DELETE',
@@ -325,7 +332,10 @@ describe('DELETE /api/materials/[id]', () => {
 
   it('returns 200 when admin deletes another user material', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' })
-    ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({ userId: 'user-1' })
+    ;(prisma.studyMaterial.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      fileUrl: '/uploads/user-1/file.pdf',
+    })
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ role: 'ADMIN' })
 
     const req = new NextRequest('http://localhost/api/materials/material-1', {

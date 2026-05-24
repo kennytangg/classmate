@@ -3,6 +3,9 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { FileText } from 'lucide-react'
 
+// Persists across remounts — survives filter/sort switches without re-fetching
+const thumbnailCache = new Map<string, string[]>()
+
 interface PdfThumbnailProps {
   materialId: string
   pageCount?: number
@@ -17,11 +20,15 @@ export function PdfThumbnail({
   onTotalPages,
 }: PdfThumbnailProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [pages, setPages] = useState<string[]>([])
-  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const cached = thumbnailCache.get(materialId)
+  const [pages, setPages] = useState<string[]>(cached ?? [])
+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>(
+    cached ? 'done' : 'idle'
+  )
 
-  // Only start loading once the thumbnail scrolls into view
+  // Skip the observer entirely if we already have a cached render
   useEffect(() => {
+    if (status === 'done') return
     const el = containerRef.current
     if (!el) return
 
@@ -36,7 +43,7 @@ export function PdfThumbnail({
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [status])
 
   useEffect(() => {
     if (status !== 'loading') return
@@ -82,6 +89,7 @@ export function PdfThumbnail({
         }
 
         if (!cancelled) {
+          thumbnailCache.set(materialId, dataUrls)
           setPages(dataUrls)
           setStatus('done')
         }

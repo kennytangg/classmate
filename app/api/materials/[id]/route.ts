@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import { canModerate, requireRole } from '@/lib/authorize'
+import { canModerate, requireAdmin } from '@/lib/authorize'
 import { sanitizeText } from '@/lib/sanitize'
 import { checkRateLimit, generalLimiter, writeLimiter, getClientIp } from '@/lib/rate-limit'
 import { updateMaterialSchema } from '@/lib/schemas'
@@ -120,8 +120,8 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     const isUploader = session.id === material.userId
-    const isOwnerRole = await requireRole(session, ['OWNER'])
-    if (!isUploader && !isOwnerRole) {
+    const isAdmin = await requireAdmin(session)
+    if (!isUploader && !isAdmin) {
       return NextResponse.json({ error: 'Not authorized to delete this material' }, { status: 403 })
     }
 

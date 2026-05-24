@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PaginationControls } from '@/components/ui/pagination-controls'
 import { MaterialCard } from 'components/features/materials/MaterialCard'
+import { EditMaterialModal } from 'components/features/materials/EditMaterialModal'
 import { MaterialPreviewModal } from 'components/features/materials/MaterialPreviewModal'
 import { UploadMaterialModal } from 'components/features/materials/UploadMaterialModal'
 import { Search, Upload, Loader2, AlertCircle, BookOpen } from 'lucide-react'
@@ -40,15 +41,19 @@ export default function MaterialsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [mineOnly, setMineOnly] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>('downloads')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [previewMaterial, setPreviewMaterial] = useState<MaterialApiItem | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [editingMaterial, setEditingMaterial] = useState<MaterialApiItem | null>(null)
 
   useEffect(() => {
     fetch('/api/user/me')
@@ -60,7 +65,21 @@ export default function MaterialsPage() {
       .catch(() => null)
   }, [])
 
-  async function loadMaterials(activeSortBy: SortOption, activePage: number) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  async function loadMaterials(
+    activeSortBy: SortOption,
+    activePage: number,
+    activeSearch: string,
+    activeMine: boolean,
+    userId: string | null
+  ) {
     setLoading(true)
     setError(null)
     try {
@@ -68,16 +87,19 @@ export default function MaterialsPage() {
       params.set('sortBy', activeSortBy)
       params.set('page', String(activePage))
       params.set('limit', '10')
+      if (activeSearch) params.set('search', activeSearch)
+      if (activeMine && userId) params.set('userId', userId)
 
       const response = await fetch(`/api/materials?${params.toString()}`)
       if (!response.ok) throw new Error('Failed to load materials')
 
       const data = (await response.json()) as {
         materials: MaterialApiItem[]
-        meta: { pages: number }
+        meta: { total: number; pages: number }
       }
       setMaterials(Array.isArray(data.materials) ? data.materials : [])
       setTotalPages(data.meta?.pages ?? 1)
+      setTotalCount(data.meta?.total ?? 0)
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : 'Failed to load materials')
       setMaterials([])
@@ -87,15 +109,8 @@ export default function MaterialsPage() {
   }
 
   useEffect(() => {
-    void loadMaterials(sortBy, page)
-  }, [sortBy, page, refreshKey])
-
-  const filteredMaterials = useMemo(() => {
-    const normalizedSearch = search.toLowerCase().trim()
-    return materials.filter(
-      (material) => !normalizedSearch || material.title.toLowerCase().includes(normalizedSearch)
-    )
-  }, [materials, search])
+    void loadMaterials(sortBy, page, debouncedSearch, mineOnly, currentUserId)
+  }, [sortBy, page, debouncedSearch, mineOnly, currentUserId, refreshKey])
 
   async function handleDownload(materialId: number | string) {
     const response = await fetch(`/api/materials/${materialId}/download`, { method: 'POST' })
@@ -125,6 +140,13 @@ export default function MaterialsPage() {
     )
   }
 
+  function handleEditSuccess(id: string, updates: { title: string; description: string | null }) {
+    setMaterials((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    )
+    setPreviewMaterial((prev) => (prev?.id === id ? { ...prev, ...updates } : prev))
+  }
+
   async function handleDelete(materialId: number | string) {
     const id = String(materialId)
     setMaterials((current) => current.filter((item) => item.id !== id))
@@ -133,7 +155,7 @@ export default function MaterialsPage() {
     const response = await fetch(`/api/materials/${id}`, { method: 'DELETE' })
     if (!response.ok) {
       toast.error('Failed to delete material.')
-      void loadMaterials(sortBy, page)
+      void loadMaterials(sortBy, page, debouncedSearch, mineOnly, currentUserId)
     } else {
       toast.success('Material deleted.')
     }
@@ -155,7 +177,7 @@ export default function MaterialsPage() {
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search materials..."
+              placeholder="Search by title or author..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-border bg-card text-foreground focus:ring-ring w-full rounded-lg border py-2 pr-4 pl-9 text-sm focus:ring-2 focus:outline-none"
@@ -171,11 +193,39 @@ export default function MaterialsPage() {
         </div>
       </div>
 
-      {/* Sort + results count */}
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-muted-foreground text-sm">
-          <span className="text-foreground font-medium">{filteredMaterials.length}</span> resources
-        </span>
+      {/* Filter tabs + sort */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setMineOnly(false)
+              setPage(1)
+            }}
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+              !mineOnly
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => {
+              setMineOnly(true)
+              setPage(1)
+            }}
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+              mineOnly
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            My Uploads
+          </button>
+          <span className="text-muted-foreground text-sm">
+            <span className="text-foreground font-medium">{totalCount}</span> resources
+          </span>
+        </div>
         <select
           className="border-border bg-card text-foreground focus:border-ring focus:ring-ring rounded-md text-sm"
           value={sortBy}
@@ -209,24 +259,26 @@ export default function MaterialsPage() {
       )}
 
       {/* Empty state */}
-      {!loading && !error && filteredMaterials.length === 0 && (
+      {!loading && !error && materials.length === 0 && (
         <div className="border-border flex flex-col items-center justify-center rounded-xl border py-16">
           <BookOpen className="text-muted-foreground h-10 w-10" />
           <p className="text-foreground mt-4 text-sm font-semibold">No materials found</p>
           <p className="text-muted-foreground mt-1 text-sm">
             {search
               ? 'Try different keywords or clear the search.'
-              : page > 1
-                ? 'No materials on this page.'
-                : 'Be the first to upload a resource.'}
+              : mineOnly
+                ? "You haven't uploaded any materials yet."
+                : page > 1
+                  ? 'No materials on this page.'
+                  : 'Be the first to upload a resource.'}
           </p>
         </div>
       )}
 
       {/* Materials grid */}
-      {!loading && !error && filteredMaterials.length > 0 && (
+      {!loading && !error && materials.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredMaterials.map((material) => (
+          {materials.map((material) => (
             <MaterialCard
               key={material.id}
               id={material.id}
@@ -242,6 +294,7 @@ export default function MaterialsPage() {
               }
               onDownload={handleDownload}
               onPreview={() => setPreviewMaterial(material)}
+              onEdit={() => setEditingMaterial(material)}
               onDelete={(id) => setPendingDeleteId(String(id))}
             />
           ))}
@@ -279,6 +332,15 @@ export default function MaterialsPage() {
         isOwner={!!currentUserId && previewMaterial?.user.id === currentUserId}
         onDownload={(id) => void handleDownload(id)}
         onDelete={(id) => setPendingDeleteId(id)}
+      />
+
+      <EditMaterialModal
+        open={!!editingMaterial}
+        onOpenChange={(open) => {
+          if (!open) setEditingMaterial(null)
+        }}
+        material={editingMaterial}
+        onSuccess={handleEditSuccess}
       />
 
       <UploadMaterialModal

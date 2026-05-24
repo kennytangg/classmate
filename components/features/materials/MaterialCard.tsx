@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Eye, FileText, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Download, Eye, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ interface MaterialCardProps {
   isOwner?: boolean
   onDownload?: (id: number | string) => void
   onPreview?: (id: number | string) => void
+  onEdit?: (id: number | string) => void
   onDelete?: (id: number | string) => void
 }
 
@@ -34,6 +35,7 @@ export function MaterialCard({
   isOwner,
   onDownload,
   onPreview,
+  onEdit,
   onDelete,
 }: MaterialCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -79,6 +81,16 @@ export function MaterialCard({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem
+                  className="gap-2"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit?.(id)
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive gap-2"
                   onClick={(e) => {

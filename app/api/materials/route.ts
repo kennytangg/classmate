@@ -30,14 +30,30 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const search = searchParams.get('search')?.trim() ?? ''
     const sortBy = normalizeSortBy(searchParams.get('sortBy'))
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '10', 10) || 10))
 
-    const where: { userId?: string } = {}
+    type WhereClause = Parameters<typeof prisma.studyMaterial.findMany>[0]['where']
+    const conditions: NonNullable<WhereClause>[] = []
+
     if (userId) {
-      where.userId = userId
+      conditions.push({ userId })
     }
+
+    if (search) {
+      conditions.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { user: { profile: { displayName: { contains: search, mode: 'insensitive' } } } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          { user: { name: { contains: search, mode: 'insensitive' } } },
+        ],
+      })
+    }
+
+    const where: WhereClause = conditions.length > 0 ? { AND: conditions } : {}
 
     const orderBy =
       sortBy === 'downloads' ? { downloads: 'desc' as const } : { createdAt: 'desc' as const }
