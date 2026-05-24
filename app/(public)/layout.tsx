@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 import { ModeToggle } from 'components/mode-toggle'
 import { PublicFooter } from 'components/public/PublicFooter'
 import { getSession } from '@/lib/auth'
@@ -23,9 +23,14 @@ export default async function PublicLayout({
         <div className="container mx-auto flex h-16 items-center justify-between px-6 md:px-12">
           <Link href="/" className="flex items-center gap-2">
             <div className="bg-primary flex items-center justify-center rounded-lg p-1.5">
-              <BookOpen className="text-primary-foreground h-5 w-5" />
+              <GraduationCap className="text-primary-foreground h-5 w-5" />
             </div>
-            <span className="text-foreground text-xl font-bold tracking-tight">ClassMate</span>
+            <span
+              className="text-foreground text-base font-bold tracking-tight"
+              style={{ fontFamily: 'var(--font-outfit)' }}
+            >
+              ClassMate
+            </span>
           </Link>
 
           <div className="flex items-center gap-2">

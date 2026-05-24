@@ -57,40 +57,42 @@ export function EventList({ events, loading, currentUserId, onEdit, onDelete }: 
     return (
       <div
         key={e.id}
-        className={`border-border bg-card flex items-center justify-between rounded-xl border p-3 transition-opacity ${isDeleting ? 'opacity-50' : ''}`}
+        className={`border-border bg-card flex items-start gap-3 rounded-xl border p-3 transition-opacity ${isDeleting ? 'opacity-50' : ''}`}
       >
-        <div className="flex min-w-0 items-center gap-3">
-          <div className={`h-6 w-1.5 shrink-0 rounded-full ${e.color}`} />
-          <div className="min-w-0">
-            <div className="text-foreground truncate text-sm font-medium">{e.title}</div>
-            <div className="text-muted-foreground text-xs">
-              {new Date(e.date).toLocaleDateString(undefined, {
+        <div className={`mt-0.5 h-full w-1 shrink-0 self-stretch rounded-full ${e.color}`} />
+
+        <div className="min-w-0 flex-1">
+          <div className="text-foreground truncate text-sm font-medium">{e.title}</div>
+          <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
+            <span>
+              {new Date(e.date + 'T12:00:00').toLocaleDateString(undefined, {
+                weekday: 'short',
                 month: 'short',
                 day: 'numeric',
               })}
-              {formatEventTime(e.startTime, e.endTime)
-                ? ` · ${formatEventTime(e.startTime, e.endTime)}`
-                : ''}
-            </div>
-            {e.studyGroupName && (
-              <div className="text-primary mt-0.5 flex items-center gap-1 text-xs">
-                <Users className="h-2.5 w-2.5" />
-                {e.studyGroupName}
-              </div>
-            )}
-            {e.creatorName && (
-              <div className="text-muted-foreground mt-0.5 text-xs">By {e.creatorName}</div>
+            </span>
+            {formatEventTime(e.startTime, e.endTime) && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {formatEventTime(e.startTime, e.endTime)}
+              </span>
             )}
           </div>
+          {e.studyGroupName && (
+            <div className="text-primary mt-1 flex items-center gap-1 text-xs">
+              <Users className="h-3 w-3" />
+              {e.studyGroupName}
+            </div>
+          )}
+          {e.creatorName && (
+            <div className="text-muted-foreground mt-0.5 text-xs">By {e.creatorName}</div>
+          )}
         </div>
 
-        <div className="ml-2 flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {managed ? (
             isDeleting ? (
-              <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Deleting…
-              </div>
+              <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" />
             ) : hasDeleteError ? (
               <div className="flex items-center gap-2">
                 <span className="text-destructive text-xs">Failed</span>
@@ -144,7 +146,7 @@ export function EventList({ events, loading, currentUserId, onEdit, onDelete }: 
             )
           ) : (
             <div
-              className="text-muted-foreground/40 flex items-center"
+              className="text-muted-foreground/40"
               title={
                 e.creatorName
                   ? `Only ${e.creatorName} can edit this event`
@@ -160,10 +162,11 @@ export function EventList({ events, loading, currentUserId, onEdit, onDelete }: 
   }
 
   return (
-    <div className="lg:border-border lg:bg-card lg:rounded-2xl lg:border lg:p-4">
-      <div className="bg-card mb-3 flex items-center justify-between lg:sticky lg:top-0">
+    <div className="border-border rounded-2xl border">
+      <div className="border-border flex items-center justify-between border-b px-4 py-3">
         <h2 className="text-foreground flex items-center gap-2 text-sm font-semibold">
-          <Clock className="h-4 w-4" /> Events
+          <CalendarDays className="h-4 w-4" />
+          Events
         </h2>
         {events.length > 0 && (
           <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
@@ -172,34 +175,42 @@ export function EventList({ events, loading, currentUserId, onEdit, onDelete }: 
         )}
       </div>
 
-      <div className="max-h-[calc(100vh-16rem)] space-y-4 overflow-y-auto lg:max-h-[calc(100vh-14rem)]">
+      <div className="p-4">
         {!loading && events.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
-            <CalendarDays className="text-muted-foreground/40 mb-3 h-10 w-10" />
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <CalendarDays className="text-muted-foreground/30 mb-3 h-8 w-8" />
             <p className="text-muted-foreground text-sm font-medium">No events yet</p>
-            <p className="text-muted-foreground/70 mt-1 text-xs">
+            <p className="text-muted-foreground/60 mt-0.5 text-xs">
               Click any day on the calendar to add one.
             </p>
           </div>
         )}
 
-        {upcoming.length > 0 && (
-          <div className="space-y-2">
-            {past.length > 0 && (
-              <div className="text-muted-foreground px-1 pb-1 text-xs font-medium tracking-wide uppercase">
-                Upcoming
+        {(upcoming.length > 0 || past.length > 0) && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {upcoming.length > 0 && (
+              <div className="space-y-2 sm:col-span-2 lg:col-span-3 xl:col-span-4">
+                {past.length > 0 && (
+                  <p className="text-muted-foreground px-1 text-xs font-medium tracking-wide uppercase">
+                    Upcoming
+                  </p>
+                )}
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {upcoming.map(renderEvent)}
+                </div>
               </div>
             )}
-            {upcoming.map(renderEvent)}
-          </div>
-        )}
 
-        {past.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-muted-foreground px-1 pb-1 text-xs font-medium tracking-wide uppercase">
-              Past
-            </div>
-            <div className="opacity-55">{past.map(renderEvent)}</div>
+            {past.length > 0 && (
+              <div className="space-y-2 sm:col-span-2 lg:col-span-3 xl:col-span-4">
+                <p className="text-muted-foreground px-1 text-xs font-medium tracking-wide uppercase">
+                  Past
+                </p>
+                <div className="grid grid-cols-1 gap-2 opacity-55 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {past.map(renderEvent)}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

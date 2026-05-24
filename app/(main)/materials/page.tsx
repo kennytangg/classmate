@@ -22,6 +22,7 @@ interface MaterialApiItem {
   createdAt: string
   user: {
     id: string
+    name: string | null
     email: string
     profile: {
       displayName: string | null
@@ -46,7 +47,6 @@ export default function MaterialsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('downloads')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [previewMaterial, setPreviewMaterial] = useState<MaterialApiItem | null>(null)
@@ -99,7 +99,6 @@ export default function MaterialsPage() {
       }
       setMaterials(Array.isArray(data.materials) ? data.materials : [])
       setTotalPages(data.meta?.pages ?? 1)
-      setTotalCount(data.meta?.total ?? 0)
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : 'Failed to load materials')
       setMaterials([])
@@ -140,7 +139,7 @@ export default function MaterialsPage() {
     )
   }
 
-  function handleEditSuccess(id: string, updates: { title: string; description: string | null }) {
+  function handleEditSuccess(id: string, updates: { title: string }) {
     setMaterials((current) =>
       current.map((item) => (item.id === id ? { ...item, ...updates } : item))
     )
@@ -194,17 +193,17 @@ export default function MaterialsPage() {
       </div>
 
       {/* Filter tabs + sort */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="border-border flex gap-1 border-b">
           <button
             onClick={() => {
               setMineOnly(false)
               setPage(1)
             }}
-            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            className={`-mb-px border-b-2 px-4 pb-3 text-sm font-medium transition-colors ${
               !mineOnly
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                ? 'border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground border-transparent'
             }`}
           >
             All
@@ -214,17 +213,14 @@ export default function MaterialsPage() {
               setMineOnly(true)
               setPage(1)
             }}
-            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            className={`-mb-px border-b-2 px-4 pb-3 text-sm font-medium transition-colors ${
               mineOnly
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                ? 'border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground border-transparent'
             }`}
           >
             My Uploads
           </button>
-          <span className="text-muted-foreground text-sm">
-            <span className="text-foreground font-medium">{totalCount}</span> resources
-          </span>
         </div>
         <select
           className="border-border bg-card text-foreground focus:border-ring focus:ring-ring rounded-md text-sm"
@@ -283,7 +279,12 @@ export default function MaterialsPage() {
               key={material.id}
               id={material.id}
               title={material.title}
-              author={material.user.profile?.displayName || material.user.email}
+              author={
+                material.user.profile?.displayName ??
+                material.user.name ??
+                material.user.email.split('@')[0] ??
+                'Anonymous'
+              }
               type={(material.fileType || 'unknown').toUpperCase()}
               fileType={material.fileType}
               downloads={material.downloads}
@@ -321,7 +322,11 @@ export default function MaterialsPage() {
                 title: previewMaterial.title,
                 fileType: previewMaterial.fileType,
                 fileSize: previewMaterial.fileSize,
-                author: previewMaterial.user.profile?.displayName || previewMaterial.user.email,
+                author:
+                  previewMaterial.user.profile?.displayName ??
+                  previewMaterial.user.name ??
+                  previewMaterial.user.email.split('@')[0] ??
+                  'Anonymous',
                 uploadedAt: formatDistanceToNow(new Date(previewMaterial.createdAt), {
                   addSuffix: true,
                 }),

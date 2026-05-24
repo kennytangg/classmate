@@ -160,7 +160,6 @@ export const summarizeSchema = z.object({
 // ── Materials ──────────────────────────────────────────────────────────────
 export const updateMaterialSchema = z.object({
   title: z.string().min(1).max(300).optional(),
-  description: z.string().max(2000).optional().nullable(),
 })
 
 // ── Admin ──────────────────────────────────────────────────────────────────

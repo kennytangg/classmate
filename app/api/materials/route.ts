@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
         user: {
           select: {
             id: true,
+            name: true,
             email: true,
             profile: {
               select: {
@@ -149,6 +150,7 @@ export async function POST(request: NextRequest) {
         user: {
           select: {
             id: true,
+            name: true,
             email: true,
             profile: { select: { displayName: true, avatarUrl: true } },
           },

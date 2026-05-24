@@ -144,7 +144,7 @@ const markdownComponents: React.ComponentProps<typeof ReactMarkdown>['components
     )
   },
   p({ children }: React.HTMLAttributes<HTMLParagraphElement>) {
-    return <p className="mb-3 text-sm leading-relaxed last:mb-0">{children}</p>
+    return <p className="mb-3 text-base leading-relaxed last:mb-0">{children}</p>
   },
   h1({ children }: React.HTMLAttributes<HTMLHeadingElement>) {
     return <h1 className="mt-8 mb-4 text-lg font-bold tracking-tight first:mt-0">{children}</h1>
@@ -166,11 +166,11 @@ const markdownComponents: React.ComponentProps<typeof ReactMarkdown>['components
     return <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">{children}</ol>
   },
   li({ children }: React.HTMLAttributes<HTMLLIElement>) {
-    return <li className="text-sm leading-relaxed">{children}</li>
+    return <li className="text-base leading-relaxed">{children}</li>
   },
   blockquote({ children }: React.HTMLAttributes<HTMLQuoteElement>) {
     return (
-      <blockquote className="border-primary/50 text-muted-foreground my-3 border-l-4 pl-4 text-sm italic">
+      <blockquote className="border-primary/50 text-muted-foreground my-3 border-l-4 pl-4 text-base italic">
         {children}
       </blockquote>
     )
@@ -178,7 +178,7 @@ const markdownComponents: React.ComponentProps<typeof ReactMarkdown>['components
   table({ children }: React.HTMLAttributes<HTMLTableElement>) {
     return (
       <div className="my-3 overflow-x-auto">
-        <table className="border-border w-full border-collapse border text-sm">{children}</table>
+        <table className="border-border w-full border-collapse border text-base">{children}</table>
       </div>
     )
   },
@@ -187,11 +187,13 @@ const markdownComponents: React.ComponentProps<typeof ReactMarkdown>['components
   },
   th({ children }: React.HTMLAttributes<HTMLTableCellElement>) {
     return (
-      <th className="border-border border px-3 py-2 text-left text-sm font-semibold">{children}</th>
+      <th className="border-border border px-3 py-2 text-left text-base font-semibold">
+        {children}
+      </th>
     )
   },
   td({ children }: React.HTMLAttributes<HTMLTableCellElement>) {
-    return <td className="border-border border px-3 py-2 align-top text-sm">{children}</td>
+    return <td className="border-border border px-3 py-2 align-top text-base">{children}</td>
   },
   hr() {
     return <hr className="border-border my-6 border-t-2 opacity-60" />
@@ -440,7 +442,7 @@ export function ChatInterface({
                     </div>
                   ) : (
                     <>
-                      <div className="prose prose-sm dark:prose-invert max-w-none overflow-hidden font-[family-name:var(--font-playfair)] leading-loose break-words [&_code]:font-mono [&_pre]:font-mono">
+                      <div className="prose dark:prose-invert max-w-none overflow-hidden font-[family-name:var(--font-lora)] leading-relaxed break-words [&_code]:font-mono [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans [&_pre]:font-mono">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm, remarkMath]}
                           rehypePlugins={[

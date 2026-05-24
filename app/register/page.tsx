@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BookOpen, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { GraduationCap, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ModeToggle } from '@/components/mode-toggle'
@@ -77,15 +77,20 @@ export default function RegisterPage() {
         <div className="flex flex-1 flex-col items-center justify-center px-8 pb-10 lg:px-16">
           <div className="w-full max-w-[420px]">
             {/* Logo */}
-            <div className="mb-10 flex items-center gap-3">
+            <div className="mb-6 flex items-center gap-2.5">
               <div className="bg-primary rounded-lg p-2">
-                <BookOpen className="text-primary-foreground h-6 w-6" />
+                <GraduationCap className="text-primary-foreground h-5 w-5" />
               </div>
-              <span className="text-foreground text-xl font-bold tracking-tight">ClassMate</span>
+              <span
+                className="text-foreground text-xl font-bold tracking-tight"
+                style={{ fontFamily: 'var(--font-outfit)' }}
+              >
+                ClassMate
+              </span>
             </div>
 
-            <h2 className="text-foreground mb-1 text-3xl font-bold">Create your account</h2>
-            <p className="text-muted-foreground mb-8 text-sm">Start your learning journey today</p>
+            <h2 className="text-foreground mb-1 text-lg font-bold">Create your account</h2>
+            <p className="text-muted-foreground mb-6 text-sm">Start your learning journey today</p>
 
             {error && (
               <div className="text-semantic-error bg-semantic-error/10 border-semantic-error/30 mb-4 rounded-xl border p-3 text-sm">
@@ -176,13 +181,13 @@ export default function RegisterPage() {
               <button
                 onClick={() => handleSubmit()}
                 disabled={loading}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all disabled:opacity-50"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all disabled:opacity-50"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                 Create Account
               </button>
 
-              <p className="text-muted-foreground text-[11px] leading-normal">
+              <p className="text-muted-foreground text-xs leading-normal">
                 By signing up, you agree to the{' '}
                 <a href="/terms" className="text-primary hover:underline">
                   Terms of Service

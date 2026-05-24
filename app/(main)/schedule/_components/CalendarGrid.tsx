@@ -32,16 +32,16 @@ export function CalendarGrid({
 
   return (
     <>
-      <div className="mb-2 grid grid-cols-7 gap-1.5">
+      <div className="mb-2 grid grid-cols-7 gap-2">
         {DAYS.map((d) => (
-          <div key={d} className="text-muted-foreground text-center text-xs">
-            {d[0]}
-            <span className="hidden sm:inline">{d.slice(1)}</span>
+          <div key={d} className="text-muted-foreground py-1 text-center text-xs font-medium">
+            <span className="sm:hidden">{d[0]}</span>
+            <span className="hidden sm:inline">{d}</span>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-2">
         {monthMatrix.map((cell) => {
           const dateISO = toISO(cell.year, cell.month, cell.day)
           const cellEvents = events.filter((e) => e.date === dateISO)
@@ -52,57 +52,51 @@ export function CalendarGrid({
             <button
               key={dateISO}
               onClick={() => onCellClick(dateISO)}
-              className={`group relative h-16 rounded-xl border p-1.5 text-left transition-colors sm:h-20 lg:h-24 ${
+              className={`group relative min-h-[72px] rounded-xl border p-2 text-left transition-colors sm:min-h-[90px] lg:min-h-[108px] ${
                 inCurrent
                   ? isToday
                     ? 'border-primary bg-card ring-primary hover:border-primary ring-2'
-                    : 'border-border bg-card hover:border-primary'
-                  : 'border-border bg-muted opacity-70'
+                    : 'border-border bg-card hover:border-primary/50'
+                  : 'border-border/50 bg-muted/40 opacity-60'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div
-                  className={`text-xs ${
-                    inCurrent
-                      ? isToday
-                        ? 'text-primary font-bold'
-                        : 'text-foreground font-medium'
-                      : 'text-muted-foreground font-medium'
-                  }`}
-                >
-                  {cell.day}
-                </div>
-                <div className="flex gap-0.5">
-                  {cellEvents.slice(0, 2).map((e) => (
-                    <span
-                      key={e.id}
-                      className={`inline-block h-1.5 w-1.5 rounded-full ${e.color}`}
-                    />
-                  ))}
-                </div>
-              </div>
+              <span
+                className={`text-xs font-semibold sm:text-sm ${
+                  isToday ? 'text-primary' : inCurrent ? 'text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                {cell.day}
+              </span>
+
               <div className="mt-1 hidden space-y-0.5 sm:block">
                 {cellEvents.slice(0, 2).map((e) => (
                   <div
                     key={e.id}
-                    className={`rounded px-1.5 py-0.5 text-[10px] ${e.color} truncate text-white`}
+                    className={`truncate rounded px-1.5 py-0.5 text-[10px] font-medium text-white ${e.color}`}
                   >
-                    {e.title}{' '}
+                    {e.title}
                     {formatEventTime(e.startTime, e.endTime)
-                      ? `• ${formatEventTime(e.startTime, e.endTime)}`
+                      ? ` · ${formatEventTime(e.startTime, e.endTime)}`
                       : ''}
                   </div>
                 ))}
                 {cellEvents.length > 2 && (
-                  <div className="text-muted-foreground text-[10px]">
+                  <div className="text-muted-foreground px-1 text-[10px]">
                     +{cellEvents.length - 2} more
                   </div>
                 )}
               </div>
 
+              {/* Mobile: dot indicators */}
+              <div className="mt-1 flex gap-0.5 sm:hidden">
+                {cellEvents.slice(0, 3).map((e) => (
+                  <span key={e.id} className={`h-1.5 w-1.5 rounded-full ${e.color}`} />
+                ))}
+              </div>
+
               {inCurrent && cellEvents.length === 0 && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="text-muted-foreground/50 text-lg leading-none">+</span>
+                  <span className="text-muted-foreground/40 text-xl leading-none">+</span>
                 </div>
               )}
             </button>

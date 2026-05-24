@@ -211,8 +211,8 @@ export default function MySchedulePage() {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row lg:items-start lg:gap-6">
-          <div className="min-w-0 flex-1">
+        <div className="flex flex-col gap-6">
+          <div>
             {loading ? (
               <div className="border-border bg-card text-muted-foreground flex items-center justify-center rounded-xl border p-8">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading schedule...
@@ -228,15 +228,13 @@ export default function MySchedulePage() {
             )}
           </div>
 
-          <aside className="mt-6 w-full shrink-0 lg:mt-0 lg:w-80 xl:w-96">
-            <EventList
-              events={events}
-              loading={loading}
-              currentUserId={currentUserId}
-              onEdit={openEdit}
-              onDelete={deleteEvent}
-            />
-          </aside>
+          <EventList
+            events={events}
+            loading={loading}
+            currentUserId={currentUserId}
+            onEdit={openEdit}
+            onDelete={deleteEvent}
+          />
         </div>
 
         <EventDialog

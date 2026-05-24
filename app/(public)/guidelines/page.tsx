@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import { BookOpen, Heart, GraduationCap, Shield, Check, X } from 'lucide-react'
+import { BookOpen, Heart, GraduationCap, Shield, Users, Check, X } from 'lucide-react'
 import { PageHeader } from 'components/public/PageHeader'
-import { ContentSection } from 'components/public/ContentSection'
 
 export const metadata: Metadata = {
   title: 'Community Guidelines — ClassMate',
@@ -67,6 +66,25 @@ const guidelines = [
       'Attempt to access accounts or data unauthorised',
     ],
   },
+  {
+    title: 'Quality Contributions',
+    icon: <Users className="h-4 w-4" />,
+    color: 'bg-primary/10 text-primary',
+    description:
+      'The value of ClassMate depends on the quality of what every member contributes. Aim to add substance and clarity in everything you post.',
+    dos: [
+      'Write clear, well-structured posts and replies',
+      'Stay on topic and relevant to the discussion',
+      'Search for existing threads before creating a duplicate',
+      'Tag your posts with appropriate categories',
+    ],
+    donts: [
+      'Post low-effort, repetitive, or off-topic content',
+      'Flood discussions with unsolicited self-promotion',
+      'Use the platform for commercial solicitation',
+      'Repost the same content across multiple threads',
+    ],
+  },
 ]
 
 export default function GuidelinesPage() {
@@ -75,71 +93,84 @@ export default function GuidelinesPage() {
       <PageHeader
         title="Community Guidelines"
         description="These guidelines exist to keep ClassMate a safe, inclusive, and productive place for every student."
-        badge="Last updated: April 2026"
+        badge="Last updated: May 2026"
         icon={<BookOpen className="h-5 w-5" />}
       />
 
-      <div className="container mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <div className="space-y-5">
-          <p className="text-muted-foreground text-sm leading-relaxed">
+      <div className="container mx-auto max-w-4xl px-4 py-10 sm:px-6">
+        <div className="space-y-4">
+          <p className="text-muted-foreground pb-2 text-sm leading-relaxed">
             By using ClassMate, you agree to uphold these community standards. Violations may result
-            in content removal, account suspension, or permanent removal from the platform.
+            in content removal.
           </p>
 
           {guidelines.map((section) => (
-            <ContentSection key={section.title} title={section.title}>
-              <div className="space-y-5">
-                <div className="flex items-start gap-3">
-                  <span
-                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${section.color}`}
-                  >
-                    {section.icon}
-                  </span>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {section.description}
+            <section key={section.title} className="border-border rounded-lg border p-5">
+              <div className="mb-3 flex items-center gap-2.5">
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${section.color}`}
+                >
+                  {section.icon}
+                </span>
+                <h2 className="text-foreground text-lg font-bold">{section.title}</h2>
+              </div>
+
+              <p className="text-muted-foreground mb-5 text-sm leading-relaxed">
+                {section.description}
+              </p>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-foreground mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
+                    <Check className="text-semantic-success h-3.5 w-3.5" />
+                    Do
                   </p>
+                  <ul className="space-y-1.5">
+                    {section.dos.map((item) => (
+                      <li
+                        key={item}
+                        className="text-muted-foreground flex items-start gap-2 text-sm"
+                      >
+                        <span className="bg-semantic-success mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <p className="text-foreground flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
-                      <Check className="text-semantic-success h-3.5 w-3.5" />
-                      Do
-                    </p>
-                    <ul className="space-y-1.5">
-                      {section.dos.map((item) => (
-                        <li
-                          key={item}
-                          className="text-muted-foreground flex items-start gap-2 text-sm"
-                        >
-                          <span className="bg-semantic-success mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-foreground flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
-                      <X className="text-semantic-error h-3.5 w-3.5" />
-                      Don&apos;t
-                    </p>
-                    <ul className="space-y-1.5">
-                      {section.donts.map((item) => (
-                        <li
-                          key={item}
-                          className="text-muted-foreground flex items-start gap-2 text-sm"
-                        >
-                          <span className="bg-semantic-error mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div>
+                  <p className="text-foreground mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
+                    <X className="text-semantic-error h-3.5 w-3.5" />
+                    Don&apos;t
+                  </p>
+                  <ul className="space-y-1.5">
+                    {section.donts.map((item) => (
+                      <li
+                        key={item}
+                        className="text-muted-foreground flex items-start gap-2 text-sm"
+                      >
+                        <span className="bg-semantic-error mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-            </ContentSection>
+            </section>
           ))}
+
+          <section className="border-border rounded-lg border p-5">
+            <h2 className="text-foreground mb-3 text-lg font-bold">Enforcement</h2>
+            <p className="text-muted-foreground mb-3 text-sm leading-relaxed">
+              Any member can flag a post or reply they believe violates these guidelines using the
+              flag icon on the content. A moderator will review the report and decide whether to
+              remove the content or dismiss the flag.
+            </p>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              If the content is confirmed as a violation, it will be removed from the platform and
+              the user who submitted the flag will be notified of the outcome.
+            </p>
+          </section>
         </div>
       </div>
     </>

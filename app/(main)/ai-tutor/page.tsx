@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, Suspense, useState } from 'react'
+import { useRef, useEffect, Suspense, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { X, PanelRight } from 'lucide-react'
 import { ChatInterface } from 'components/features/ai-tutor/ChatInterface'
@@ -36,7 +36,16 @@ function AITutorContent() {
   }, [initialQuery, isLoadingHistory, sendMessage, router])
 
   const [showMobileSessions, setShowMobileSessions] = useState(false)
-  const [sessionSidebarOpen, setSessionSidebarOpen] = useState(true)
+  const [sessionSidebarOpen, setSessionSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const stored = localStorage.getItem('classmate_session_sidebar_open')
+    return stored === null ? true : stored !== 'false'
+  })
+
+  const toggleSessionSidebar = useCallback((open: boolean) => {
+    localStorage.setItem('classmate_session_sidebar_open', String(open))
+    setSessionSidebarOpen(open)
+  }, [])
 
   const handleDeleteSession = (sessionId: string) => {
     if (sessionId === activeSessionId) {
@@ -62,7 +71,7 @@ function AITutorContent() {
       {!sessionSidebarOpen && (
         <div className="hidden h-full w-9 shrink-0 flex-col items-center pt-[10px] md:flex">
           <button
-            onClick={() => setSessionSidebarOpen(true)}
+            onClick={() => toggleSessionSidebar(true)}
             title="Open chat history"
             className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg p-1.5 transition-colors"
           >
@@ -83,7 +92,7 @@ function AITutorContent() {
           onNewChat={newChat}
           onDeleteSession={handleDeleteSession}
           streamingSessionId={streamingSessionId}
-          onClose={() => setSessionSidebarOpen(false)}
+          onClose={() => toggleSessionSidebar(false)}
         />
       </div>
 

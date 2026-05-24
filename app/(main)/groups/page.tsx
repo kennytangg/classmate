@@ -10,7 +10,6 @@ import {
   Users,
   Search,
   Plus,
-  ChevronDown,
   ArrowRight,
   FlaskConical,
   BookOpen,
@@ -24,12 +23,6 @@ import {
   Monitor,
   type LucideIcon,
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from 'components/ui/dropdown-menu'
 import {
   Dialog,
   DialogContent,
@@ -56,6 +49,9 @@ type ApiGroup = {
   ownerId: string
   _count: { members: number }
 }
+
+type FilterTab = 'discover' | 'joined'
+type SortOption = 'most-popular' | 'newest'
 
 function mapApiGroup(g: ApiGroup, currentUserId?: string): Group {
   return {
@@ -108,28 +104,30 @@ const createSubjects = [
   'Health & Medicine',
   'Other',
 ]
-const sortOptions = ['Most Popular', 'Newest', 'Soonest']
+
+const sortOptions: { value: SortOption; label: string }[] = [
+  { value: 'most-popular', label: 'Most Popular' },
+  { value: 'newest', label: 'Newest' },
+]
+
+const tabs: { key: FilterTab; label: string }[] = [
+  { key: 'discover', label: 'Discover' },
+  { key: 'joined', label: 'Joined' },
+]
 
 export default function StudyGroupsPage() {
-  const [discoverGroups, setDiscoverGroups] = useState<Group[]>([])
-  const [rawJoinedGroups, setRawJoinedGroups] = useState<ApiGroup[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
+  const [rawGroups, setRawGroups] = useState<ApiGroup[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
-  const [loadingDiscover, setLoadingDiscover] = useState(true)
-  const [loadingJoined, setLoadingJoined] = useState(true)
+  const [loading, setLoading] = useState(true)
 
-  const joinedGroups = useMemo(
-    () => rawJoinedGroups.map((g) => mapApiGroup(g, currentUserId)),
-    [rawJoinedGroups, currentUserId]
-  )
-
-  const [discoverPage, setDiscoverPage] = useState(1)
-  const [discoverTotalPages, setDiscoverTotalPages] = useState(1)
-  const [yourGroupsPage, setYourGroupsPage] = useState(1)
-  const [yourGroupsTotalPages, setYourGroupsTotalPages] = useState(1)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [activeSort, setActiveSort] = useState('Most Popular')
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('discover')
+  const [activeSort, setActiveSort] = useState<SortOption>('most-popular')
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
 
@@ -148,76 +146,44 @@ export default function StudyGroupsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query)
-      setDiscoverPage(1)
-      setYourGroupsPage(1)
+      setPage(1)
     }, 300)
     return () => clearTimeout(timer)
   }, [query])
 
   useEffect(() => {
-    async function fetchDiscover() {
-      setLoadingDiscover(true)
+    async function fetchGroups() {
+      setLoading(true)
       try {
         const params = new URLSearchParams()
-        params.set('page', String(discoverPage))
+        params.set('page', String(page))
         params.set('limit', '12')
-        params.set('excludeMyGroups', 'true')
+        if (activeFilter === 'discover') params.set('excludeMyGroups', 'true')
+        if (activeFilter === 'joined') params.set('myGroups', 'true')
         if (debouncedQuery) params.set('search', debouncedQuery)
         const res = await fetch(`/api/study-groups?${params.toString()}`)
         const data = await res.json()
-        const mapped: Group[] = (data.groups ?? []).map((g: ApiGroup) => mapApiGroup(g))
-        setDiscoverGroups(mapped)
-        setDiscoverTotalPages(data.meta?.pages ?? 1)
+        setRawGroups(data.groups ?? [])
+        setTotalPages(data.meta?.pages ?? 1)
       } catch (err) {
         console.error(err)
       } finally {
-        setLoadingDiscover(false)
+        setLoading(false)
       }
     }
-    void fetchDiscover()
-  }, [discoverPage, debouncedQuery])
+    void fetchGroups()
+  }, [page, debouncedQuery, activeFilter])
 
   useEffect(() => {
-    async function fetchYourGroups() {
-      setLoadingJoined(true)
-      try {
-        const params = new URLSearchParams()
-        params.set('myGroups', 'true')
-        params.set('page', String(yourGroupsPage))
-        params.set('limit', '12')
-        if (debouncedQuery) params.set('search', debouncedQuery)
-        const res = await fetch(`/api/study-groups?${params.toString()}`)
-        const data = await res.json()
-        setRawJoinedGroups(data.groups ?? [])
-        setYourGroupsTotalPages(data.meta?.pages ?? 1)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoadingJoined(false)
-      }
-    }
-    void fetchYourGroups()
-  }, [yourGroupsPage, debouncedQuery])
+    setGroups(rawGroups.map((g) => mapApiGroup(g, currentUserId)))
+  }, [rawGroups, currentUserId])
 
-  const joined = useMemo(() => {
-    let list = [...joinedGroups]
-    if (activeSort === 'Most Popular') {
-      list = list.sort((a, b) => b.capacity - a.capacity)
-    } else if (activeSort === 'Newest') {
-      list = list.reverse()
-    }
+  const sortedGroups = useMemo(() => {
+    const list = [...groups]
+    if (activeSort === 'most-popular') return list.sort((a, b) => b.capacity - a.capacity)
+    if (activeSort === 'newest') return list.reverse()
     return list
-  }, [joinedGroups, activeSort])
-
-  const discover = useMemo(() => {
-    let list = [...discoverGroups]
-    if (activeSort === 'Most Popular') {
-      list = list.sort((a, b) => b.capacity - a.capacity)
-    } else if (activeSort === 'Newest') {
-      list = list.reverse()
-    }
-    return list
-  }, [discoverGroups, activeSort])
+  }, [groups, activeSort])
 
   async function handleCreate() {
     const trimmedName = formName.trim()
@@ -250,9 +216,9 @@ export default function StudyGroupsPage() {
         return
       }
       if (data.group) {
-        const rawGroup: ApiGroup = { ...data.group, _count: { members: 1 } }
-        setRawJoinedGroups((prev) => [rawGroup, ...prev])
         toast.success(`"${data.group.name}" created successfully!`)
+        setActiveFilter('joined')
+        setPage(1)
       }
       setCreateOpen(false)
       setFormName('')
@@ -268,120 +234,104 @@ export default function StudyGroupsPage() {
 
   return (
     <div className="bg-background text-foreground px-4 py-4 sm:px-6 md:px-12 lg:px-16">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+      {/* Header */}
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
         <div>
           <h1 className="text-foreground text-lg font-bold">Study Groups</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             Find and join study groups to collaborate with peers.
           </p>
         </div>
-        <Button
-          className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto"
-          onClick={() => setCreateOpen(true)}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Create Group
-        </Button>
-      </div>
-
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="border-border bg-card text-foreground flex items-center gap-2 rounded-full border px-3 py-2 text-xs">
-                {activeSort}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              {sortOptions.map((opt) => (
-                <DropdownMenuItem key={opt} onClick={() => setActiveSort(opt)}>
-                  {opt}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <div className="relative flex-1 sm:flex-none">
+        <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by name or subject..."
-              className="border-border bg-card text-foreground placeholder:text-muted-foreground focus:ring-ring/40 w-full rounded-lg border py-2 pr-4 pl-10 text-sm focus:ring-2 focus:outline-none sm:w-64"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              className="border-border bg-card text-foreground focus:ring-ring w-full rounded-lg border py-2 pr-4 pl-9 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
+          <Button
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto"
+            onClick={() => setCreateOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create Group
+          </Button>
         </div>
       </div>
 
-      {/* Your Groups */}
-      <div className="mb-3 flex items-center gap-2">
-        <h2 className="text-foreground text-sm font-semibold">Your Groups</h2>
-        {!loadingJoined && joinedGroups.length > 0 && (
-          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-semibold">
-            {joinedGroups.length}
-          </span>
-        )}
+      {/* Filter tabs + sort */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="border-border flex gap-1 border-b">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => {
+                setActiveFilter(tab.key)
+                setPage(1)
+              }}
+              className={`-mb-px border-b-2 px-4 pb-3 text-sm font-medium transition-colors ${
+                activeFilter === tab.key
+                  ? 'border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground border-transparent'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <select
+          className="border-border bg-card text-foreground focus:border-ring focus:ring-ring rounded-md text-sm"
+          value={activeSort}
+          onChange={(e) => {
+            setActiveSort(e.target.value as SortOption)
+            setPage(1)
+          }}
+        >
+          {sortOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {loadingJoined ? (
-        <div className="mb-8 flex justify-center py-8">
+      {/* Groups grid */}
+      {loading ? (
+        <div className="flex justify-center py-12">
           <Loader2 className="text-primary h-5 w-5 animate-spin" />
         </div>
-      ) : (
-        <div className="mb-6">
-          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {joined.length === 0 ? (
-              <div className="border-border bg-card rounded-xl border border-dashed p-6 text-center">
-                <div className="mb-1 font-bold">No groups yet</div>
-                <div className="text-muted-foreground mb-3 text-xs">
-                  Join a group below to get started.
-                </div>
-              </div>
-            ) : (
-              joined.map((g) => <GroupCard key={g.id} g={g} joined />)
-            )}
+      ) : sortedGroups.length === 0 ? (
+        <div className="border-border bg-card rounded-xl border border-dashed p-10 text-center">
+          <div className="text-foreground mb-1 text-sm font-semibold">
+            {activeFilter === 'joined' ? 'No groups joined yet' : 'No groups found'}
           </div>
-          {yourGroupsTotalPages > 1 && (
-            <PaginationControls
-              currentPage={yourGroupsPage}
-              totalPages={yourGroupsTotalPages}
-              onPrevious={() => setYourGroupsPage((p) => p - 1)}
-              onNext={() => setYourGroupsPage((p) => p + 1)}
-              isLoading={loadingJoined}
-            />
-          )}
+          <div className="text-muted-foreground text-xs">
+            {activeFilter === 'joined'
+              ? 'Switch to Discover to find groups to join.'
+              : query
+                ? 'Try different keywords or clear the search.'
+                : 'No groups available right now.'}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {sortedGroups.map((g) => (
+            <GroupCard key={g.id} g={g} joined={activeFilter === 'joined'} />
+          ))}
         </div>
       )}
 
-      {/* Discover Groups */}
-      <div className="mb-3">
-        <h2 className="text-foreground text-sm font-semibold">Discover Groups</h2>
-        <p className="text-muted-foreground mt-0.5 text-xs">Groups you haven&apos;t joined yet</p>
-      </div>
-
-      {loadingDiscover ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="text-primary h-5 w-5 animate-spin" />
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {discover.length === 0 ? (
-              <div className="border-border bg-card rounded-xl border border-dashed p-6 text-center">
-                <div className="text-muted-foreground text-xs">No groups to discover.</div>
-              </div>
-            ) : (
-              discover.map((g) => <GroupCard key={g.id} g={g} joined={false} />)
-            )}
-          </div>
-          <PaginationControls
-            currentPage={discoverPage}
-            totalPages={discoverTotalPages}
-            onPrevious={() => setDiscoverPage((p) => p - 1)}
-            onNext={() => setDiscoverPage((p) => p + 1)}
-            isLoading={loadingDiscover}
-          />
-        </>
+      {!loading && (
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          onPrevious={() => setPage((p) => p - 1)}
+          onNext={() => setPage((p) => p + 1)}
+          isLoading={loading}
+        />
       )}
 
       <Dialog
@@ -486,11 +436,11 @@ function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
       <div className="flex flex-1 flex-col p-4">
         <div className="flex-1">
           <div className="mb-1">
-            <span className="text-muted-foreground text-[10px] font-bold tracking-wider">
-              {g.subject.toUpperCase()}
+            <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+              {g.subject}
             </span>
           </div>
-          <h3 className="text-foreground mb-1 leading-tight font-semibold">{g.name}</h3>
+          <h3 className="text-foreground mb-1 text-sm leading-tight font-semibold">{g.name}</h3>
           <p className="text-muted-foreground mb-3 line-clamp-2 text-xs">{g.desc}</p>
         </div>
 

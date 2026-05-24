@@ -302,7 +302,7 @@ export default function DiscoverPage() {
 
                   {/* Avatar + identity */}
                   <div className="flex items-start gap-3">
-                    <Link href={`/profile/${user.id}`} className="shrink-0">
+                    <div className="shrink-0">
                       {avatarSrc ? (
                         <Image
                           src={avatarSrc}
@@ -321,15 +321,12 @@ export default function DiscoverPage() {
                           </span>
                         </div>
                       )}
-                    </Link>
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Link
-                          href={`/profile/${user.id}`}
-                          className="text-foreground hover:text-primary truncate text-sm font-semibold"
-                        >
+                        <span className="text-foreground truncate text-sm font-semibold">
                           {displayName}
-                        </Link>
+                        </span>
                         {user.role !== 'STUDENT' && (
                           <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2 py-0.5 text-xs capitalize">
                             {user.role.toLowerCase()}

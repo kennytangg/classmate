@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Menu, User, LogOut, Sun, Moon, Loader2, BookOpen, Shield, UserCog } from 'lucide-react'
+import {
+  Menu,
+  User,
+  LogOut,
+  Sun,
+  Moon,
+  Loader2,
+  GraduationCap,
+  Shield,
+  UserCog,
+} from 'lucide-react'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
@@ -117,10 +127,11 @@ export function TopNavbar({ onMobileMenuOpen, transparent }: TopNavbarProps) {
         {/* Mobile centered logo — absolute so it doesn't push other elements */}
         <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 md:hidden">
           <div className="bg-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-            <BookOpen className="h-3.5 w-3.5 text-white" />
+            <GraduationCap className="h-3.5 w-3.5 text-white" />
           </div>
           <span
-            className={`text-sm font-bold tracking-tight ${transparent ? 'text-white' : 'text-foreground'}`}
+            className={`text-base font-bold tracking-tight ${transparent ? 'text-white' : 'text-foreground'}`}
+            style={{ fontFamily: 'var(--font-outfit)' }}
           >
             ClassMate
           </span>
@@ -129,10 +140,11 @@ export function TopNavbar({ onMobileMenuOpen, transparent }: TopNavbarProps) {
         {/* Logo — desktop only */}
         <div className="hidden items-center gap-3 md:flex">
           <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-            <BookOpen className="h-4 w-4 text-white" />
+            <GraduationCap className="h-4 w-4 text-white" />
           </div>
           <span
-            className={`text-sm font-bold tracking-tight ${transparent ? 'text-white' : 'text-foreground'}`}
+            className={`text-base font-bold tracking-tight ${transparent ? 'text-white' : 'text-foreground'}`}
+            style={{ fontFamily: 'var(--font-outfit)' }}
           >
             ClassMate
           </span>

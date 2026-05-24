@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { User, Menu, BookOpen, LogOut, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
+import { User, Menu, GraduationCap, LogOut, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
 import { authClient } from '@/lib/auth-client'
@@ -78,9 +78,14 @@ export function Header({ onLogout }: HeaderProps) {
         <div className="flex items-center gap-8 md:gap-16">
           <Link href="/" className="flex items-center gap-2">
             <div className="bg-primary flex items-center justify-center rounded-lg p-1.5">
-              <BookOpen className="h-5 w-5 text-white" />
+              <GraduationCap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-foreground text-lg font-bold tracking-tight">ClassMate</span>
+            <span
+              className="text-foreground text-base font-bold tracking-tight"
+              style={{ fontFamily: 'var(--font-outfit)' }}
+            >
+              ClassMate
+            </span>
           </Link>
         </div>
 
@@ -172,9 +177,14 @@ export function Header({ onLogout }: HeaderProps) {
                 {/* Brand header */}
                 <div className="border-border flex items-center gap-3 border-b px-5 py-4 pr-12">
                   <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                    <BookOpen className="h-4 w-4 text-white" />
+                    <GraduationCap className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-foreground text-sm font-bold">ClassMate</span>
+                  <span
+                    className="text-foreground text-sm font-bold"
+                    style={{ fontFamily: 'var(--font-outfit)' }}
+                  >
+                    ClassMate
+                  </span>
                 </div>
 
                 {/* Nav links */}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BookOpen, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { GraduationCap, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -116,17 +116,22 @@ export default function LoginPage() {
         <div className="absolute top-4 right-4">
           <ModeToggle />
         </div>
-        <div className="w-full max-w-[480px]">
+        <div className="w-full max-w-[420px]">
           {/* Logo */}
-          <div className="mb-10 flex items-center gap-3">
+          <div className="mb-6 flex items-center gap-2.5">
             <div className="bg-primary rounded-lg p-2">
-              <BookOpen className="text-primary-foreground h-6 w-6" />
+              <GraduationCap className="text-primary-foreground h-5 w-5" />
             </div>
-            <span className="text-foreground text-xl font-bold tracking-tight">ClassMate</span>
+            <span
+              className="text-foreground text-xl font-bold tracking-tight"
+              style={{ fontFamily: 'var(--font-outfit)' }}
+            >
+              ClassMate
+            </span>
           </div>
 
-          <h2 className="text-foreground mb-1 text-3xl font-bold">Welcome back</h2>
-          <p className="text-muted-foreground mb-8 text-sm">Sign in to your account to continue</p>
+          <h2 className="text-foreground mb-1 text-lg font-bold">Welcome back</h2>
+          <p className="text-muted-foreground mb-6 text-sm">Sign in to your account to continue</p>
 
           {error && (
             <div className="text-semantic-error bg-semantic-error/10 border-semantic-error/30 mb-4 rounded-xl border p-3 text-sm">
@@ -138,7 +143,7 @@ export default function LoginPage() {
             {/* Google */}
             <Button
               variant="outline"
-              className="bg-card text-foreground hover:bg-muted border-border flex h-12 w-full items-center justify-center gap-3 rounded-full rounded-lg text-base font-medium"
+              className="bg-card text-foreground hover:bg-muted border-border flex h-9 w-full items-center justify-center gap-2.5 rounded-lg text-sm font-medium"
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >

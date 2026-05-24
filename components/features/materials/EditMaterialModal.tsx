@@ -17,8 +17,8 @@ const TITLE_LIMIT = 60
 interface EditMaterialModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  material: { id: string; title: string; description?: string | null } | null
-  onSuccess: (id: string, updates: { title: string; description: string | null }) => void
+  material: { id: string; title: string } | null
+  onSuccess: (id: string, updates: { title: string }) => void
 }
 
 export function EditMaterialModal({
@@ -28,14 +28,12 @@ export function EditMaterialModal({
   onSuccess,
 }: EditMaterialModalProps) {
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (open && material) {
       setTitle(material.title)
-      setDescription(material.description ?? '')
       setError(null)
     }
   }, [open, material])
@@ -59,19 +57,13 @@ export function EditMaterialModal({
       const res = await fetch(`/api/materials/${material.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: trimmedTitle,
-          description: description.trim() || '',
-        }),
+        body: JSON.stringify({ title: trimmedTitle }),
       })
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string }
         throw new Error(data.error ?? 'Failed to save changes.')
       }
-      onSuccess(material.id, {
-        title: trimmedTitle,
-        description: description.trim() || null,
-      })
+      onSuccess(material.id, { title: trimmedTitle })
       toast.success('Material updated.')
       onOpenChange(false)
     } catch (err) {
@@ -87,7 +79,7 @@ export function EditMaterialModal({
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Edit material</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
-            Update the title or description for this material.
+            Update the title for this material.
           </DialogDescription>
         </DialogHeader>
 
@@ -110,21 +102,6 @@ export function EditMaterialModal({
             <p className="text-muted-foreground text-right text-xs">
               {title.trim().length}/{TITLE_LIMIT}
             </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="edit-description" className="text-sm font-medium">
-              Description <span className="text-muted-foreground font-normal">(optional)</span>
-            </label>
-            <textarea
-              id="edit-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Short description of the material…"
-              className="border-border bg-background text-foreground focus:ring-ring w-full resize-none rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-              disabled={loading}
-            />
           </div>
 
           {error && <p className="text-destructive text-sm">{error}</p>}

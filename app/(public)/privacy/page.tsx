@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import { Shield, Eye, Database, Lock } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { PageHeader } from 'components/public/PageHeader'
-import { ContentSection } from 'components/public/ContentSection'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — ClassMate',
@@ -13,62 +12,151 @@ export default function PrivacyPage() {
     <>
       <PageHeader
         title="Privacy Policy"
-        description="We take your privacy seriously. Here's how we collect, use, and protect your personal information."
-        badge="Last updated: April 2026"
+        description="We are committed to protecting your privacy. This policy explains what data we collect, why we collect it, and how you can control it."
+        badge="Last updated: May 2026"
         icon={<Shield className="h-5 w-5" />}
       />
 
-      <div className="container mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <div className="space-y-5">
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            At ClassMate, we take your privacy seriously. This policy describes how we collect, use,
-            and protect your personal information.
+      <div className="container mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <div className="divide-border divide-y">
+          <p className="text-muted-foreground pb-8 text-sm leading-relaxed">
+            This Privacy Policy applies to ClassMate and describes how we handle personal
+            information collected through our platform. By creating an account or using ClassMate,
+            you agree to the practices described here.
           </p>
 
-          <ContentSection title="Information We Collect">
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <span className="bg-accent text-primary mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-                  <Eye className="h-3.5 w-3.5" />
-                </span>
-                <div>
-                  <p className="text-foreground text-sm font-medium">Account information</p>
-                  <p className="text-muted-foreground mt-0.5 text-sm">
-                    Name, email address, and profile details you provide when registering.
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-accent text-primary mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-                  <Database className="h-3.5 w-3.5" />
-                </span>
-                <div>
-                  <p className="text-foreground text-sm font-medium">Usage data</p>
-                  <p className="text-muted-foreground mt-0.5 text-sm">
-                    Learning progress, forum activity, and how you interact with the platform.
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-accent text-primary mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-                  <Lock className="h-3.5 w-3.5" />
-                </span>
-                <div>
-                  <p className="text-foreground text-sm font-medium">Communication data</p>
-                  <p className="text-muted-foreground mt-0.5 text-sm">
-                    Messages and content shared with peers within the platform.
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </ContentSection>
+          <section className="py-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">Information We Collect</h2>
+            <div className="space-y-5">
+              <div>
+                <p className="text-foreground mb-1 text-sm font-semibold">Account information</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Your name, email address, and password when you register with email, or your
+                  Google account details when you sign in with Google. We store only what is needed
+                  to identify you and secure your account.
+                </p>
+              </div>
+              <div>
+                <p className="text-foreground mb-1 text-sm font-semibold">Content you create</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Forum posts, replies, study group messages, uploaded study materials, and any
+                  other content you submit to the platform. This content is stored so it can be
+                  displayed to other users and, where applicable, processed by our AI moderation and
+                  recommendation systems.
+                </p>
+              </div>
+              <div>
+                <p className="text-foreground mb-1 text-sm font-semibold">Usage data</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Pages visited, features used, forum threads viewed, and interactions with the AI
+                  Tutor. We use this data to improve recommendations and platform performance. We do
+                  not use third-party analytics trackers.
+                </p>
+              </div>
+              <div>
+                <p className="text-foreground mb-1 text-sm font-semibold">Session data</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Authentication tokens stored in secure HTTP-only cookies to keep you signed in.
+                  These expire automatically and are never accessible to JavaScript on the page.
+                </p>
+              </div>
+            </div>
+          </section>
 
-          <ContentSection title="How We Use Your Data">
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              We use your data to provide platform services, improve our features, and facilitate
-              connections between students. Your data is never sold to third parties.
+          <section className="py-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">How We Use Your Data</h2>
+            <p className="text-muted-foreground mb-3 text-sm leading-relaxed">
+              We use the data we collect solely to operate and improve ClassMate. Specifically:
             </p>
-          </ContentSection>
+            <ul className="space-y-2">
+              {[
+                'Authenticate you and protect your account.',
+                'Display your content to other students on the platform.',
+                'Run AI moderation to screen posts for policy violations before publishing.',
+                'Generate personalised thread recommendations using an on-premise AI model.',
+                'Power the AI Tutor for academic assistance in private sessions.',
+                'Send in-app notifications related to your account activity.',
+                'Investigate reports of policy violations and enforce our community guidelines.',
+              ].map((item) => (
+                <li key={item} className="text-muted-foreground flex items-start gap-2.5 text-sm">
+                  <span className="bg-muted-foreground/50 mt-2 h-1 w-1 shrink-0 rounded-full" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+              We do not sell your data to third parties, use it for advertising, or share it with
+              external marketing services.
+            </p>
+          </section>
+
+          <section className="py-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">AI Features and Your Data</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              ClassMate uses an on-premise AI model (Llama 3.1, hosted by BINUS University) for
+              content moderation, thread recommendations, and the AI Tutor. Your content is sent to
+              this model for processing but is not used to train external commercial AI systems. The
+              model runs within the university infrastructure and is not a third-party cloud
+              service.
+            </p>
+          </section>
+
+          <section className="py-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">Data Sharing</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              We do not sell or rent your personal information. We may share data only in the
+              following limited circumstances: to comply with a legal obligation or court order; to
+              protect the safety of our users or the public; or with service providers who assist us
+              in operating the platform under strict confidentiality agreements. Any third-party
+              services we use (such as Firebase for authentication) process data only as instructed
+              by us and are bound by their own privacy policies.
+            </p>
+          </section>
+
+          <section className="py-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">Data Retention</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              We retain your account and content data for as long as your account is active. If you
+              delete your account, we will remove your personal information within 30 days, except
+              where we are required to retain it for legal or safety reasons. Anonymised or
+              aggregated usage statistics may be retained indefinitely.
+            </p>
+          </section>
+
+          <section className="py-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">Your Rights</h2>
+            <p className="text-muted-foreground mb-3 text-sm leading-relaxed">
+              You have the right to:
+            </p>
+            <ul className="space-y-2">
+              {[
+                'Access the personal data we hold about you.',
+                'Request correction of inaccurate information.',
+                'Request deletion of your account and associated data.',
+                'Export a copy of the content you have created on the platform.',
+                'Withdraw consent where processing is based on consent.',
+              ].map((item) => (
+                <li key={item} className="text-muted-foreground flex items-start gap-2.5 text-sm">
+                  <span className="bg-muted-foreground/50 mt-2 h-1 w-1 shrink-0 rounded-full" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+              To exercise any of these rights, contact your platform administrator or use the
+              account settings within the app.
+            </p>
+          </section>
+
+          <section className="pt-8">
+            <h2 className="text-foreground mb-4 text-lg font-bold">Changes to This Policy</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              We may update this policy from time to time. When we make material changes, we will
+              update the &ldquo;Last updated&rdquo; date at the top of this page and notify active
+              users via a platform notification. Continued use of ClassMate after changes take
+              effect constitutes acceptance of the revised policy.
+            </p>
+          </section>
         </div>
       </div>
     </>

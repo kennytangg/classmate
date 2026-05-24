@@ -9,21 +9,19 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, badge, icon }: PageHeaderProps) {
   return (
-    <div className="border-border bg-muted/30 border-b py-12 sm:py-16">
-      <div className="container mx-auto max-w-4xl px-4 sm:px-6">
+    <div className="border-border border-b px-4 py-10 sm:px-6">
+      <div className="container mx-auto max-w-3xl">
         {icon && (
-          <div className="bg-accent text-primary mb-4 flex h-11 w-11 items-center justify-center rounded-xl">
+          <div className="bg-accent text-primary mb-4 flex h-9 w-9 items-center justify-center rounded-lg">
             {icon}
           </div>
         )}
-        {badge && (
-          <div className="border-border bg-background text-muted-foreground mb-3 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium">
-            {badge}
-          </div>
-        )}
-        <h1 className="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+        {badge && <p className="text-muted-foreground mb-2 text-xs">{badge}</p>}
+        <h1 className="text-foreground text-lg font-bold">{title}</h1>
         {description && (
-          <p className="text-muted-foreground mt-3 max-w-2xl text-base sm:text-lg">{description}</p>
+          <p className="text-muted-foreground mt-2 max-w-2xl text-sm leading-relaxed">
+            {description}
+          </p>
         )}
       </div>
     </div>
