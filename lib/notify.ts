@@ -9,18 +9,6 @@ interface CreateNotificationInput {
 }
 
 export async function createNotification(input: CreateNotificationInput): Promise<void> {
-  if (input.sourceType === 'chat') {
-    const existing = await prisma.notification.findFirst({
-      where: {
-        userId: input.userId,
-        sourceType: 'chat',
-        sourceId: input.sourceId,
-        isRead: false,
-      },
-    })
-    if (existing) return
-  }
-
   await prisma.notification.create({
     data: {
       userId: input.userId,

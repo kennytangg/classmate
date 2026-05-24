@@ -13,6 +13,10 @@ const ALLOWED_EXTENSIONS = new Set([
   '.txt',
   '.md',
   '.zip',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
 ])
 
 /**
@@ -33,6 +37,11 @@ const MAGIC_BYTES: Record<string, number[][]> = {
   '.doc': [[0xd0, 0xcf, 0x11, 0xe0]],
   '.xls': [[0xd0, 0xcf, 0x11, 0xe0]],
   '.ppt': [[0xd0, 0xcf, 0x11, 0xe0]],
+  // Images
+  '.jpg': [[0xff, 0xd8, 0xff]],
+  '.jpeg': [[0xff, 0xd8, 0xff]],
+  '.png': [[0x89, 0x50, 0x4e, 0x47]],
+  '.webp': [[0x52, 0x49, 0x46, 0x46]],
 }
 
 function matchesMagicBytes(buffer: Buffer, signatures: number[][]): boolean {

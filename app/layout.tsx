@@ -40,7 +40,7 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
-          <Toaster theme="dark" position="bottom-right" />
+          <Toaster position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>

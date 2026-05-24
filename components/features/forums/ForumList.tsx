@@ -11,7 +11,7 @@ import { formatDate } from '@/lib/format'
 
 const PAGE_LIMIT = 10
 
-type FilterTab = 'all' | 'active' | 'unanswered'
+type FilterTab = 'all' | 'unanswered'
 
 interface ForumPost {
   id: string
@@ -65,7 +65,6 @@ export function ForumList() {
         const params = new URLSearchParams()
         params.set('page', String(page))
         params.set('limit', String(PAGE_LIMIT))
-        if (activeTab === 'active') params.set('hasReplies', 'true')
         if (activeTab === 'unanswered') params.set('hasReplies', 'false')
         if (searchQuery) params.set('search', searchQuery)
 
@@ -130,7 +129,6 @@ export function ForumList() {
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: 'all', label: 'All' },
-    { key: 'active', label: 'Active' },
     { key: 'unanswered', label: 'Unanswered' },
   ]
 
@@ -141,12 +139,6 @@ export function ForumList() {
       return {
         title: 'Every question has been answered',
         sub: 'Check back later or ask something new.',
-        cta: true,
-      }
-    if (activeTab === 'active')
-      return {
-        title: 'No active discussions yet',
-        sub: 'Be the first to ask a question.',
         cta: true,
       }
     return { title: 'No discussions yet', sub: 'Be the first to ask a question.', cta: true }

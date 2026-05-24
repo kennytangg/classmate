@@ -26,6 +26,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { getNavigationBySection, type NavigationItem, type SidebarSection } from '@/lib/navigation'
 import { useUserRole } from '@/lib/contexts/user-role-context'
+import { useNotificationContext } from '@/lib/contexts/notification-context'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
@@ -144,6 +145,7 @@ function SidebarContent({
 }) {
   const router = useRouter()
   const { role } = useUserRole()
+  const { unreadCount } = useNotificationContext()
   const sections = getNavigationBySection(role)
   const [pendingCount, setPendingCount] = useState(0)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -201,8 +203,16 @@ function SidebarContent({
             isActive={isActive}
             collapsed={collapsed}
             onNavigate={onNavigate}
-            badgeHref={section === 'Connect' ? '/discover' : undefined}
-            badgeCount={section === 'Connect' ? pendingCount : undefined}
+            badgeHref={
+              section === 'Connect'
+                ? '/discover'
+                : section === 'Account'
+                  ? '/notifications'
+                  : undefined
+            }
+            badgeCount={
+              section === 'Connect' ? pendingCount : section === 'Account' ? unreadCount : undefined
+            }
           />
         ))}
       </nav>

@@ -3,7 +3,6 @@
 import { Eye, MessageCircle } from 'lucide-react'
 import { formatDate } from '@/lib/format'
 import { UpvoteButton } from './UpvoteButton'
-import { RoleGate } from '@/components/ui/role-gate'
 import { ModeratorContentActions } from './ModeratorContentActions'
 import { UserFlagButton } from './UserFlagButton'
 
@@ -31,9 +30,10 @@ interface ForumPostDetailProps {
       replies: number
     }
   }
+  canDelete?: boolean
 }
 
-export function ForumPostDetail({ post }: ForumPostDetailProps) {
+export function ForumPostDetail({ post, canDelete }: ForumPostDetailProps) {
   const authorName =
     post.user.profile?.displayName ?? post.user.name ?? post.user.email.split('@')[0] ?? 'Anonymous'
   const authorRole = post.user.role === 'MODERATOR' ? 'Moderator' : 'Student'
@@ -51,9 +51,7 @@ export function ForumPostDetail({ post }: ForumPostDetailProps) {
             {authorRole} · {formatDate(post.createdAt)}
           </p>
         </div>
-        <RoleGate allowedRoles={['MODERATOR', 'ADMIN', 'OWNER']}>
-          <ModeratorContentActions contentId={post.id} contentType="post" />
-        </RoleGate>
+        {canDelete && <ModeratorContentActions contentId={post.id} contentType="post" />}
       </div>
 
       {/* Title */}

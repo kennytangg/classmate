@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,15 +9,41 @@ import { useNotifications } from '@/hooks/useNotifications'
 import type { Notification } from '@/hooks/useNotifications'
 
 const PAGE_SIZE = 20
+const NOTIF_POPUPS_KEY = 'classmate_notif_popups'
 
 export default function NotificationsPage() {
   const router = useRouter()
-  const { notifications, unreadCount, markRead, markAllRead, refresh } = useNotifications()
+  const {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    deleteNotification,
+    deleteAllRead,
+    refresh,
+  } = useNotifications()
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [popupsEnabled, setPopupsEnabled] = useState(true)
+
+  useEffect(() => {
+    setPopupsEnabled(localStorage.getItem(NOTIF_POPUPS_KEY) !== 'false')
+  }, [])
+
+  useEffect(() => {
+    if (unreadCount > 0) void markAllRead()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function togglePopups() {
+    const next = !popupsEnabled
+    setPopupsEnabled(next)
+    localStorage.setItem(NOTIF_POPUPS_KEY, String(next))
+  }
 
   function sourceUrl(n: Notification): string {
     if (n.sourceType === 'chat' && n.sourceId) return `/chat/${n.sourceId}`
     if (n.sourceType === 'forum_reply' && n.sourceId) return `/forums/${n.sourceId}`
+    if (n.sourceType === 'connection_request' && n.sourceId) return `/profile/${n.sourceId}`
     return '/notifications'
   }
 
@@ -28,6 +54,7 @@ export default function NotificationsPage() {
 
   const visible = notifications.slice(0, visibleCount)
   const hasMore = visibleCount < notifications.length
+  const hasReadNotifications = notifications.some((n) => n.isRead)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 md:px-8">
@@ -38,11 +65,37 @@ export default function NotificationsPage() {
             <p className="text-muted-foreground mt-0.5 text-sm">{unreadCount} unread</p>
           )}
         </div>
-        {unreadCount > 0 && (
-          <Button variant="outline" size="sm" onClick={markAllRead}>
-            Mark all as read
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Pop-ups toggle */}
+          <button
+            onClick={togglePopups}
+            className="flex items-center gap-2 text-sm"
+            aria-label={
+              popupsEnabled ? 'Disable pop-up notifications' : 'Enable pop-up notifications'
+            }
+          >
+            <span className="text-muted-foreground">Pop-ups</span>
+            <span
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${popupsEnabled ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${popupsEnabled ? 'translate-x-4' : 'translate-x-0'}`}
+              />
+            </span>
+          </button>
+
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={markAllRead}>
+              Mark all read
+            </Button>
+          )}
+
+          {hasReadNotifications && (
+            <Button variant="outline" size="sm" onClick={deleteAllRead}>
+              Delete read
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="border-border border-t">
@@ -53,7 +106,14 @@ export default function NotificationsPage() {
             <p className="text-muted-foreground/60 text-sm">New notifications will appear here</p>
           </div>
         ) : (
-          visible.map((n) => <NotificationRow key={n.id} notification={n} onClick={handleClick} />)
+          visible.map((n) => (
+            <NotificationRow
+              key={n.id}
+              notification={n}
+              onClick={handleClick}
+              onDelete={deleteNotification}
+            />
+          ))
         )}
       </div>
 

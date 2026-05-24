@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { checkRateLimit, generalLimiter, writeLimiter } from '@/lib/rate-limit'
 import { createConnectionSchema } from '@/lib/schemas'
 import { zodErrorToString } from '@/lib/errors'
+import { createNotification } from '@/lib/notify'
 
 // POST /api/connections — send a connection request
 export async function POST(req: NextRequest) {
@@ -68,6 +69,21 @@ export async function POST(req: NextRequest) {
         status: 'PENDING',
       },
     })
+
+    ;(async () => {
+      try {
+        const senderName = session.name ?? session.email?.split('@')[0] ?? 'Someone'
+        await createNotification({
+          userId: recipientId,
+          type: 'connection_request',
+          message: `${senderName} sent you a connection request`,
+          sourceType: 'connection_request',
+          sourceId: session.id,
+        })
+      } catch (err) {
+        console.error('[notify] connection_request notification failed:', err)
+      }
+    })()
 
     return NextResponse.json({ connection }, { status: 201 })
   } catch (error: unknown) {

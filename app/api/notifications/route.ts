@@ -10,6 +10,11 @@ const patchSchema = z.object({
   markAllRead: z.boolean().optional(),
 })
 
+const deleteSchema = z.object({
+  id: z.string().optional(),
+  deleteAllRead: z.boolean().optional(),
+})
+
 // GET /api/notifications — fetch latest 20 notifications for the current user
 export async function GET(_req: NextRequest) {
   try {
@@ -81,6 +86,42 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Provide id or markAllRead' }, { status: 400 })
   } catch (error) {
     console.error('[PATCH /api/notifications]', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// DELETE /api/notifications — delete one read notification or all read notifications
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const parsed = deleteSchema.safeParse(await req.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+
+    const { id, deleteAllRead } = parsed.data
+
+    if (deleteAllRead) {
+      await prisma.notification.deleteMany({
+        where: { userId: session.id, isRead: true },
+      })
+      return NextResponse.json({ ok: true })
+    }
+
+    if (id) {
+      await prisma.notification.deleteMany({
+        where: { id, userId: session.id, isRead: true },
+      })
+      return NextResponse.json({ ok: true })
+    }
+
+    return NextResponse.json({ error: 'Provide id or deleteAllRead' }, { status: 400 })
+  } catch (error) {
+    console.error('[DELETE /api/notifications]', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

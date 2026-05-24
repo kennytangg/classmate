@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Camera } from 'lucide-react'
 
 type ProfileData = {
   id: string
@@ -53,6 +53,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [editName, setEditName] = useState('')
   const [editBio, setEditBio] = useState('')
   const [editUniversity, setEditUniversity] = useState('')
@@ -86,6 +88,41 @@ export default function ProfilePage() {
     }
     void load()
   }, [])
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Only JPG, PNG, and WebP images are allowed')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5 MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch('/api/user/avatar', { method: 'POST', body: form })
+      const data = (await res.json()) as { avatarUrl?: string; error?: string }
+      if (!res.ok) {
+        toast.error(data.error ?? 'Upload failed')
+        return
+      }
+      if (data.avatarUrl) {
+        setProfile((prev) => (prev ? { ...prev, avatarUrl: data.avatarUrl! } : prev))
+        toast.success('Profile picture updated')
+      }
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   async function handleSave() {
     const userId = me?.id
@@ -150,7 +187,7 @@ export default function ProfilePage() {
       <div className="border-border mb-8 border-b pb-6">
         <h1 className="text-foreground text-lg font-bold">Profile</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          This information will appear on your public profile.
+          Manage your personal information and how others see you.
         </p>
       </div>
 
@@ -220,24 +257,46 @@ export default function ProfilePage() {
           <p className="text-foreground self-start text-sm font-medium lg:self-auto">
             Profile picture
           </p>
-          {avatarSrc ? (
-            <Image
-              src={avatarSrc}
-              alt={displayName}
-              width={128}
-              height={128}
-              className="h-32 w-32 rounded-full object-cover"
-              unoptimized
-            />
-          ) : (
-            <div
-              className={`flex h-32 w-32 items-center justify-center rounded-full ${avatarColor}`}
+          <div className="relative">
+            {avatarSrc ? (
+              <Image
+                src={avatarSrc}
+                alt={displayName}
+                width={128}
+                height={128}
+                className="h-32 w-32 rounded-full object-cover"
+                unoptimized
+              />
+            ) : (
+              <div
+                className={`flex h-32 w-32 items-center justify-center rounded-full ${avatarColor}`}
+              >
+                <span className="text-4xl font-bold text-white">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="bg-background border-border hover:bg-muted absolute right-0 bottom-0 flex h-8 w-8 items-center justify-center rounded-full border shadow-sm transition-colors disabled:opacity-50"
+              aria-label="Change profile picture"
             >
-              <span className="text-4xl font-bold text-white">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+              {uploading ? (
+                <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Camera className="text-muted-foreground h-3.5 w-3.5" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+          </div>
           <div className="text-center">
             <p className="text-foreground text-sm font-semibold">{displayName}</p>
             {role && role !== 'STUDENT' && (

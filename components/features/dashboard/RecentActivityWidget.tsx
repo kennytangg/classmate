@@ -26,39 +26,47 @@ export function RecentActivityWidget() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const materialsPromise = fetch('/api/materials?limit=3')
+    fetch('/api/user/me')
       .then((r) => r.json())
-      .then((data): ActivityItem[] =>
-        (data.materials ?? []).map((m: { id: string; title: string; createdAt: string }) => ({
-          id: m.id,
-          kind: 'material' as const,
-          title: m.title,
-          href: '/materials',
-          createdAt: m.createdAt,
-        }))
-      )
-      .catch((): ActivityItem[] => [])
+      .then((me: { id: string }) => {
+        const userId = me.id
 
-    const postsPromise = fetch('/api/forums/posts?limit=3')
-      .then((r) => r.json())
-      .then((data): ActivityItem[] =>
-        (data.posts ?? []).map((p: { id: string; title: string; createdAt: string }) => ({
-          id: p.id,
-          kind: 'post' as const,
-          title: p.title,
-          href: `/forums/${p.id}`,
-          createdAt: p.createdAt,
-        }))
-      )
-      .catch((): ActivityItem[] => [])
+        const materialsPromise = fetch(`/api/materials?limit=3&userId=${userId}`)
+          .then((r) => r.json())
+          .then((data): ActivityItem[] =>
+            (data.materials ?? []).map((m: { id: string; title: string; createdAt: string }) => ({
+              id: m.id,
+              kind: 'material' as const,
+              title: m.title,
+              href: '/materials',
+              createdAt: m.createdAt,
+            }))
+          )
+          .catch((): ActivityItem[] => [])
 
-    Promise.all([materialsPromise, postsPromise]).then(([materials, posts]) => {
-      const merged = [...materials, ...posts]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 4)
-      setItems(merged)
-      setLoading(false)
-    })
+        const postsPromise = fetch(`/api/forums/posts?limit=3&userId=${userId}`)
+          .then((r) => r.json())
+          .then((data): ActivityItem[] =>
+            (data.posts ?? []).map((p: { id: string; title: string; createdAt: string }) => ({
+              id: p.id,
+              kind: 'post' as const,
+              title: p.title,
+              href: `/forums/${p.id}`,
+              createdAt: p.createdAt,
+            }))
+          )
+          .catch((): ActivityItem[] => [])
+
+        return Promise.all([materialsPromise, postsPromise])
+      })
+      .then(([materials, posts]) => {
+        const merged = [...materials, ...posts]
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 5)
+        setItems(merged)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
   return (
@@ -80,16 +88,16 @@ export function RecentActivityWidget() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className="text-muted-foreground py-1 text-sm">No recent activity yet.</p>
+        <p className="text-muted-foreground py-1 text-sm">
+          You haven&apos;t posted or uploaded anything yet.
+        </p>
       ) : (
         <ul className="space-y-3.5">
           {items.map((item) => (
             <li key={`${item.kind}-${item.id}`} className="flex items-start gap-2.5">
-              <div
-                className={`mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full ${
-                  item.kind === 'post' ? 'bg-primary/60' : 'bg-amber-400/60'
-                }`}
-              />
+              <span className="text-muted-foreground bg-muted mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs">
+                {item.kind === 'post' ? 'Post' : 'Material'}
+              </span>
               <div className="min-w-0">
                 <a
                   href={item.href}

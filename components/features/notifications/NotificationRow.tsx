@@ -1,12 +1,13 @@
 'use client'
 
-import { MessageCircle, MessageSquare } from 'lucide-react'
+import { MessageCircle, MessageSquare, UserPlus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@/hooks/useNotifications'
 
 interface NotificationRowProps {
   notification: Notification
   onClick: (notification: Notification) => void
+  onDelete?: (notification: Notification) => void
 }
 
 function formatRelativeTime(dateStr: string): string {
@@ -23,31 +24,46 @@ function formatRelativeTime(dateStr: string): string {
 const TYPE_ICON: Record<string, React.ReactNode> = {
   chat: <MessageCircle className="h-4 w-4 shrink-0 text-blue-500" />,
   forum_reply: <MessageSquare className="h-4 w-4 shrink-0 text-emerald-500" />,
+  connection_request: <UserPlus className="h-4 w-4 shrink-0 text-violet-500" />,
 }
 
-export function NotificationRow({ notification, onClick }: NotificationRowProps) {
+export function NotificationRow({ notification, onClick, onDelete }: NotificationRowProps) {
   const icon = TYPE_ICON[notification.type] ?? (
     <MessageCircle className="text-muted-foreground h-4 w-4 shrink-0" />
   )
 
   return (
-    <button
-      onClick={() => onClick(notification)}
+    <div
       className={cn(
-        'border-border hover:bg-accent/50 flex w-full items-start gap-3 border-b px-4 py-4 text-left transition-colors',
+        'border-border group flex w-full items-start gap-3 border-b px-4 py-4',
         !notification.isRead && 'bg-blue-500/[0.04]'
       )}
     >
-      <span className="mt-0.5 shrink-0">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="text-foreground block text-sm leading-snug">{notification.message}</span>
-        <span className="text-muted-foreground mt-1 block text-xs">
-          {formatRelativeTime(notification.createdAt)}
+      <button
+        onClick={() => onClick(notification)}
+        className="hover:bg-accent/50 flex min-w-0 flex-1 items-start gap-3 text-left transition-colors"
+      >
+        <span className="mt-0.5 shrink-0">{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className="text-foreground block text-sm leading-snug">{notification.message}</span>
+          <span className="text-muted-foreground mt-1 block text-xs">
+            {formatRelativeTime(notification.createdAt)}
+          </span>
         </span>
-      </span>
-      {!notification.isRead && (
-        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-      )}
-    </button>
+      </button>
+
+      <div className="mt-1.5 flex shrink-0 items-center gap-2">
+        {!notification.isRead && <span className="h-2 w-2 rounded-full bg-blue-500" />}
+        {notification.isRead && onDelete && (
+          <button
+            onClick={() => onDelete(notification)}
+            className="text-muted-foreground/40 hover:text-semantic-error opacity-0 transition-all group-hover:opacity-100"
+            aria-label="Delete notification"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
   )
 }

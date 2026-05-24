@@ -6,6 +6,7 @@ import { Footer } from 'components/layout/Footer'
 import { Sidebar } from 'components/layout/Sidebar'
 import { TopNavbar } from 'components/layout/TopNavbar'
 import { UserRoleProvider } from '@/lib/contexts/user-role-context'
+import { NotificationProvider } from '@/lib/contexts/notification-context'
 
 const SIDEBAR_COLLAPSED_KEY = 'classmate_sidebar_collapsed'
 
@@ -64,39 +65,41 @@ export default function MainLayout({
 
   return (
     <UserRoleProvider>
-      <div className="bg-background flex h-screen overflow-hidden">
-        <Sidebar
-          collapsed={collapsed}
-          onToggleCollapse={() => setCollapsed((c) => !c)}
-          mobileOpen={mobileOpen}
-          onMobileClose={() => setMobileOpen(false)}
-        />
+      <NotificationProvider>
+        <div className="bg-background flex h-screen overflow-hidden">
+          <Sidebar
+            collapsed={collapsed}
+            onToggleCollapse={() => setCollapsed((c) => !c)}
+            mobileOpen={mobileOpen}
+            onMobileClose={() => setMobileOpen(false)}
+          />
 
-        {/* Content area — offset by sidebar width on desktop */}
-        <div
-          className={`relative flex h-screen min-w-0 flex-1 flex-col transition-all duration-[300ms] ${collapsed ? 'md:ml-14' : 'md:ml-64'}`}
-        >
-          {isDashboard ? (
-            /* Floating navbar — transparent over hero top half, solid once sentinel exits viewport */
-            <div className="absolute inset-x-0 top-0 z-40">
-              <TopNavbar
-                transparent={navTransparent}
-                onMobileMenuOpen={() => setMobileOpen(true)}
-              />
-            </div>
-          ) : (
-            <TopNavbar onMobileMenuOpen={() => setMobileOpen(true)} />
-          )}
-          <main
-            className={`flex flex-1 flex-col ${hideFooter ? 'overflow-hidden' : 'overflow-x-hidden overflow-y-auto'}`}
+          {/* Content area — offset by sidebar width on desktop */}
+          <div
+            className={`relative flex h-screen min-w-0 flex-1 flex-col transition-all duration-[300ms] ${collapsed ? 'md:ml-14' : 'md:ml-64'}`}
           >
-            <div className={hideFooter ? 'flex flex-1 flex-col overflow-hidden' : 'flex-1'}>
-              {children}
-            </div>
-            {!hideFooter && <Footer />}
-          </main>
+            {isDashboard ? (
+              /* Floating navbar — transparent over hero top half, solid once sentinel exits viewport */
+              <div className="absolute inset-x-0 top-0 z-40">
+                <TopNavbar
+                  transparent={navTransparent}
+                  onMobileMenuOpen={() => setMobileOpen(true)}
+                />
+              </div>
+            ) : (
+              <TopNavbar onMobileMenuOpen={() => setMobileOpen(true)} />
+            )}
+            <main
+              className={`flex flex-1 flex-col ${hideFooter ? 'overflow-hidden' : 'overflow-x-hidden overflow-y-auto'}`}
+            >
+              <div className={hideFooter ? 'flex flex-1 flex-col overflow-hidden' : 'flex-1'}>
+                {children}
+              </div>
+              {!hideFooter && <Footer />}
+            </main>
+          </div>
         </div>
-      </div>
+      </NotificationProvider>
     </UserRoleProvider>
   )
 }

@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Shield,
   UserCog,
+  Bell,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
@@ -21,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { authClient } from '@/lib/auth-client'
 import { useUserRole } from '@/lib/contexts/user-role-context'
+import { useNotificationContext } from '@/lib/contexts/notification-context'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,6 +80,7 @@ export function TopNavbar({ onMobileMenuOpen, transparent }: TopNavbarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const { role, userName, userEmail, userImage } = useUserRole()
+  const { unreadCount } = useNotificationContext()
 
   useEffect(() => {
     setMounted(true)
@@ -161,6 +164,20 @@ export function TopNavbar({ onMobileMenuOpen, transparent }: TopNavbarProps) {
               {roleBadge.label}
             </span>
           )}
+
+          {/* Notifications bell */}
+          <Link
+            href="/notifications"
+            className={`relative rounded-full p-2 transition-colors ${transparent ? 'text-white hover:bg-white/15' : 'text-foreground hover:bg-muted'}`}
+            aria-label="Notifications"
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="bg-primary text-primary-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[10px] leading-none font-bold">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

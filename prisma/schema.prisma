@@ -235,7 +235,6 @@ model ChatSession {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title       String  @default("Chat Session")
-  subject     String  @default("General")
   description String?
   messages    ChatMessage[]
 
@@ -253,18 +252,16 @@ model StudyMaterial {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  title       String
-  description String?
-  fileUrl     String
-  subject     String
+  title    String
+  fileUrl  String
   fileType    String?
+  fileSize    Int?
   downloads   Int   @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([subject])
   @@index([createdAt])
 }
 

@@ -59,6 +59,8 @@ export default function ForumPostPage() {
   const [replies, setReplies] = useState<Reply[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
 
   const fetchReplies = useCallback(async () => {
     try {
@@ -78,7 +80,11 @@ export default function ForumPostPage() {
       setError(null)
 
       try {
-        const postResponse = await fetch(`/api/forums/posts/${postId}`)
+        const [postResponse, meResponse] = await Promise.all([
+          fetch(`/api/forums/posts/${postId}`),
+          fetch('/api/user/me'),
+        ])
+
         if (!postResponse.ok) {
           if (postResponse.status === 404) {
             throw new Error('Post not found')
@@ -87,6 +93,12 @@ export default function ForumPostPage() {
         }
         const postData = await postResponse.json()
         setPost(postData)
+
+        if (meResponse.ok) {
+          const me = (await meResponse.json()) as { id: string; role: string }
+          setCurrentUserId(me.id)
+          setCurrentUserRole(me.role)
+        }
 
         await fetchReplies()
       } catch (err) {
@@ -160,7 +172,13 @@ export default function ForumPostPage() {
       </div>
 
       {/* Post */}
-      <ForumPostDetail post={post} />
+      <ForumPostDetail
+        post={post}
+        canDelete={
+          currentUserId === post.user.id ||
+          ['MODERATOR', 'ADMIN', 'OWNER'].includes(currentUserRole ?? '')
+        }
+      />
 
       {/* AI Summary */}
       {(post._count.replies > 0 || post.content.length > 200) && (
