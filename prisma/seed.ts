@@ -787,7 +787,6 @@ async function main() {
         subject: 'Computer Science',
         maxMembers: 10,
         memberCount: 4,
-        inviteCode: 'REACT26',
       },
     }),
     prisma.studyGroup.create({
@@ -799,7 +798,6 @@ async function main() {
         subject: 'Mathematics',
         maxMembers: 8,
         memberCount: 3,
-        inviteCode: 'ALGO26',
       },
     }),
     prisma.studyGroup.create({
@@ -811,7 +809,6 @@ async function main() {
         subject: 'Sciences',
         maxMembers: 12,
         memberCount: 5,
-        inviteCode: 'DB26',
       },
     }),
     prisma.studyGroup.create({
@@ -823,7 +820,6 @@ async function main() {
         subject: 'Computer Science',
         maxMembers: 15,
         memberCount: 4,
-        inviteCode: 'PY26',
       },
     }),
     prisma.studyGroup.create({
@@ -835,7 +831,6 @@ async function main() {
         subject: 'Computer Science',
         maxMembers: 8,
         memberCount: 3,
-        inviteCode: 'ML26',
       },
     }),
     prisma.studyGroup.create({
@@ -847,7 +842,6 @@ async function main() {
         subject: 'Computer Science',
         maxMembers: 10,
         memberCount: 3,
-        inviteCode: 'SEC26',
       },
     }),
     prisma.studyGroup.create({
@@ -859,7 +853,6 @@ async function main() {
         subject: 'Computer Science',
         maxMembers: 8,
         memberCount: 3,
-        inviteCode: 'TS26',
       },
     }),
     prisma.studyGroup.create({
@@ -871,7 +864,6 @@ async function main() {
         subject: 'Mathematics',
         maxMembers: 10,
         memberCount: 4,
-        inviteCode: 'MATH26',
       },
     }),
     prisma.studyGroup.create({
@@ -883,7 +875,6 @@ async function main() {
         subject: 'Engineering',
         maxMembers: 12,
         memberCount: 5,
-        inviteCode: 'FULL26',
       },
     }),
     prisma.studyGroup.create({
@@ -895,7 +886,6 @@ async function main() {
         subject: 'Engineering',
         maxMembers: 20,
         memberCount: 3,
-        inviteCode: 'OSS26',
       },
     }),
   ])

@@ -78,7 +78,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ grou
         sender: {
           select: {
             id: true,
-            email: true,
             name: true,
             profile: {
               select: { displayName: true, avatarUrl: true },
@@ -107,7 +106,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ grou
         createdAt: m.createdAt,
         sender: {
           id: m.sender.id,
-          displayName: m.sender.profile?.displayName ?? m.sender.name ?? m.sender.email,
+          displayName: m.sender.profile?.displayName ?? m.sender.name ?? 'User',
           avatarUrl: m.sender.profile?.avatarUrl ?? null,
         },
       })),
@@ -175,7 +174,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
         sender: {
           select: {
             id: true,
-            email: true,
             name: true,
             profile: {
               select: { displayName: true, avatarUrl: true },
@@ -184,6 +182,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
         },
       },
     })
+
+    const senderDisplayName = message.sender.profile?.displayName ?? message.sender.name ?? 'User'
+    const notifMessage = `${senderDisplayName} sent a message in ${group.name}`
+
+    // Notify all other group members (fire-and-forget — never block the response)
+    void notifyGroupMembers(groupId, session.id, notifMessage)
 
     return NextResponse.json(
       {
@@ -198,8 +202,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
           createdAt: message.createdAt,
           sender: {
             id: message.sender.id,
-            displayName:
-              message.sender.profile?.displayName ?? message.sender.name ?? message.sender.email,
+            displayName: senderDisplayName,
             avatarUrl: message.sender.profile?.avatarUrl ?? null,
           },
         },
@@ -209,5 +212,59 @@ export async function POST(request: Request, { params }: { params: Promise<{ gro
   } catch (error) {
     console.error('[POST /api/study-groups/[groupId]/messages]', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+async function notifyGroupMembers(
+  groupId: string,
+  senderId: string,
+  notifMessage: string
+): Promise<void> {
+  try {
+    const members = await prisma.studyGroupMember.findMany({
+      where: { groupId, NOT: { userId: senderId } },
+      select: { userId: true },
+    })
+
+    if (members.length === 0) return
+
+    const memberIds = members.map((m) => m.userId)
+
+    // Find existing unread group_chat notifications for this group
+    const existing = await prisma.notification.findMany({
+      where: {
+        userId: { in: memberIds },
+        sourceType: 'group_chat',
+        sourceId: groupId,
+        isRead: false,
+      },
+      select: { id: true, userId: true },
+    })
+
+    const existingUserIds = new Set(existing.map((n) => n.userId))
+    const newUserIds = memberIds.filter((id) => !existingUserIds.has(id))
+
+    // Update existing unread notifications so they bubble back up
+    if (existing.length > 0) {
+      await prisma.notification.updateMany({
+        where: { id: { in: existing.map((n) => n.id) } },
+        data: { message: notifMessage, createdAt: new Date() },
+      })
+    }
+
+    // Create fresh notifications for members with no existing unread one
+    if (newUserIds.length > 0) {
+      await prisma.notification.createMany({
+        data: newUserIds.map((userId) => ({
+          userId,
+          type: 'group_chat',
+          message: notifMessage,
+          sourceType: 'group_chat',
+          sourceId: groupId,
+        })),
+      })
+    }
+  } catch (err) {
+    console.error('[notifyGroupMembers]', err)
   }
 }

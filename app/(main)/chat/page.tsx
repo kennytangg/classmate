@@ -11,7 +11,7 @@ export default function ChatPage() {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [newMessageOpen, setNewMessageOpen] = useState(false)
-  const { conversations, studyGroups, loading, error } = useConversations()
+  const { conversations, loading, error } = useConversations()
 
   return (
     <div className="h-full flex-1">
@@ -19,7 +19,6 @@ export default function ChatPage() {
       <div className="bg-card flex h-full flex-col overflow-hidden md:hidden">
         <ConversationList
           conversations={conversations}
-          studyGroups={studyGroups}
           loading={loading}
           error={error}
           query={query}

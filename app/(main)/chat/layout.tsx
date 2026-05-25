@@ -12,7 +12,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [newMessageOpen, setNewMessageOpen] = useState(false)
-  const { conversations, studyGroups, loading, error } = useConversations()
+  const { conversations, loading, error } = useConversations()
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -20,7 +20,6 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       <div className="border-border hidden h-full w-80 min-w-[280px] shrink-0 flex-col border-r md:flex">
         <ConversationList
           conversations={conversations}
-          studyGroups={studyGroups}
           loading={loading}
           error={error}
           query={query}

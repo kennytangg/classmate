@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { toast } from 'sonner'
-import { ExternalLink, Loader2, LogIn, LogOut, Trash2 } from 'lucide-react'
+import { Loader2, LogIn, LogOut, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -17,6 +16,7 @@ interface GroupActionsProps {
   groupId: string
   isCurrentUserMember: boolean
   isCurrentUserOwner: boolean
+  isPrivate: boolean
   onJoined: () => void
   onLeft: () => void
   onDeleted: () => void
@@ -26,6 +26,7 @@ export function GroupActions({
   groupId,
   isCurrentUserMember,
   isCurrentUserOwner,
+  isPrivate,
   onJoined,
   onLeft,
   onDeleted,
@@ -33,26 +34,45 @@ export function GroupActions({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [joinOpen, setJoinOpen] = useState(false)
+  const [codeInput, setCodeInput] = useState('')
+  const [codeError, setCodeError] = useState('')
 
-  async function handleJoin() {
+  async function handleJoin(inviteCode?: string) {
     setLoading(true)
     try {
       const res = await fetch(`/api/study-groups/${groupId}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify(inviteCode ? { inviteCode } : {}),
       })
       const data = (await res.json()) as { error?: string }
       if (!res.ok) {
+        if (isPrivate) {
+          setCodeError(data.error ?? 'Invalid invite code')
+          setLoading(false)
+          return
+        }
         toast.error(data.error ?? 'Failed to join group')
         return
       }
+      setJoinOpen(false)
+      setCodeInput('')
+      setCodeError('')
       toast.success('Joined group!')
       onJoined()
     } catch {
       toast.error('Failed to join group')
     } finally {
       setLoading(false)
+    }
+  }
+
+  function handleJoinClick() {
+    if (isPrivate) {
+      setJoinOpen(true)
+    } else {
+      void handleJoin()
     }
   }
 
@@ -101,14 +121,6 @@ export function GroupActions({
   if (isCurrentUserOwner) {
     return (
       <div className="border-border border-t px-4 py-3 sm:px-6 sm:py-4">
-        <Link
-          href={`/chat/group/${groupId}`}
-          className="border-primary text-primary hover:bg-primary/10 mb-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border bg-transparent text-sm font-semibold transition"
-        >
-          <ExternalLink className="h-4 w-4" />
-          Open Group Chat →
-        </Link>
-
         <button
           onClick={() => setDeleteOpen(true)}
           disabled={loading}
@@ -150,14 +162,6 @@ export function GroupActions({
   if (isCurrentUserMember) {
     return (
       <div className="border-border border-t px-4 py-3 sm:px-6 sm:py-4">
-        <Link
-          href={`/chat/group/${groupId}`}
-          className="border-primary text-primary hover:bg-primary/10 mb-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border bg-transparent text-sm font-semibold transition"
-        >
-          <ExternalLink className="h-4 w-4" />
-          Open Group Chat →
-        </Link>
-
         <button
           onClick={handleLeave}
           disabled={loading}
@@ -173,13 +177,63 @@ export function GroupActions({
   return (
     <div className="border-border border-t px-4 py-3 sm:px-6 sm:py-4">
       <button
-        onClick={handleJoin}
+        onClick={handleJoinClick}
         disabled={loading}
         className="border-primary text-primary hover:bg-primary/10 flex h-10 w-full items-center justify-center gap-2 rounded-lg border bg-transparent text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
         Join Group
       </button>
+
+      <Dialog
+        open={joinOpen}
+        onOpenChange={(open) => {
+          setJoinOpen(open)
+          if (!open) {
+            setCodeInput('')
+            setCodeError('')
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Invite Code</DialogTitle>
+            <DialogDescription>
+              This is a private group — it won&apos;t appear in Discover. Ask the group owner for
+              the 6-character invite code to join.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            <input
+              value={codeInput}
+              onChange={(e) => {
+                setCodeInput(e.target.value.toUpperCase())
+                setCodeError('')
+              }}
+              placeholder="e.g. A3F9C2"
+              maxLength={6}
+              className="border-border bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border px-3 font-mono text-sm tracking-widest"
+            />
+            {codeError && <p className="text-xs text-red-500">{codeError}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setJoinOpen(false)}
+                className="border-border rounded-lg border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void handleJoin(codeInput.trim())}
+                disabled={loading || !codeInput.trim()}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Join
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

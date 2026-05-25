@@ -57,7 +57,13 @@ export const navigationItems: NavigationItem[] = [
     section: 'Connect',
     pinned: true,
   },
-  { href: '/chat', label: 'Chat', group: 'core', icon: 'MessagesSquare', section: 'Connect' },
+  {
+    href: '/chat',
+    label: 'Direct Messages',
+    group: 'core',
+    icon: 'MessagesSquare',
+    section: 'Connect',
+  },
   { href: '/discover', label: 'Find People', group: 'core', icon: 'Compass', section: 'Connect' },
   // Account
   { href: '/profile', label: 'Profile', group: 'core', icon: 'User', section: 'Account' },

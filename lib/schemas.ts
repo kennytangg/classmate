@@ -34,7 +34,7 @@ export const createStudyGroupSchema = z.object({
 
 export const studyGroupMessageSchema = z.object({
   content: z.string().max(5000).default(''),
-  fileUrl: z.string().min(1).max(2048).optional(),
+  fileUrl: z.string().startsWith('/uploads/').max(2048).optional(),
   fileName: z.string().max(255).optional(),
   fileType: z.string().max(100).optional(),
   fileSize: z
@@ -63,7 +63,7 @@ export const updateConnectionSchema = z.object({
 // ── Messages ───────────────────────────────────────────────────────────────
 export const sendMessageSchema = z.object({
   content: z.string().max(5000).default(''),
-  fileUrl: z.string().min(1).max(2048).optional(),
+  fileUrl: z.string().startsWith('/uploads/').max(2048).optional(),
   fileName: z.string().max(255).optional(),
   fileType: z.string().max(100).optional(),
   fileSize: z

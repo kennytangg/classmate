@@ -1,29 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { MessageSquarePlus, Search, Users } from 'lucide-react'
-import type { Conversation, StudyGroup } from '../_hooks/useConversations'
-
-const AVATAR_COLORS = [
-  'bg-violet-500',
-  'bg-blue-500',
-  'bg-emerald-500',
-  'bg-rose-500',
-  'bg-amber-500',
-  'bg-cyan-500',
-  'bg-fuchsia-500',
-  'bg-orange-500',
-  'bg-teal-500',
-  'bg-indigo-500',
-]
-
-function getAvatarColor(seed: string): string {
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
-  }
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length] ?? 'bg-violet-500'
-}
+import { MessageSquarePlus, Search } from 'lucide-react'
+import type { Conversation } from '../_hooks/useConversations'
+import { getAvatarColor } from '@/lib/utils/avatarColor'
 
 function formatTime(value: string): string {
   const date = new Date(value)
@@ -44,7 +24,6 @@ function formatTime(value: string): string {
 
 interface ConversationListProps {
   conversations: Conversation[]
-  studyGroups: StudyGroup[]
   loading: boolean
   error: string | null
   query: string
@@ -55,7 +34,6 @@ interface ConversationListProps {
 
 export function ConversationList({
   conversations,
-  studyGroups,
   loading,
   error,
   query,
@@ -74,18 +52,12 @@ export function ConversationList({
       })
     : conversations
 
-  const filteredGroups = term
-    ? studyGroups.filter(
-        (g) => g.name.toLowerCase().includes(term) || g.subject.toLowerCase().includes(term)
-      )
-    : studyGroups
-
   return (
     <>
       {/* Header */}
       <div className="border-border border-b p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-foreground text-lg font-semibold">Messages</h2>
+          <h2 className="text-foreground text-lg font-semibold">Direct Messages</h2>
           <button
             onClick={onNewMessage}
             title="New message"
@@ -115,13 +87,6 @@ export function ConversationList({
 
         {!loading && !error && (
           <>
-            {/* Direct Messages section — always visible */}
-            <div className="border-border border-b px-4 py-2">
-              <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                Direct Messages
-              </p>
-            </div>
-
             {filteredConversations.map((conversation) => {
               const displayName =
                 conversation.participant.displayName ?? conversation.participant.email
@@ -175,70 +140,11 @@ export function ConversationList({
             })}
 
             {filteredConversations.length === 0 && (
-              <div className="border-border border-b px-4 py-3">
-                <p className="text-muted-foreground text-sm">
-                  {query
-                    ? 'No direct messages match your search.'
-                    : 'No messages yet. Tap the compose button above to start a conversation.'}
-                </p>
-              </div>
-            )}
-
-            {/* Group Chats section — always visible */}
-            <div className="border-border border-b px-4 py-2">
-              <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                Group Chats
-              </p>
-            </div>
-
-            {filteredGroups.map((group) => {
-              const initial = group.name.charAt(0).toUpperCase() || 'G'
-              const avatarColor = getAvatarColor(group.name)
-              const href = `/chat/group/${group.id}`
-              const isActive = activePath === href
-
-              return (
-                <Link href={href} key={group.id}>
-                  <div
-                    className={`border-border hover:bg-muted cursor-pointer border-b p-4 transition-colors ${
-                      isActive ? 'bg-accent' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="shrink-0">
-                        <div
-                          className={`${avatarColor} flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-white`}
-                        >
-                          {initial}
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-foreground truncate font-semibold">{group.name}</h3>
-                        <p className="text-muted-foreground flex items-center gap-1 truncate text-sm">
-                          <Users className="h-3 w-3 shrink-0" />
-                          {group.memberCount} members · {group.subject}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-
-            {filteredGroups.length === 0 && (
               <div className="px-4 py-3">
                 <p className="text-muted-foreground text-sm">
-                  {query ? (
-                    'No group chats match your search.'
-                  ) : (
-                    <>
-                      Join a{' '}
-                      <Link href="/groups" className="text-primary underline">
-                        Study Group
-                      </Link>{' '}
-                      to start a group conversation.
-                    </>
-                  )}
+                  {query
+                    ? 'No messages match your search.'
+                    : 'No messages yet. Tap the compose button above to start a conversation.'}
                 </p>
               </div>
             )}

@@ -35,7 +35,7 @@ function getAvatarColor(seed: string): string {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length] as string
 }
 
-export interface ModalUser {
+interface ModalUser {
   id: string
   name: string | null
   image: string | null

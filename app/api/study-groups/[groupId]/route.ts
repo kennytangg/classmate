@@ -20,7 +20,16 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ groupI
       include: {
         owner: { select: { id: true, name: true, image: true } },
         members: {
-          include: { user: { select: { id: true, name: true, image: true } } },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                profile: { select: { avatarUrl: true } },
+              },
+            },
+          },
           orderBy: { joinedAt: 'asc' },
         },
       },
@@ -31,8 +40,11 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ groupI
     const isCurrentUserMember = group.members.some((m) => m.userId === session.id)
     const isCurrentUserOwner = group.ownerId === session.id
 
+    // Only expose inviteCode to the owner
+    const { inviteCode, ...groupWithoutCode } = group
     return NextResponse.json({
-      ...group,
+      ...groupWithoutCode,
+      ...(isCurrentUserOwner ? { inviteCode } : {}),
       memberCount: group.members.length,
       isCurrentUserMember,
       isCurrentUserOwner,

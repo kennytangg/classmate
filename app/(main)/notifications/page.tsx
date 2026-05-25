@@ -42,6 +42,7 @@ export default function NotificationsPage() {
 
   function sourceUrl(n: Notification): string {
     if (n.sourceType === 'chat' && n.sourceId) return `/chat/${n.sourceId}`
+    if (n.sourceType === 'group_chat' && n.sourceId) return `/groups/${n.sourceId}`
     if (n.sourceType === 'forum_reply' && n.sourceId) return `/forums/${n.sourceId}`
     if (n.sourceType === 'connection_request' && n.sourceId) return `/profile/${n.sourceId}`
     return '/notifications'
@@ -111,7 +112,9 @@ export default function NotificationsPage() {
               key={n.id}
               notification={n}
               onClick={handleClick}
-              onDelete={deleteNotification}
+              onDelete={(n) => {
+                void deleteNotification(n.id)
+              }}
             />
           ))
         )}

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '10', 10) || 10))
 
-    type WhereClause = Parameters<typeof prisma.studyMaterial.findMany>[0]['where']
+    type WhereClause = NonNullable<Parameters<typeof prisma.studyMaterial.findMany>[0]>['where']
     const conditions: NonNullable<WhereClause>[] = []
 
     if (userId) {

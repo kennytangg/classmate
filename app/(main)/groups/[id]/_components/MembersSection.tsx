@@ -7,7 +7,12 @@ interface Member {
   id: string
   role: string
   joinedAt: string
-  user: { id: string; name: string | null; image: string | null }
+  user: {
+    id: string
+    name: string | null
+    image: string | null
+    profile?: { avatarUrl: string | null } | null
+  }
 }
 
 interface MembersSectionProps {
@@ -62,7 +67,10 @@ export function MembersSection({ members, ownerId }: MembersSectionProps) {
           return (
             <li key={member.id} className="flex items-center gap-3">
               <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
-                <MemberAvatar image={member.user.image} name={member.user.name} />
+                <MemberAvatar
+                  image={member.user.profile?.avatarUrl ?? member.user.image}
+                  name={member.user.name}
+                />
               </div>
 
               <div className="min-w-0 flex-1">

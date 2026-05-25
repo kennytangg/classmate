@@ -75,14 +75,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               n.sourceType === 'forum_reply' &&
               n.sourceId != null &&
               current === `/forums/${n.sourceId}`
-            if (onChatPage || onThisForumPost) continue
+            const onThisGroupPage =
+              n.sourceType === 'group_chat' &&
+              n.sourceId != null &&
+              current.startsWith(`/groups/${n.sourceId}`)
+            if (onChatPage || onThisForumPost || onThisGroupPage) continue
             if (localStorage.getItem('classmate_notif_popups') === 'false') continue
             const href =
               n.sourceType === 'chat' && n.sourceId
                 ? `/chat/${n.sourceId}`
-                : n.sourceType === 'connection_request' && n.sourceId
-                  ? `/profile/${n.sourceId}`
-                  : '/notifications'
+                : n.sourceType === 'group_chat' && n.sourceId
+                  ? `/groups/${n.sourceId}`
+                  : n.sourceType === 'connection_request' && n.sourceId
+                    ? `/profile/${n.sourceId}`
+                    : '/notifications'
             toast(n.message, {
               action: { label: 'View', onClick: () => router.push(href) },
             })
@@ -133,11 +139,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markRead = useCallback(async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)))
     setUnreadCount((prev) => Math.max(0, prev - 1))
-    await fetch('/api/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (!res.ok) throw new Error('failed')
+    } catch {
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)))
+      setUnreadCount((prev) => prev + 1)
+    }
   }, [])
 
   const markAllRead = useCallback(async () => {

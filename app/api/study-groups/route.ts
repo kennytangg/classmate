@@ -3,13 +3,19 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
+import { checkRateLimit, generalLimiter, writeLimiter } from '@/lib/rate-limit'
 import { sanitizeText } from '@/lib/sanitize'
 import { getErrorResponse, zodErrorToString } from '@/lib/errors'
 import { createStudyGroupSchema } from '@/lib/schemas'
 
 // GET /api/study-groups?search=math&myGroups=true&excludeMyGroups=true
 export async function GET(req: NextRequest) {
+  const session = await getSession()
+  const limitKey =
+    session?.id ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anon'
+  const limited = await checkRateLimit(limitKey, generalLimiter)
+  if (limited) return limited
+
   const { searchParams } = new URL(req.url)
   const search = searchParams.get('search')?.trim() ?? ''
   const myGroups = searchParams.get('myGroups')
@@ -31,7 +37,6 @@ export async function GET(req: NextRequest) {
     let total: number
 
     if (myGroups === 'true') {
-      const session = await getSession()
       if (!session) {
         return NextResponse.json({
           groups: [],
@@ -55,11 +60,7 @@ export async function GET(req: NextRequest) {
       })
     } else {
       // Optionally exclude groups the current user has already joined
-      let excludeUserId: string | undefined
-      if (excludeMyGroups) {
-        const session = await getSession()
-        if (session) excludeUserId = session.id
-      }
+      const excludeUserId = excludeMyGroups && session ? session.id : undefined
 
       const where = {
         isPrivate: false,
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
   const ownerId = session.id
 
   try {
-    const inviteCode = randomBytes(3).toString('hex').toUpperCase()
+    const inviteCode = isPrivate ? randomBytes(4).toString('hex').toUpperCase() : null
 
     const group = await prisma.$transaction(async (tx) => {
       const newGroup = await tx.studyGroup.create({

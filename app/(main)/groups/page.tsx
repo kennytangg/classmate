@@ -11,6 +11,7 @@ import {
   Search,
   Plus,
   ArrowRight,
+  ChevronRight,
   FlaskConical,
   BookOpen,
   Loader2,
@@ -21,6 +22,11 @@ import {
   Wrench,
   Globe,
   Monitor,
+  Lock,
+  KeyRound,
+  Languages,
+  Landmark,
+  Palette,
   type LucideIcon,
 } from 'lucide-react'
 import {
@@ -38,6 +44,7 @@ type Group = {
   capacity: number
   desc: string
   isOwner: boolean
+  isPrivate: boolean
 }
 
 type ApiGroup = {
@@ -61,6 +68,7 @@ function mapApiGroup(g: ApiGroup, currentUserId?: string): Group {
     capacity: g._count.members,
     desc: g.description ?? 'No description provided.',
     isOwner: !!currentUserId && g.ownerId === currentUserId,
+    isPrivate: g.isPrivate,
   }
 }
 
@@ -75,11 +83,11 @@ function getSubjectIcon(subject: string): LucideIcon {
     case 'Engineering':
       return Wrench
     case 'Humanities & Languages':
-      return BookOpen
+      return Languages
     case 'History & Social Studies':
-      return BookOpen
+      return Landmark
     case 'Literature & Arts':
-      return BookOpen
+      return Palette
     case 'Economics & Business':
       return Globe
     case 'Law':
@@ -111,11 +119,12 @@ const sortOptions: { value: SortOption; label: string }[] = [
 ]
 
 const tabs: { key: FilterTab; label: string }[] = [
-  { key: 'discover', label: 'Discover' },
   { key: 'joined', label: 'Joined' },
+  { key: 'discover', label: 'Discover' },
 ]
 
 export default function StudyGroupsPage() {
+  const router = useRouter()
   const [groups, setGroups] = useState<Group[]>([])
   const [rawGroups, setRawGroups] = useState<ApiGroup[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
@@ -126,7 +135,7 @@ export default function StudyGroupsPage() {
 
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('discover')
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('joined')
   const [activeSort, setActiveSort] = useState<SortOption>('most-popular')
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -134,7 +143,13 @@ export default function StudyGroupsPage() {
   const [formName, setFormName] = useState('')
   const [formSubject, setFormSubject] = useState('Mathematics')
   const [formDesc, setFormDesc] = useState('')
+  const [formIsPrivate, setFormIsPrivate] = useState(false)
   const [formNameError, setFormNameError] = useState('')
+
+  const [joinCodeOpen, setJoinCodeOpen] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [joinCodeError, setJoinCodeError] = useState('')
+  const [joiningByCode, setJoiningByCode] = useState(false)
 
   useEffect(() => {
     fetch('/api/user/me')
@@ -165,8 +180,8 @@ export default function StudyGroupsPage() {
         const data = await res.json()
         setRawGroups(data.groups ?? [])
         setTotalPages(data.meta?.pages ?? 1)
-      } catch (err) {
-        console.error(err)
+      } catch {
+        // non-critical fetch failure — silently skip
       } finally {
         setLoading(false)
       }
@@ -207,7 +222,7 @@ export default function StudyGroupsPage() {
           name: trimmedName,
           description: formDesc.trim() || undefined,
           subject: formSubject,
-          isPrivate: false,
+          isPrivate: formIsPrivate,
         }),
       })
       const data = (await res.json()) as { group?: ApiGroup; error?: string }
@@ -224,11 +239,41 @@ export default function StudyGroupsPage() {
       setFormName('')
       setFormDesc('')
       setFormSubject('Mathematics')
-    } catch (err) {
-      console.error(err)
+      setFormIsPrivate(false)
+    } catch {
       toast.error('Failed to create group')
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function handleJoinByCode() {
+    const code = joinCode.trim().toUpperCase()
+    if (!code) return
+    setJoiningByCode(true)
+    setJoinCodeError('')
+    try {
+      const res = await fetch('/api/study-groups/join-by-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode: code }),
+      })
+      const data = (await res.json()) as { groupId?: string; error?: string }
+      if (!res.ok) {
+        if (res.status === 400 && data.groupId) {
+          // Already a member — just navigate there
+          router.push(`/groups/${data.groupId}`)
+          return
+        }
+        setJoinCodeError(data.error ?? 'Invalid invite code')
+        return
+      }
+      toast.success('Joined group!')
+      router.push(`/groups/${data.groupId}`)
+    } catch {
+      setJoinCodeError('Something went wrong. Please try again.')
+    } finally {
+      setJoiningByCode(false)
     }
   }
 
@@ -253,6 +298,13 @@ export default function StudyGroupsPage() {
               className="border-border bg-card text-foreground focus:ring-ring w-full rounded-lg border py-2 pr-4 pl-9 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
+          <Button
+            variant="outline"
+            className="w-full rounded-lg sm:w-auto"
+            onClick={() => setJoinCodeOpen(true)}
+          >
+            <KeyRound className="mr-2 h-4 w-4" /> Join with Code
+          </Button>
           <Button
             className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg sm:w-auto"
             onClick={() => setCreateOpen(true)}
@@ -298,7 +350,14 @@ export default function StudyGroupsPage() {
         </select>
       </div>
 
-      {/* Groups grid */}
+      {/* Discover info note */}
+      {activeFilter === 'discover' && (
+        <p className="text-muted-foreground mb-4 text-xs">
+          Private groups are not listed here. Use an invite code to join one.
+        </p>
+      )}
+
+      {/* Groups list / grid */}
       {loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="text-primary h-5 w-5 animate-spin" />
@@ -316,10 +375,16 @@ export default function StudyGroupsPage() {
                 : 'No groups available right now.'}
           </div>
         </div>
+      ) : activeFilter === 'joined' ? (
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          {sortedGroups.map((g) => (
+            <GroupListRow key={g.id} g={g} />
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sortedGroups.map((g) => (
-            <GroupCard key={g.id} g={g} joined={activeFilter === 'joined'} />
+            <GroupCard key={g.id} g={g} />
           ))}
         </div>
       )}
@@ -333,6 +398,60 @@ export default function StudyGroupsPage() {
           isLoading={loading}
         />
       )}
+
+      <Dialog
+        open={joinCodeOpen}
+        onOpenChange={(open) => {
+          setJoinCodeOpen(open)
+          if (!open) {
+            setJoinCode('')
+            setJoinCodeError('')
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Join with Invite Code</DialogTitle>
+            <DialogDescription className="text-xs">
+              Enter the 6-character code shared by the group owner. Invite codes are only used for
+              private groups.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 space-y-3">
+            <input
+              value={joinCode}
+              onChange={(e) => {
+                setJoinCode(e.target.value.toUpperCase())
+                setJoinCodeError('')
+              }}
+              placeholder="e.g. A3F9C2"
+              maxLength={6}
+              className="border-border bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border px-3 font-mono text-sm tracking-widest"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void handleJoinByCode()
+              }}
+            />
+            {joinCodeError && <p className="text-xs text-red-500">{joinCodeError}</p>}
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                variant="outline"
+                className="rounded-lg"
+                onClick={() => setJoinCodeOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+                disabled={!joinCode.trim() || joiningByCode}
+                onClick={() => void handleJoinByCode()}
+              >
+                {joiningByCode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Join
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={createOpen}
@@ -352,8 +471,11 @@ export default function StudyGroupsPage() {
           </DialogHeader>
           <div className="mt-2 space-y-4">
             <div className="space-y-2">
-              <label className="text-xs">Group Name</label>
+              <label htmlFor="form-group-name" className="text-xs">
+                Group Name
+              </label>
               <input
+                id="form-group-name"
                 value={formName}
                 onChange={(e) => {
                   setFormName(e.target.value)
@@ -365,8 +487,11 @@ export default function StudyGroupsPage() {
               {formNameError && <p className="text-xs text-red-500">{formNameError}</p>}
             </div>
             <div className="space-y-2">
-              <label className="text-xs">Subject</label>
+              <label htmlFor="form-group-subject" className="text-xs">
+                Subject
+              </label>
               <select
+                id="form-group-subject"
                 value={formSubject}
                 onChange={(e) => setFormSubject(e.target.value)}
                 className="border-border bg-card text-foreground h-10 w-full rounded-lg border px-3 text-sm"
@@ -379,13 +504,44 @@ export default function StudyGroupsPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs">Description</label>
+              <label htmlFor="form-group-desc" className="text-xs">
+                Description
+              </label>
               <textarea
+                id="form-group-desc"
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="Brief description"
                 className="border-border bg-card text-foreground placeholder:text-muted-foreground min-h-[80px] w-full rounded-lg border px-3 py-2 text-sm"
               />
+            </div>
+            <div className="space-y-1.5">
+              <div className="border-border bg-muted/40 flex items-center justify-between rounded-lg border px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-medium">Private group</p>
+                  <p className="text-muted-foreground text-xs">
+                    Only members with the invite code can join
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={formIsPrivate}
+                  onClick={() => setFormIsPrivate((v) => !v)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+                    formIsPrivate ? 'bg-primary' : 'bg-muted-foreground/30'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      formIsPrivate ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className="text-muted-foreground px-1 text-xs">
+                This cannot be changed after the group is created.
+              </p>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" className="rounded-lg" onClick={() => setCreateOpen(false)}>
@@ -407,27 +563,49 @@ export default function StudyGroupsPage() {
   )
 }
 
-function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
+function GroupListRow({ g }: { g: Group }) {
+  return (
+    <Link href={`/groups/${g.id}`}>
+      <div className="border-border hover:bg-muted/40 flex items-center gap-4 rounded-xl border px-5 py-3.5 transition-colors">
+        <div className="bg-primary/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+          {createElement(getSubjectIcon(g.subject), { className: 'h-4 w-4 text-primary' })}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-foreground truncate text-sm font-semibold">{g.name}</span>
+            {g.isOwner && <Crown className="h-3 w-3 shrink-0 text-amber-500" />}
+            {g.isPrivate && <Lock className="text-muted-foreground h-3 w-3 shrink-0" />}
+          </div>
+          <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
+            <span>{g.subject}</span>
+            <span className="text-muted-foreground/40">·</span>
+            <Users className="h-3 w-3" />
+            <span>{g.capacity}</span>
+          </div>
+        </div>
+        <ChevronRight className="text-muted-foreground h-4 w-4 shrink-0" />
+      </div>
+    </Link>
+  )
+}
+
+function GroupCard({ g }: { g: Group }) {
   const router = useRouter()
 
   return (
-    <div
-      className={`flex flex-col overflow-hidden rounded-xl border transition-shadow hover:shadow-md ${
-        joined ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-border bg-card'
-      }`}
-    >
+    <div className="border-border bg-card flex flex-col overflow-hidden rounded-xl border transition-shadow hover:shadow-md">
       {/* Banner */}
-      <div className={`relative h-20 flex-shrink-0 ${joined ? 'bg-primary' : 'bg-muted'}`}>
+      <div className="bg-muted relative h-16 flex-shrink-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#ffffff22_1px,transparent_1px)] [background-size:20px_20px]" />
-        <div className="absolute top-1/2 left-4 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">
+        <div className="absolute top-1/2 left-4 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">
           {createElement(getSubjectIcon(g.subject), {
-            className: `h-5 w-5 ${joined ? 'text-white' : 'text-muted-foreground'}`,
+            className: 'h-4 w-4 text-muted-foreground',
           })}
         </div>
-        {joined && g.isOwner && (
-          <div className="absolute top-2.5 right-3 flex items-center gap-1 rounded-full border border-white/20 bg-white/15 px-2 py-0.5 backdrop-blur-sm">
-            <Crown className="h-2.5 w-2.5 text-white" />
-            <span className="text-[10px] font-semibold text-white">OWNER</span>
+        {g.isPrivate && (
+          <div className="border-border bg-card/80 absolute top-2 right-3 flex items-center gap-1 rounded-full border px-2 py-0.5 backdrop-blur-sm">
+            <Lock className="text-muted-foreground h-2.5 w-2.5" />
+            <span className="text-muted-foreground text-[10px] font-semibold">PRIVATE</span>
           </div>
         )}
       </div>
@@ -435,38 +613,26 @@ function GroupCard({ g, joined }: { g: Group; joined: boolean }) {
       {/* Body */}
       <div className="flex flex-1 flex-col p-4">
         <div className="flex-1">
-          <div className="mb-1">
-            <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-              {g.subject}
-            </span>
-          </div>
-          <h3 className="text-foreground mb-1 text-sm leading-tight font-semibold">{g.name}</h3>
+          <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+            {g.subject}
+          </span>
+          <h3 className="text-foreground mt-0.5 mb-1 text-sm leading-tight font-semibold">
+            {g.name}
+          </h3>
           <p className="text-muted-foreground mb-3 line-clamp-2 text-xs">{g.desc}</p>
         </div>
-
-        {/* Member count */}
         <div className="mb-3">
           <span className="text-muted-foreground flex items-center gap-1 text-xs">
             <Users className="h-3 w-3" />
             {g.capacity} member{g.capacity !== 1 ? 's' : ''}
           </span>
         </div>
-
-        {/* Action */}
-        {joined ? (
-          <Link href={`/groups/${g.id}`}>
-            <button className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-9 w-full items-center justify-center rounded-lg text-sm font-semibold transition-colors">
-              Open Group <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </button>
-          </Link>
-        ) : (
-          <button
-            onClick={() => router.push(`/groups/${g.id}`)}
-            className="border-primary text-primary hover:bg-primary/10 flex h-9 w-full items-center justify-center rounded-lg border bg-transparent text-sm font-semibold transition-colors"
-          >
-            View Group <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          onClick={() => router.push(`/groups/${g.id}`)}
+          className="border-primary text-primary hover:bg-primary/10 flex h-9 w-full items-center justify-center rounded-lg border bg-transparent text-sm font-semibold transition-colors"
+        >
+          View Group <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   )
