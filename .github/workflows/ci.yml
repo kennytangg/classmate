@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths-ignore:
       - "README.md"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
   workflow_dispatch:
 
 concurrency:
@@ -105,7 +109,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Create .env.production from GitHub Secrets
@@ -145,7 +149,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Install dependencies
-        run: npm ci --omit=dev
+        run: npm ci
 
       - name: Run DB Migration
         env:

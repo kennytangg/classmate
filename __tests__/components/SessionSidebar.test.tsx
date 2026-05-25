@@ -48,6 +48,7 @@ describe('SessionSidebar component', () => {
     mockFetch.mockImplementationOnce(() => mockJsonResponse({ sessions: [] }))
     render(<SessionSidebar {...defaultProps} />)
     expect(screen.getByRole('button', { name: /new chat/i })).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument())
   })
 
   it('shows loading state initially', () => {
@@ -80,9 +81,8 @@ describe('SessionSidebar component', () => {
     await waitFor(() => {
       expect(screen.getByText('Calculus Help')).toBeInTheDocument()
     })
-    // The active session row has the bg-accent class
     const activeRow = screen.getByText('Calculus Help').closest('[role="button"]')
-    expect(activeRow?.className).toContain('bg-accent')
+    expect(activeRow?.className).toContain('bg-black/20')
   })
 
   it('calls onSelectSession when a session is clicked', async () => {
@@ -98,6 +98,7 @@ describe('SessionSidebar component', () => {
     const onNewChat = jest.fn()
     mockFetch.mockImplementationOnce(() => mockJsonResponse({ sessions: [] }))
     render(<SessionSidebar {...defaultProps} onNewChat={onNewChat} />)
+    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument())
     await userEvent.click(screen.getByRole('button', { name: /new chat/i }))
     expect(onNewChat).toHaveBeenCalledTimes(1)
   })
