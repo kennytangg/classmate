@@ -27,7 +27,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         return NextResponse.json({ error: 'Post not found' }, { status: 404 })
       }
       if (err instanceof CannotSelfUpvoteError) {
-        return NextResponse.json({ error: 'Cannot like your own post' }, { status: 403 })
+        return NextResponse.json({ error: 'Cannot upvote your own post' }, { status: 403 })
       }
       throw err
     }

@@ -39,7 +39,10 @@ jest.mock('@/lib/auth-client', () => ({
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
+  default: ({
+    unoptimized: _unoptimized,
+    ...props
+  }: React.ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img {...props} alt={props.alt ?? ''} />
   ),
@@ -48,6 +51,28 @@ jest.mock('next/image', () => ({
 // Mock user-role context
 jest.mock('@/lib/contexts/user-role-context', () => ({
   useUserRole: jest.fn(),
+}))
+
+// Mock ConfirmDialog to auto-confirm when opened so sign-out tests work without needing a real dialog
+jest.mock('@/components/ui/confirm-dialog', () => ({
+  ConfirmDialog: ({
+    open,
+    onConfirm,
+  }: {
+    open: boolean
+    onOpenChange: (v: boolean) => void
+    title: string
+    description: string
+    confirmLabel?: string
+    onConfirm: () => void
+  }) => {
+    const onConfirmRef = React.useRef(onConfirm)
+    onConfirmRef.current = onConfirm
+    React.useEffect(() => {
+      if (open) onConfirmRef.current()
+    }, [open])
+    return null
+  },
 }))
 
 // Mock lucide-react icons
@@ -125,7 +150,7 @@ describe('TopNavbar component', () => {
       />
     )
 
-    expect(screen.getByText('ClassMate')).toBeInTheDocument()
+    expect(screen.getAllByText('ClassMate')[0]).toBeInTheDocument()
   })
 
   it('calls onMobileMenuOpen when hamburger button is clicked', async () => {

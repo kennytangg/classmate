@@ -69,7 +69,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (!matParsed.success) {
       return NextResponse.json({ error: zodErrorToString(matParsed.error) }, { status: 400 })
     }
-    const { title: titleRaw } = matParsed.data
+    const { title: titleRaw, description: descRaw } = matParsed.data
 
     const data: Record<string, unknown> = {}
     if (titleRaw !== undefined) {
@@ -77,6 +77,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       if (!sanitized)
         return NextResponse.json({ error: 'title must contain valid text' }, { status: 400 })
       data.title = sanitized
+    }
+    if (descRaw !== undefined) {
+      data.description = sanitizeText(descRaw) || null
     }
 
     if (Object.keys(data).length === 0) {

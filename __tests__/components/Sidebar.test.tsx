@@ -308,7 +308,7 @@ describe('Sidebar component', () => {
     )
 
     const aside = container.querySelector('aside')
-    expect(aside).toHaveClass('w-16')
+    expect(aside).toHaveClass('w-14')
   })
 
   it('applies expanded width class when collapsed=false', () => {
@@ -380,9 +380,9 @@ describe('Sidebar component', () => {
       />
     )
 
-    // Find spans with opacity-0 (collapsed views)
+    // When expanded, no elements should be hidden by opacity-0
     const hiddenViews = container.querySelectorAll('[class*="opacity-0"]')
-    expect(hiddenViews.length).toBeGreaterThan(0)
+    expect(hiddenViews.length).toBe(0)
   })
 
   it('mobile sheet always renders with collapsed=false', () => {
@@ -507,7 +507,7 @@ describe('Sidebar component', () => {
       />
     )
 
-    expect(aside).toHaveClass('w-16')
+    expect(aside).toHaveClass('w-14')
   })
 
   it('mobile sheet calls onOpenChange with false to close', async () => {

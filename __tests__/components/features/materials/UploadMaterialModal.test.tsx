@@ -68,6 +68,7 @@ describe('UploadMaterialModal', () => {
   })
 
   it('rejects files over 50 MB and shows error toast', async () => {
+    const user = userEvent.setup()
     render(<UploadMaterialModal {...defaultProps} />)
 
     const input = getFileInput()

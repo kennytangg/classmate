@@ -41,7 +41,7 @@ describe('Theme parity component guards', () => {
     )
 
     expect(screen.getByText('Linear Algebra Notes')).toBeInTheDocument()
-    expect(container.innerHTML).toContain('bg-card')
+    expect(container.innerHTML).toContain('border-border')
     expect(container.innerHTML).toContain('text-foreground')
   })
 })

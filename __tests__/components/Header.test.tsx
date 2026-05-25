@@ -37,7 +37,7 @@ jest.mock('@/components/ui/sheet', () => ({
 // Mock the DropdownMenu component — Radix UI portals don't work well in jsdom
 jest.mock('@/components/ui/dropdown-menu', () => ({
   DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -73,7 +73,7 @@ describe('Header component', () => {
     // Main navigation items — appear in both desktop nav and mobile drawer
     expect(screen.getAllByRole('link', { name: /home/i })[0]).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: /forums/i })[0]).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /chat/i })[0]).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /direct messages/i })[0]).toBeInTheDocument()
   })
 
   it('renders the Learn with AI navigation link', () => {
