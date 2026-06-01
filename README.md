@@ -39,7 +39,7 @@ University students lack a dedicated, safe platform to collaborate academically.
 **Main features:**
 
 - Discussion forums with category-based threads, upvotes, and AI summarization
-- AI Tutor powered by Groq Llama 3.3-70B for academic assistance
+- AI Tutor powered by Ollama (`gemma4:26b` / `llama3.1:8b`) for academic assistance
 - Direct messaging between students and real-time study group chat
 - Study materials (upload, download, shared academic files)
 - Peer connections and student discovery with search
@@ -59,17 +59,17 @@ University students lack a dedicated, safe platform to collaborate academically.
 
 ## 3. Technology Stack
 
-| Layer            | Technology                                             |
-| :--------------- | :----------------------------------------------------- |
-| Frontend         | Next.js 15 (App Router) + React + Tailwind CSS         |
-| Backend          | Node.js via Next.js API Routes                         |
-| API              | REST API – 43 endpoints, OpenAPI 3.0 via Swagger       |
-| Database         | PostgreSQL + Prisma ORM                                |
-| Auth             | Firebase (Google OAuth) + Better Auth (email/password) |
-| AI               | BINUS Ollama (llama3.1:8b, self-hosted)                |
-| Containerization | Docker + docker-compose                                |
-| Deployment       | [Hosting Platform]                                     |
-| Version Control  | GitHub                                                 |
+| Layer            | Technology                                                                   |
+| :--------------- | :--------------------------------------------------------------------------- |
+| Frontend         | Next.js 15 (App Router) + React + Tailwind CSS                               |
+| Backend          | Node.js via Next.js API Routes                                               |
+| API              | REST API – 50 endpoints, OpenAPI 3.0 via Swagger                             |
+| Database         | PostgreSQL + Prisma ORM                                                      |
+| Auth             | Firebase (Google OAuth) + Better Auth (email/password)                       |
+| AI               | BINUS Ollama (llama3.1:8b, self-hosted)                                      |
+| Containerization | Docker + docker-compose                                                      |
+| Deployment       | BINUS VPS + Cloudflare Access, Docker Hub, GitHub Actions self-hosted runner |
+| Version Control  | GitHub                                                                       |
 
 ---
 

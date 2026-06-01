@@ -48,7 +48,7 @@ Each student must list **their own contribution**. Contributions must match GitH
 
 - Security work: Role-based access control (4 tiers), XSS sanitization, rate limiting on all endpoints, secure file upload handling, fixed multiple ESLint security warnings, resolved auth bypass vulnerabilities, input validation at API boundaries
 
-- AI-related work: Built AI Tutor end-to-end (Groq Llama 3.3-70B, session management, message persistence), implemented study material summarization endpoint, integrated AI content moderation helper into the moderation pipeline
+- AI-related work: Built AI Tutor end-to-end (Ollama gemma4:26b / llama3.1:8b, session management, message persistence), implemented study material summarization endpoint, integrated AI content moderation helper into the moderation pipeline
 
 ---
 
@@ -77,12 +77,15 @@ Each student must list **their own contribution**. Contributions must match GitH
 **AI tools used:**
 
 - Github Copilot — used to assist with code suggestions, debugging, refactoring, and documentation generation
+- Gemini AI - used for brainstorming, ideas, and architecture discussions. not used to generate any code or documentation directly.
+- Ollama (gemma4:26b, llama3.1:8b) — used for AI Tutor feature and study material summarization.
+- Claude - used to assist with create automated test, code suggestions, debugging, refactoring, and documentation generation.
 
 **Purpose of usage:**
 
 - Development support: code suggestions, debugging assistance, explaining error messages
 - Documentation: generating initial structure for README and API docs
-- AI feature development: brainstorming test scenarios for the Groq integration
+- AI feature development: brainstorming test scenarios for the Ollama integration
 
 **Which parts were assisted:**
 
@@ -97,8 +100,8 @@ Each student must list **their own contribution**. Contributions must match GitH
 ### Current Limitations
 
 - **Real-time messaging:** Direct messages and study group chat use polling (5-second intervals) rather than WebSocket/SSE. This means there is a small delay between send and receive.
-- **File storage:** In development, files are stored in `public/uploads/` which is not persistent across Docker container restarts. Production should use Firebase Storage or S3.
-- **AI Tutor context:** Each AI Tutor session maintains context within the session but does not share context across sessions. Long sessions may hit Groq token limits.
+- **File storage:** Files are stored in MinIO object storage. The MinIO container must be running and the bucket must exist before uploads will succeed.
+- **AI Tutor context:** Each AI Tutor session maintains context within the session but does not share context across sessions. Long sessions may hit the local model's context window limit.
 - **Pagination:** Page-based navigation is implemented on forums, materials, and study groups. Very large datasets may benefit from cursor-based pagination in the future.
 - **Search:** Full-text search is basic (`contains` query); a proper search index (e.g., Elasticsearch or pg_tsvector) would improve results at scale.
 
@@ -113,7 +116,7 @@ Each student must list **their own contribution**. Contributions must match GitH
 
 ### AI Limitations and Risks
 
-- The Groq Llama 3.3-70B model may occasionally produce inaccurate academic information ("hallucinations"). Users are advised to verify AI Tutor responses against authoritative sources.
+- The Ollama models (`gemma4:26b`, `llama3.1:8b`) may occasionally produce inaccurate academic information ("hallucinations"). Users are advised to verify AI Tutor responses against authoritative sources.
 - Content moderation AI may produce false positives (blocking valid content) or false negatives (allowing borderline content). Manual moderation by MODERATOR-role users supplements AI moderation.
 - Prompt injection remains a theoretical risk; system prompt enforcement and input sanitization mitigate but do not eliminate this risk.
 

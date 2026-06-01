@@ -4,7 +4,7 @@
 
 ---
 
-## 6.1 API Endpoints (43 total)
+## 6.1 API Endpoints (50 route files)
 
 ### Authentication (3 endpoints)
 
@@ -31,13 +31,13 @@
 
 ### AI & Chat (5 endpoints)
 
-| Method          | Endpoint                             | Description                                        | Auth Required |
-| :-------------- | :----------------------------------- | :------------------------------------------------- | :------------ |
-| POST            | `/api/chat`                          | AI Tutor – streaming response (Groq Llama 3.3-70B) | Yes           |
-| GET/POST/DELETE | `/api/sessions`                      | AI chat session CRUD                               | Yes           |
-| GET             | `/api/sessions/[sessionId]/messages` | Session message history                            | Yes           |
-| POST            | `/api/summarize`                     | AI thread summarization                            | Yes           |
-| GET             | `/api/recommendations/threads`       | AI-powered thread recommendations                  | Yes           |
+| Method          | Endpoint                             | Description                                       | Auth Required |
+| :-------------- | :----------------------------------- | :------------------------------------------------ | :------------ |
+| POST            | `/api/chat`                          | AI Tutor – streaming response (Ollama gemma4:26b) | Yes           |
+| GET/POST/DELETE | `/api/sessions`                      | AI chat session CRUD                              | Yes           |
+| GET             | `/api/sessions/[sessionId]/messages` | Session message history                           | Yes           |
+| POST            | `/api/summarize`                     | AI thread summarization                           | Yes           |
+| GET             | `/api/recommendations/threads`       | AI-powered thread recommendations                 | Yes           |
 
 ### Direct Messaging (4 endpoints)
 

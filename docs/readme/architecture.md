@@ -12,7 +12,7 @@ graph TB
 
     subgraph NextJS["Next.js App (Node.js)"]
         Pages["Pages<br/>app/(main) &amp; app/(public)<br/>Dashboard, Forums, Chat, etc."]
-        APIRoutes["API Routes<br/>43 endpoints under /api/*"]
+        APIRoutes["API Routes<br/>50 endpoints under /api/*"]
         Middleware["Middleware<br/>Session cookie check<br/>Route protection"]
     end
 
@@ -23,10 +23,10 @@ graph TB
         Prisma["prisma.ts<br/>Singleton Prisma Client"]
     end
 
-    Database[("PostgreSQL<br/>19 Models<br/>5 Enums")]
+    Database[("PostgreSQL<br/>18 Models<br/>5 Enums")]
     Firebase["Firebase Auth<br/>Google OAuth"]
-    Storage["Firebase Storage<br/>File Uploads"]
-    Groq["Groq API<br/>Llama 3.3-70B"]
+    Storage["MinIO<br/>File Uploads"]
+    Ollama["BINUS Ollama<br/>llama3.1:8b / gemma4:26b"]
 
     Browser -->|HTTPS fetch / SSE| Pages
     Pages -->|fetch| APIRoutes
@@ -39,7 +39,7 @@ graph TB
     Prisma -->|SQL| Database
     Auth -->|verify ID token| Firebase
     APIRoutes -->|upload / download| Storage
-    APIRoutes -->|chat / summary / moderation / rec| Groq
+    APIRoutes -->|chat / summary / moderation / rec| Ollama
 
     style Browser fill:#3b82f6,stroke:#1e40af,color:#fff
     style NextJS fill:#e0e7ff,stroke:#4f46e5,color:#000
@@ -47,7 +47,7 @@ graph TB
     style Database fill:#fef3c7,stroke:#d97706,color:#000
     style Firebase fill:#fce7f3,stroke:#be185d,color:#000
     style Storage fill:#fce7f3,stroke:#be185d,color:#000
-    style Groq fill:#fce7f3,stroke:#be185d,color:#000
+    style Ollama fill:#fce7f3,stroke:#be185d,color:#000
 ```
 
 ---
@@ -58,15 +58,15 @@ graph TB
 
 1. **Client → API:** The browser makes `fetch` calls to Next.js API routes (`/api/*`). Server-rendered pages call service functions directly without going through HTTP.
 2. **API → Database:** All database access goes through `lib/prisma.ts` (singleton Prisma client). No database connection is ever exposed to the frontend.
-3. **API → AI:** The AI Tutor route streams tokens from the Groq API back to the client via Server-Sent Events. Moderation, summarization, and recommendations are synchronous Groq calls inside API handlers.
-4. **File Uploads:** Study materials are stored either in Firebase Storage (production) or `public/uploads/` (local dev), with magic-byte validation before acceptance.
+3. **API → AI:** The AI Tutor route streams tokens from Ollama back to the client via Server-Sent Events. Moderation and summarization are synchronous Ollama calls inside API handlers. Recommendations are purely algorithmic — no AI call.
+4. **File Uploads:** Study materials are stored in MinIO object storage, with magic-byte validation before acceptance.
 
 ### Separation of Concerns
 
 | Layer              | Responsibility                                     | Modules                                       |
 | :----------------- | :------------------------------------------------- | :-------------------------------------------- |
 | Presentation       | UI rendering, user interaction                     | `app/(main)/`, `app/(public)/`, `components/` |
-| HTTP/Routing       | Request handling, response shaping                 | `app/api/*` (43 route files)                  |
+| HTTP/Routing       | Request handling, response shaping                 | `app/api/*` (50 route files)                  |
 | Business Logic     | Domain rules for forums, moderation, notifications | `lib/services/*`                              |
 | Authentication     | Session resolution                                 | `lib/auth.ts` (Firebase + Better Auth)        |
 | Authorization      | Role enforcement                                   | `lib/authorize.ts`                            |
@@ -74,13 +74,13 @@ graph TB
 | Rate Limiting      | Throttling, abuse prevention                       | `lib/rate-limit.ts` (5 tiers)                 |
 | AI Moderation      | Content safety scoring, fail-closed                | `lib/moderation.ts`                           |
 | Data Access        | SQL generation, type-safe queries                  | `lib/prisma.ts` + Prisma schema               |
-| External Services  | OAuth, storage, AI                                 | Firebase Auth/Storage, Groq                   |
+| External Services  | OAuth, storage, AI                                 | Firebase Auth, MinIO, BINUS Ollama            |
 
 ### Where Security Is Enforced
 
 - **Middleware (`middleware.ts`):** Checks for `session` (Firebase) or `better-auth.session_token` cookie on every protected route; rewrites to 404 if absent.
 - **API layer:** Every protected endpoint calls `getSession()` and returns `401` if no valid session exists. Role-restricted endpoints call `requireModerator()` / `requireAdmin()`.
 - **Input layer:** All user-supplied strings pass through `lib/sanitize.ts` (HTML stripping + entity encoding) before storage.
-- **AI moderation:** Every `POST` to forum posts, replies, and chat messages passes through the Groq moderation check; content is rejected if moderation returns a violation or if Groq is unavailable (fail-closed).
+- **AI moderation:** Every `POST` to forum posts, replies, and chat messages passes through the Ollama moderation check; content is rejected if moderation returns a violation or if Ollama is unavailable (fail-closed).
 - **Rate limiting (5 tiers):** `aiLimiter` 20/hr · `moderationLimiter` 60/min · `authLimiter` 10/15min · `writeLimiter` 30/min · `generalLimiter` 100/min.
 - **CSRF:** Firebase session cookie uses `sameSite: 'strict'`, `httpOnly: true`; Better Auth has CSRF protection enabled by default.

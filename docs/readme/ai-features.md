@@ -7,12 +7,15 @@
 ## 8.1 AI Provider & Overview
 
 **Provider:** BINUS Local LLM (Ollama)  
-**Model:** `gemma4:26b`  
 **Endpoint:** `https://ollama.csbihub.id/v1/chat/completions`  
 **Auth:** None required (internal network endpoint)  
 **Protocol:** OpenAI-compatible REST API
 
-Other models available on the same instance: `llama3.1:8b`, `qwen3.5:9b`, `gemma4:e4b`.
+| Feature              | Model                                             |
+| -------------------- | ------------------------------------------------- |
+| AI Tutor chat        | `gemma4:26b` (env-overridable via `OLLAMA_MODEL`) |
+| Content moderation   | `llama3.1:8b`                                     |
+| Thread summarization | `llama3.1:8b`                                     |
 
 Classmate integrates four AI features, all powered by the BINUS-hosted Ollama instance except Thread Recommendations, which uses a pure algorithmic scoring function with no external AI calls.
 
@@ -23,7 +26,7 @@ Classmate integrates four AI features, all powered by the BINUS-hosted Ollama in
 | AI Feature                | Purpose                                                      | Rate Limit  |
 | :------------------------ | :----------------------------------------------------------- | :---------- |
 | AI Tutor (Chat Assistant) | On-demand academic Q&A chatbot for students                  | 20 req/hr   |
-| AI Content Moderation     | Automatic screening of every forum post/reply before saving  | 20 req/hr   |
+| AI Content Moderation     | Automatic screening of every forum post/reply before saving  | 60 req/min  |
 | AI Thread Summarization   | Summarize long forum threads into key points                 | 20 req/hr   |
 | AI Thread Recommendations | Personalize thread feed based on user activity (algorithmic) | 100 req/min |
 
@@ -121,14 +124,14 @@ User clicks "Summarize" on a forum post
 User visits /forums
   → GET /api/recommendations/threads  (auth required)
   → Fetch user's recent posts (categories + tags)
-  → Score all flagged content by:
+  → Score all forum posts by:
       • Recency (max 30 points)
       • Engagement (upvotes × 3 + replies × 4 + views/20)
       • Personalisation bonus if user has post history
   → Return top 5 ranked threads
 ```
 
-**Key Design Decision — No External AI:** This is a pure algorithmic scoring system — no Groq calls, no AI dependency. Always available.
+**Key Design Decision — No External AI:** This is a pure algorithmic scoring system — no external AI calls. Always available.
 
 ---
 

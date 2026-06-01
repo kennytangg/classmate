@@ -74,7 +74,7 @@ Tests in `__tests__/ai/` (4 files).
 | AI-02     | Empty string                                      | Validation error before API call      | ✓ 400 returned           | Pass   |
 | AI-03     | Very long input (>5000 chars)                     | Rate-limited or truncated             | ✓ 429 returned           | Pass   |
 | AI-04     | Prompt injection ("ignore previous instructions") | Response stays in academic scope      | ✓ System prompt enforced | Pass   |
-| AI-05     | Groq API unavailable (mocked)                     | 503 with friendly error message       | ✓ Error message shown    | Pass   |
+| AI-05     | Ollama unavailable (mocked)                       | 503 with friendly error message       | ✓ Error message shown    | Pass   |
 | AI-06     | Non-English input                                 | Response in same language or English  | ✓ Handled gracefully     | Pass   |
 
 ### AI Feature: AI Content Moderation
@@ -85,23 +85,23 @@ Tests in `__tests__/ai/` (4 files).
 | AI-08     | Post with hate speech             | `403` content blocked                           | ✓ Blocked         | Pass   |
 | AI-09     | Post with spam/promotional text   | `403` content blocked                           | ✓ Blocked         | Pass   |
 | AI-10     | Prompt injection in post body     | Content classified by meaning, not instructions | ✓ Blocked         | Pass   |
-| AI-11     | Groq API timeout (mocked)         | `503` fail-closed, post not saved               | ✓ Blocked         | Pass   |
+| AI-11     | Ollama timeout (mocked)           | `503` fail-closed, post not saved               | ✓ Blocked         | Pass   |
 | AI-12     | Edge case: all whitespace content | Validation catches before AI call               | ✓ 400 returned    | Pass   |
 
 ### AI Feature: Thread Summarization
 
-| Test Case | Input                     | Expected Output          | Actual Result   | Status |
-| :-------- | :------------------------ | :----------------------- | :-------------- | :----- |
-| AI-13     | Post with 10 replies      | Concise summary returned | ✓ Summary shown | Pass   |
-| AI-14     | Post with 0 replies       | Summary of post only     | ✓ Handled       | Pass   |
-| AI-15     | Groq unavailable (mocked) | Error toast, no crash    | ✓ Error shown   | Pass   |
+| Test Case | Input                       | Expected Output          | Actual Result   | Status |
+| :-------- | :-------------------------- | :----------------------- | :-------------- | :----- |
+| AI-13     | Post with 10 replies        | Concise summary returned | ✓ Summary shown | Pass   |
+| AI-14     | Post with 0 replies         | Summary of post only     | ✓ Handled       | Pass   |
+| AI-15     | Ollama unavailable (mocked) | Error toast, no crash    | ✓ Error shown   | Pass   |
 
 **Failure Handling:**
 
-- **AI unavailable:** All Groq-dependent endpoints return `503` with a human-readable message. UI shows a toast notification.
-- **Timeout:** Groq client is configured with a timeout; on expiry the request is aborted and the fail-closed path triggers.
-- **Malformed response:** JSON parse errors from Groq are caught; fallback error response returned.
-- **Prompt injection:** System prompt is prepended to every Groq call and instructs the model to ignore user instructions that attempt to change its role or behavior.
+- **AI unavailable:** All Ollama-dependent endpoints return `503` with a human-readable message. UI shows a toast notification.
+- **Timeout:** The Ollama request is aborted on expiry and the fail-closed path triggers.
+- **Malformed response:** JSON parse errors from Ollama are caught; fallback error response returned.
+- **Prompt injection:** System prompt is prepended to every Ollama call and instructs the model to ignore user instructions that attempt to change its role or behavior.
 
 ---
 

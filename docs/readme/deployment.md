@@ -63,21 +63,27 @@ volumes:
 
 ### Environment Variables
 
-| Variable                                   | Purpose                             |
-| :----------------------------------------- | :---------------------------------- |
-| `DATABASE_URL`                             | PostgreSQL connection string        |
-| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase client API key             |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase auth domain                |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase project ID                 |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`      | Firebase storage bucket             |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID        |
-| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase app ID                     |
-| `FIREBASE_PROJECT_ID`                      | Firebase Admin project ID           |
-| `FIREBASE_CLIENT_EMAIL`                    | Firebase Admin client email         |
-| `FIREBASE_PRIVATE_KEY`                     | Firebase Admin private key (base64) |
-| `GROQ_API_KEY`                             | Groq AI API key                     |
-| `BETTER_AUTH_SECRET`                       | Better Auth session signing secret  |
-| `BETTER_AUTH_URL`                          | Better Auth base URL                |
+| Variable                                   | Purpose                                    |
+| :----------------------------------------- | :----------------------------------------- |
+| `DATABASE_URL`                             | PostgreSQL connection string               |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase client API key                    |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase auth domain                       |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase project ID                        |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`      | Firebase storage bucket                    |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID               |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase app ID                            |
+| `FIREBASE_PROJECT_ID`                      | Firebase Admin project ID                  |
+| `FIREBASE_CLIENT_EMAIL`                    | Firebase Admin client email                |
+| `FIREBASE_PRIVATE_KEY`                     | Firebase Admin private key (base64)        |
+| `MINIO_ENDPOINT`                           | MinIO server hostname                      |
+| `MINIO_PORT`                               | MinIO server port (default 9000)           |
+| `MINIO_USE_SSL`                            | TLS for MinIO (`true`/`false`)             |
+| `MINIO_ACCESS_KEY`                         | MinIO access key                           |
+| `MINIO_SECRET_KEY`                         | MinIO secret key                           |
+| `MINIO_BUCKET_NAME`                        | MinIO bucket name                          |
+| `OLLAMA_MODEL`                             | Override chat model (default `gemma4:26b`) |
+| `BETTER_AUTH_SECRET`                       | Better Auth session signing secret         |
+| `BETTER_AUTH_URL`                          | Better Auth base URL                       |
 
 ### Secrets Handling
 
@@ -101,7 +107,7 @@ volumes:
 
 ## 11.3 Live Application URL
 
-COMING SOON
+https://e2526-wads-b4ac.csbihub.id/
 
 ---
 
@@ -117,7 +123,7 @@ COMING SOON
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/classmate.git
+git clone https://github.com/kennytangg/classmate.git
 cd classmate
 
 # 2. Install dependencies
@@ -125,7 +131,7 @@ npm install
 
 # 3. Copy environment template and fill in values
 cp .env.example .env.local
-# Edit .env.local with your Firebase, Groq, and PostgreSQL credentials
+# Edit .env.local with your Firebase, MinIO, and PostgreSQL credentials
 
 # 4. Generate Prisma client
 npx prisma generate

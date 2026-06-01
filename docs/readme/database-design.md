@@ -15,7 +15,7 @@
 | Driver           | `@prisma/adapter-pg`                      | Native `pg` driver, better serverless compatibility than the default engine |
 | Generated client | `generated/prisma/` (custom output)       | Kept out of `node_modules` so types are explicit and reviewable             |
 | Auth data        | Stored in Postgres via Better Auth tables | Single source of truth; Firebase is used **only** for OAuth token exchange  |
-| File storage     | Firebase Storage **or** `public/uploads/` | Only URLs are persisted in Postgres                                         |
+| File storage     | MinIO object storage                      | Only URLs are persisted in Postgres                                         |
 
 **Why relational over document:** connections, moderation audit trails, group membership, and upvote many-to-many tables all require referential integrity and join performance that Postgres delivers natively.
 
@@ -23,7 +23,7 @@
 
 ## 7.2 Schema Overview
 
-- **19 models**
+- **18 models**
 - **5 enums**
 - **All models** use `cuid()` string primary keys (collision-resistant, URL-safe, sortable)
 - **All mutable models** carry `createdAt` / `updatedAt` timestamps
@@ -44,7 +44,7 @@
 
 ---
 
-## 7.3 Models (19 total)
+## 7.3 Models (18 total)
 
 ### 7.3.1 Identity & Profile (5 models)
 
@@ -81,7 +81,7 @@
 
 ---
 
-### 7.3.2 Forums (3 models)
+### 7.3.2 Forums (2 models)
 
 #### `ForumPost`
 
@@ -91,7 +91,6 @@
 | `upvotes`, `views`, `repliesCount` | `Int` (denormalised counters)        |
 | `isAnswered`                       | `Boolean`                            |
 | `replies`                          | `ForumReply[]`                       |
-| `tags`                             | `ForumTag[]` (m:n)                   |
 | `upvoters`                         | `User[]` via `postUpvoters` relation |
 
 **Indexes:** `userId`, `category`, `createdAt`, `upvotes`, `isAnswered` (supports the feed's sort-by-top and filter-by-category queries).
@@ -99,10 +98,6 @@
 #### `ForumReply`
 
 `postId`, `userId`, `content`, `upvotes`, `isAccepted`. Many-to-many upvoters (`replyUpvoters`).
-
-#### `ForumTag`
-
-`name` (unique). m:n back to `ForumPost`.
 
 ---
 
@@ -214,7 +209,6 @@ User ──< ForumPost ──< ForumReply
 
 ForumPost   >──< User  (upvoters, m:n via postUpvoters)
 ForumReply  >──< User  (upvoters, m:n via replyUpvoters)
-ForumPost   >──< ForumTag (m:n)
 ```
 
 ### Cascade Rules
@@ -270,11 +264,11 @@ High-level entity map:
  │ForumPost │──<│ForumReply  │ │  │StudyMaterial│  │  Event   │    │
  └────┬─────┘   └────────────┘ │  └─────────────┘  └──────────┘    │
       │                        │                                   │
-      │  m:n upvoters / tags   │                                   │
+      │  m:n upvoters          │                                   │
       ▼                        ▼                                   │
- ┌─────────┐            ┌─────────────┐                            │
- │ForumTag │            │ ChatMessage │◄── senderId / recipientId ─┤
- └─────────┘            └──────┬──────┘                            │
+                        ┌─────────────┐                            │
+                        │ ChatMessage │◄── senderId / recipientId ─┤
+                        └──────┬──────┘                            │
                                │ sessionId (nullable)              │
                                ▼                                   │
                         ┌─────────────┐                            │

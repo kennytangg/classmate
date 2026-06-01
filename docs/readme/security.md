@@ -80,7 +80,7 @@ Role checks use `lib/authorize.ts` helpers (`requireModerator`, `requireAdmin`, 
 
 ## 9.5 Secure API Key Handling
 
-- All API keys (Groq, Firebase, database connection string) are stored as **environment variables** — never hardcoded in source code.
+- All secrets (Firebase credentials, MinIO access keys, database connection string) are stored as **environment variables** — never hardcoded in source code.
 - `.env` is in `.gitignore` and is never committed.
 - The Firebase private key is base64-encoded in the environment and decoded at runtime.
 - In production, secrets are injected via the hosting platform's secret manager.

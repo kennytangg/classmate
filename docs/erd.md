@@ -87,12 +87,6 @@ erDiagram
         datetime updatedAt
     }
 
-    ForumTag {
-        string id PK
-        string name UK
-        datetime createdAt
-    }
-
     ChatMessage {
         string id PK
         string senderId FK
@@ -224,7 +218,6 @@ erDiagram
     User }o--o{ ForumPost : "upvotes"
     User }o--o{ ForumReply : "upvotes"
     ForumPost ||--o{ ForumReply : "has"
-    ForumPost }o--o{ ForumTag : "tagged with"
 
     %% Chat
     User ||--o{ ChatSession : "owns"
@@ -269,7 +262,7 @@ erDiagram
 | Domain          | Models                                                      |
 | --------------- | ----------------------------------------------------------- |
 | Auth & Identity | `User`, `UserProfile`, `Session`, `Account`, `Verification` |
-| Forums          | `ForumPost`, `ForumReply`, `ForumTag`                       |
+| Forums          | `ForumPost`, `ForumReply`                                   |
 | Messaging       | `ChatMessage`, `ChatSession`                                |
 | Study Materials | `StudyMaterial`                                             |
 | Study Groups    | `StudyGroup`, `StudyGroupMember`, `StudyGroupMessage`       |
