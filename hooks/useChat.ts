@@ -136,6 +136,14 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
         })
 
         if (!response.ok) {
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After')
+            const secs = retryAfter ? parseInt(retryAfter) : 3600
+            const mins = Math.ceil(secs / 60)
+            throw new Error(
+              `AI message limit reached (20/hr). Try again in ${mins} minute${mins === 1 ? '' : 's'}.`
+            )
+          }
           const errData = (await response.json().catch(() => ({}))) as { error?: string }
           throw new Error(errData.error ?? 'Failed to get response')
         }

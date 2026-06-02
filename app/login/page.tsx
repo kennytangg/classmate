@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [failedAttempts, setFailedAttempts] = useState(0)
   const router = useRouter()
 
   const createSession = async (idToken: string) => {
@@ -25,6 +26,12 @@ export default function LoginPage() {
         Authorization: `Bearer ${idToken}`,
       },
     })
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After')
+      const mins = Math.ceil((retryAfter ? parseInt(retryAfter) : 900) / 60)
+      throw new Error(`rate_limited:${mins}`)
+    }
 
     if (!res.ok) {
       throw new Error('Failed to create session')
@@ -47,7 +54,11 @@ export default function LoginPage() {
       })
 
       if (error) {
-        if (
+        const next = failedAttempts + 1
+        setFailedAttempts(next)
+        if (next >= 5) {
+          setError('Too many failed login attempts. Please wait a few minutes before trying again.')
+        } else if (
           error.message?.toLowerCase().includes('invalid credentials') ||
           error.message?.toLowerCase().includes('invalid email or password')
         ) {
@@ -85,7 +96,15 @@ export default function LoginPage() {
       router.push('/')
       router.refresh()
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Google sign in failed')
+      const msg = error instanceof Error ? error.message : ''
+      if (msg.startsWith('rate_limited:')) {
+        const mins = msg.slice('rate_limited:'.length)
+        setError(
+          `Too many login attempts. Please try again in ${mins} minute${mins === '1' ? '' : 's'}.`
+        )
+      } else {
+        setError(msg || 'Google sign in failed')
+      }
     } finally {
       setIsLoading(false)
     }

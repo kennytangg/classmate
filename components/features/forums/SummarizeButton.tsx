@@ -26,6 +26,16 @@ export function SummarizeButton({ threadContent }: SummarizeButtonProps) {
         body: JSON.stringify({ thread: threadContent }),
       })
 
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After')
+        const secs = retryAfter ? parseInt(retryAfter) : 3600
+        const mins = Math.ceil(secs / 60)
+        toast.error('AI summary limit reached', {
+          description: `Try again in ${mins} minute${mins === 1 ? '' : 's'}.`,
+        })
+        return
+      }
+
       const data = await response.json()
 
       if (!response.ok) {
