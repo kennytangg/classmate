@@ -82,6 +82,8 @@ jobs:
         with:
           context: .
           push: true
+          provenance: false
+          platforms: linux/amd64
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/classmate:latest
             ${{ secrets.DOCKER_USERNAME }}/classmate:${{ github.sha }}
@@ -160,12 +162,11 @@ jobs:
         run: |
           set -a && source .env.production && set +a
           docker compose pull app
-          docker compose up -d --no-deps minio
           docker compose up -d --wait --no-deps app
 
       - name: Smoke test
         run: |
-          sleep 5
+          sleep 20
           curl -fsS http://127.0.0.1:3010/api/health
           docker compose logs app --tail=200 > /tmp/app.log
           grep -Eq "Ready in|started server" /tmp/app.log || (echo "Startup log missing"; cat /tmp/app.log; exit 1)

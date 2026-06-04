@@ -62,20 +62,11 @@ services:
       timeout: 5s
       start_period: 40s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-        reservations:
-          memory: 256m
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-    init: true
-    security_opt:
-      - no-new-privileges:true
 
 volumes:
   postgres_data:
