@@ -40,6 +40,7 @@ services:
 
   app:
     image: ${DOCKER_USERNAME:-local}/classmate:${IMAGE_TAG:-latest}
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
