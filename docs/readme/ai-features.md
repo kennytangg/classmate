@@ -156,9 +156,9 @@ User visits /forums
 
 No AI-specific environment variables are required. All AI features connect to the BINUS-hosted Ollama endpoint (`https://ollama.csbihub.id`) without an API key.
 
-| Variable        | Used by | Behavior if missing |
-| --------------- | ------- | ------------------- |
-| _(none for AI)_ | —       | —                   |
+| Variable       | Used by                 | Behavior if missing                    |
+| -------------- | ----------------------- | -------------------------------------- |
+| `OLLAMA_MODEL` | `app/api/chat/route.ts` | Falls back to `gemma4:26b` (available) |
 
 ---
 
@@ -167,7 +167,7 @@ No AI-specific environment variables are required. All AI features connect to th
 | Feature                | Core Logic                                 | API Route                                  | Frontend                                                                                  |
 | ---------------------- | ------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | AI Tutor Chat          | `hooks/useChat.ts` (streaming, regenerate) | `app/api/chat/route.ts`                    | `components/features/ai-tutor/ChatInterface.tsx` (markdown + LaTeX + syntax highlighting) |
-| Thread Summarization   | `lib/moderation.ts`                        | `app/api/summarize/route.ts`               | `components/features/forums/SummarizeButton.tsx`                                          |
+| Thread Summarization   | `app/api/summarize/route.ts`               | `app/api/summarize/route.ts`               | `components/features/forums/SummarizeButton.tsx`                                          |
 | Content Moderation     | `lib/moderation.ts`                        | (called from multiple routes)              | `components/ui/moderation-alert.tsx`                                                      |
 | Thread Recommendations | `lib/recommendations.ts`                   | `app/api/recommendations/threads/route.ts` | `app/(main)/forums/page.tsx` (sidebar)                                                    |
 

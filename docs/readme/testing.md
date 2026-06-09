@@ -3,7 +3,7 @@
 [← Back to README](../../README.md)
 
 > **All testing must be documented.**
-> Test suite: **58 test files / 720 tests — all passing** (`npm test` verified 2026-04-19).
+> Test suite: **58 test files / 733 tests — all passing** (`npm test` verified 2026-06-09).
 
 ---
 

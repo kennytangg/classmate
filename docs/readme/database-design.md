@@ -245,11 +245,7 @@ Indexes are declared directly in `schema.prisma`:
 
 ## 7.6 ERD
 
-See `prisma/schema.prisma` for the canonical definition. A rendered ERD can be produced with:
-
-```bash
-npx prisma-erd-generator
-```
+See [`docs/erd.md`](../erd.md) for the rendered entity-relationship diagram. The canonical schema definition is `prisma/schema.prisma`.
 
 High-level entity map:
 

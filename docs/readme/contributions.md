@@ -44,7 +44,7 @@ Each student must list **their own contribution**. Contributions must match GitH
   - `/api/recommendations/threads`
   - `/api/docs` (Swagger UI)
 
-- Tests written: 58 test suites, 720 tests — covering API routes (auth, forums, materials, messages, study groups, events, connections, moderation, admin), security/authorization boundaries, service layer logic, and frontend component tests
+- Tests written: 58 test suites, 733 tests — covering API routes (auth, forums, materials, messages, study groups, events, connections, moderation, admin), security/authorization boundaries, service layer logic, and frontend component tests
 
 - Security work: Role-based access control (4 tiers), XSS sanitization, rate limiting on all endpoints, secure file upload handling, fixed multiple ESLint security warnings, resolved auth bypass vulnerabilities, input validation at API boundaries
 
@@ -74,12 +74,21 @@ Each student must list **their own contribution**. Contributions must match GitH
 
 ## 13. AI Usage Disclosure (MANDATORY)
 
-**AI tools used:**
+### AI embedded in the product (runs in the app itself)
 
-- Github Copilot — used to assist with code suggestions, debugging, refactoring, and documentation generation
-- Gemini AI - used for brainstorming, ideas, and architecture discussions. not used to generate any code or documentation directly.
-- Ollama (gemma4:26b, llama3.1:8b) — used for AI Tutor feature and study material summarization.
-- Claude - used to assist with create automated test, code suggestions, debugging, refactoring, and documentation generation.
+| Model                | Purpose                                    | Where                        |
+| :------------------- | :----------------------------------------- | :--------------------------- |
+| Ollama `gemma4:26b`  | AI Tutor chat (streaming academic Q&A)     | `app/api/chat/route.ts`      |
+| Ollama `llama3.1:8b` | AI Content Moderation (pre-save screening) | `lib/moderation.ts`          |
+| Ollama `llama3.1:8b` | Thread Summarization                       | `app/api/summarize/route.ts` |
+
+These models run on the BINUS-hosted Ollama instance and are an integral part of the application, not development tools.
+
+### AI tools used during development (not part of the product)
+
+- **GitHub Copilot** — code suggestions, debugging, refactoring, and documentation generation
+- **Claude** — automated test generation, code suggestions, debugging, refactoring, and documentation generation
+- **Gemini AI** — brainstorming and architecture discussions; not used to generate code or documentation directly
 
 **Purpose of usage:**
 
@@ -89,8 +98,8 @@ Each student must list **their own contribution**. Contributions must match GitH
 
 **Which parts were assisted:**
 
-- Initial API route structure was suggested by Github Copilot and reviewed/modified by the team
-- Test scenario generation for AI testing was assisted by Github Copilot; all test logic was written and verified by team members
+- Initial API route structure was suggested by GitHub Copilot and reviewed/modified by the team
+- Test scenario generation for AI testing was assisted by GitHub Copilot; all test logic was written and verified by team members
 - All generated code was reviewed, modified, and understood by the team before being committed
 
 ---
@@ -103,7 +112,7 @@ Each student must list **their own contribution**. Contributions must match GitH
 - **File storage:** Files are stored in MinIO object storage. The MinIO container must be running and the bucket must exist before uploads will succeed.
 - **AI Tutor context:** Each AI Tutor session maintains context within the session but does not share context across sessions. Long sessions may hit the local model's context window limit.
 - **Pagination:** Page-based navigation is implemented on forums, materials, and study groups. Very large datasets may benefit from cursor-based pagination in the future.
-- **Search:** Full-text search is basic (`contains` query); a proper search index (e.g., Elasticsearch or pg_tsvector) would improve results at scale.
+- **Search:** Full-text search is basic (`contains` query); a proper search index would improve results at scale.
 
 ### Possible Future Enhancements
 

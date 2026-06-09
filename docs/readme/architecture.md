@@ -84,3 +84,73 @@ graph TB
 - **AI moderation:** Every `POST` to forum posts, replies, and chat messages passes through the Ollama moderation check; content is rejected if moderation returns a violation or if Ollama is unavailable (fail-closed).
 - **Rate limiting (5 tiers):** `aiLimiter` 20/hr · `moderationLimiter` 60/min · `authLimiter` 10/15min · `writeLimiter` 30/min · `generalLimiter` 100/min.
 - **CSRF:** Firebase session cookie uses `sameSite: 'strict'`, `httpOnly: true`; Better Auth has CSRF protection enabled by default.
+
+---
+
+## 5.3 Deployment / Infrastructure Architecture
+
+The logical architecture above runs as a **containerized deployment** on a campus-provided BINUS VPS, fronted by Cloudflare Access and delivered by a GitHub Actions CI/CD pipeline. The application is never run as a bare Node process in production — it ships as a Docker image.
+
+```mermaid
+graph TB
+    User["Student Browser"]
+
+    subgraph CF["Cloudflare"]
+        Access["Cloudflare Access<br/>Edge + TLS termination<br/>DNS / DDoS protection"]
+    end
+
+    subgraph GH["GitHub Actions CI/CD (.github/workflows/ci.yml)"]
+        Quality["quality<br/>lint · test · build"]
+        BuildJob["build<br/>docker build & push"]
+        DeployJob["deploy<br/>self-hosted runner"]
+    end
+
+    Registry["Docker Hub<br/>DOCKER_USERNAME/classmate"]
+
+    subgraph VPS["BINUS VPS (self-hosted runner)"]
+        subgraph Compose["docker compose"]
+            App["app container<br/>Next.js standalone<br/>:3010"]
+            MinIO["minio container<br/>object storage"]
+        end
+    end
+
+    DB[("Neon<br/>managed PostgreSQL<br/>(serverless)")]
+    Firebase["Firebase Auth"]
+    Ollama["BINUS Ollama<br/>ollama.csbihub.id"]
+
+    User -->|HTTPS<br/>e2526-wads-b4ac.csbihub.id| Access
+    Access -->|proxy → :3010| App
+
+    Quality --> BuildJob
+    BuildJob -->|push image| Registry
+    BuildJob --> DeployJob
+    DeployJob -->|pull image| Registry
+    DeployJob -->|writes .env.production<br/>docker compose up -d --wait| App
+    DeployJob -->|docker compose up -d minio| MinIO
+    DeployJob -.->|smoke test /api/health| App
+
+    App -->|SQL · prisma migrate deploy| DB
+    App -->|upload / download| MinIO
+    App -->|verify ID token| Firebase
+    App -->|chat · moderation · summary| Ollama
+
+    style User fill:#3b82f6,stroke:#1e40af,color:#fff
+    style CF fill:#fff7ed,stroke:#ea580c,color:#000
+    style GH fill:#e0e7ff,stroke:#4f46e5,color:#000
+    style VPS fill:#f0fdf4,stroke:#15803d,color:#000
+    style Compose fill:#dcfce7,stroke:#15803d,color:#000
+    style Registry fill:#fef3c7,stroke:#d97706,color:#000
+    style DB fill:#fef3c7,stroke:#d97706,color:#000
+    style Firebase fill:#fce7f3,stroke:#be185d,color:#000
+    style Ollama fill:#fce7f3,stroke:#be185d,color:#000
+```
+
+### Deployment Notes
+
+- **Containerization:** The app is built as a multi-stage Docker image (`Dockerfile`, `node:22-bookworm-slim`, Next.js `standalone` output) and run via `docker compose` on the VPS. `NEXT_PUBLIC_*` vars are inlined at **build** time as Docker build args; server secrets are injected at **run** time from `.env.production`.
+- **Compose profiles:** `docker-compose.yml` defines a `local` profile that adds **Postgres** and **MinIO** containers for development (`docker compose --profile local up`). In **production** only the `app` and `minio` services run — the database is **Neon** (serverless managed PostgreSQL) reached via `DATABASE_URL`; no Postgres container runs in prod.
+- **CI/CD pipeline:** `push to main → quality → build → deploy`. The `deploy` job runs on a **self-hosted GitHub Actions runner** on the VPS: it writes `.env.production` from GitHub Secrets, pulls the new image, starts MinIO, replaces the app container (`--wait`), smoke-tests `http://127.0.0.1:3010/api/health`, then removes `.env.production` and prunes dangling images.
+- **Migrations:** `npx prisma migrate deploy` runs automatically during deploy. Re-seeding is manual (see [deployment.md](./deployment.md)).
+- **Edge:** Cloudflare Access terminates TLS and guards the public URL `https://e2526-wads-b4ac.csbihub.id`; the container itself listens on plain HTTP `:3010` behind the proxy.
+
+> For step-by-step deploy commands, environment variables, and the full CI/CD breakdown, see [11. Deployment & Production Setup](./deployment.md).

@@ -100,11 +100,14 @@
 | GET    | `/api/admin/users`           | List all users   | ADMIN+        |
 | PATCH  | `/api/admin/users/[id]/role` | Update user role | OWNER only    |
 
-### Users & Notifications (4 endpoints)
+### Users & Notifications (7 endpoints)
 
 | Method     | Endpoint                       | Description                     | Auth Required |
 | :--------- | :----------------------------- | :------------------------------ | :------------ |
+| GET        | `/api/user/me`                 | Current user session info       | Yes           |
 | GET/PATCH  | `/api/user/profile`            | Get/update current user profile | Yes           |
+| GET        | `/api/user/stats`              | Current user activity stats     | Yes           |
+| PATCH      | `/api/user/avatar`             | Update avatar                   | Yes           |
 | GET/DELETE | `/api/notifications`           | List/delete notifications       | Yes           |
 | PATCH      | `/api/notifications/[id]/read` | Mark notification read          | Yes           |
 | GET        | `/api/users/[id]`              | Get public user profile         | Yes           |
@@ -139,7 +142,7 @@ Response `201`:
   "title": "How do I understand Big O notation?",
   "content": "I'm struggling with time complexity analysis...",
   "category": "Computer Science",
-  "authorId": "user_abc",
+  "userId": "user_abc",
   "upvotes": 0,
   "views": 0,
   "repliesCount": 0,

@@ -96,6 +96,10 @@ erDiagram
         string role
         string messageType
         boolean isRead
+        string fileUrl
+        string fileName
+        string fileType
+        int fileSize
         datetime createdAt
     }
 
@@ -103,7 +107,6 @@ erDiagram
         string id PK
         string userId FK
         string title
-        string subject
         string description
         datetime createdAt
         datetime updatedAt
@@ -113,10 +116,9 @@ erDiagram
         string id PK
         string userId FK
         string title
-        string description
         string fileUrl
-        string subject
         string fileType
+        int fileSize
         int downloads
         datetime createdAt
         datetime updatedAt
@@ -149,6 +151,10 @@ erDiagram
         string groupId FK
         string senderId FK
         string content
+        string fileUrl
+        string fileName
+        string fileType
+        int fileSize
         datetime createdAt
     }
 
@@ -168,6 +174,7 @@ erDiagram
     Event {
         string id PK
         string userId FK
+        string studyGroupId FK
         string title
         string description
         datetime date
@@ -204,6 +211,8 @@ erDiagram
         string type
         string message
         boolean isRead
+        string sourceType
+        string sourceId
         datetime createdAt
     }
 
@@ -234,6 +243,7 @@ erDiagram
     User ||--o{ StudyGroupMessage : "sends"
     StudyGroup ||--o{ StudyGroupMember : "has"
     StudyGroup ||--o{ StudyGroupMessage : "contains"
+    StudyGroup |o--o{ Event : "schedules"
 
     %% Moderation
     User ||--o{ FlaggedContent : "reports"

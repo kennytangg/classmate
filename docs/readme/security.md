@@ -60,7 +60,7 @@ Role checks use `lib/authorize.ts` helpers (`requireModerator`, `requireAdmin`, 
 
 ### Cross-Site Request Forgery (CSRF)
 
-- Sessions are stored in **HttpOnly, SameSite=Lax** cookies — not accessible to JavaScript, and not sent on cross-origin requests.
+- Sessions are stored in **HttpOnly** cookies — not accessible to JavaScript. The Firebase `session` cookie uses **SameSite=Strict**; the Better Auth `better-auth.session_token` cookie uses **SameSite=Lax** (see the cookie table below).
 - Better Auth includes built-in CSRF protection for its session cookie.
 - Sensitive state-changing endpoints verify the session is associated with the authenticated user.
 
@@ -91,5 +91,5 @@ Role checks use `lib/authorize.ts` helpers (`requireModerator`, `requireAdmin`, 
 
 | Cookie                      | HttpOnly | SameSite |  Secure  | Expiry |
 | :-------------------------- | :------: | :------: | :------: | :----- |
-| `session` (Firebase)        |    ✓     |   Lax    | ✓ (prod) | 5 days |
+| `session` (Firebase)        |    ✓     |  Strict  | ✓ (prod) | 1 hour |
 | `better-auth.session_token` |    ✓     |   Lax    | ✓ (prod) | 7 days |

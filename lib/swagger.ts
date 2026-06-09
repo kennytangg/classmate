@@ -24,6 +24,7 @@ export const swaggerSpec = {
     { name: 'users', description: 'User discovery and public profiles' },
     { name: 'admin', description: 'Admin-only user management endpoints' },
     { name: 'user', description: 'User profile management' },
+    { name: 'notifications', description: 'User notifications and unread badge' },
     { name: 'docs', description: 'API documentation and specification endpoints' },
     { name: 'health', description: 'Service health check' },
   ],
@@ -785,7 +786,7 @@ export const swaggerSpec = {
         tags: ['ai'],
         summary: 'Moderate content using AI',
         description:
-          'Analyzes content for toxicity, spam, and inappropriate material using Groq AI. ' +
+          'Analyzes content for toxicity, spam, and inappropriate material using BINUS Ollama (llama3.1:8b). ' +
           'Returns moderation scores and recommended action (approve, warn, or block).',
         requestBody: {
           required: true,
@@ -829,7 +830,7 @@ export const swaggerSpec = {
         tags: ['ai'],
         summary: 'Summarize a discussion thread',
         description:
-          'Generates a concise 2-3 sentence summary of a discussion thread using Groq AI. ' +
+          'Generates a concise 2-3 sentence summary of a discussion thread using BINUS Ollama (llama3.1:8b). ' +
           'Useful for quickly understanding long forum threads.',
         requestBody: {
           required: true,
@@ -879,7 +880,7 @@ export const swaggerSpec = {
         summary: 'AI tutor chat (streaming)',
         description:
           'Sends messages to the AI tutor and receives streaming responses. ' +
-          'Uses Groq LLaMA 3.3 70B model for intelligent tutoring assistance.',
+          'Uses BINUS Ollama gemma4:26b for intelligent tutoring assistance.',
         requestBody: {
           required: true,
           content: {
@@ -2431,6 +2432,236 @@ export const swaggerSpec = {
       },
     },
 
+    // ==================== NOTIFICATIONS ====================
+    '/api/notifications': {
+      get: {
+        tags: ['notifications'],
+        summary: 'List notifications',
+        description:
+          'Returns the latest 20 notifications for the authenticated user along with the total unread count.',
+        responses: {
+          '200': {
+            description: 'Notifications and unread count',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    notifications: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Notification' },
+                    },
+                    unreadCount: { type: 'integer' },
+                  },
+                },
+              },
+            },
+          },
+          '401': { description: 'Unauthorized' },
+          '500': { description: 'Internal server error' },
+        },
+      },
+      patch: {
+        tags: ['notifications'],
+        summary: 'Mark notifications as read',
+        description:
+          'Mark a single notification as read (pass `id`) or mark all as read (pass `markAllRead: true`).',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', description: 'Notification ID to mark as read' },
+                  markAllRead: { type: 'boolean', description: 'Mark all notifications as read' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Updated successfully',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { ok: { type: 'boolean' } } },
+              },
+            },
+          },
+          '400': { description: 'Missing id or markAllRead' },
+          '401': { description: 'Unauthorized' },
+          '500': { description: 'Internal server error' },
+        },
+      },
+      delete: {
+        tags: ['notifications'],
+        summary: 'Delete notifications',
+        description:
+          'Delete a single notification by `id`, or delete all read notifications with `deleteAllRead: true`.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  deleteAllRead: { type: 'boolean' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Deleted successfully',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { ok: { type: 'boolean' } } },
+              },
+            },
+          },
+          '400': { description: 'Missing id or deleteAllRead' },
+          '401': { description: 'Unauthorized' },
+          '500': { description: 'Internal server error' },
+        },
+      },
+    },
+
+    // ==================== MATERIALS PREVIEW ====================
+    '/api/materials/{id}/preview': {
+      get: {
+        tags: ['materials'],
+        summary: 'Preview a study material',
+        description:
+          'Returns a presigned URL or inline data for previewing a study material file. Requires authentication.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'Preview data',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    previewUrl: { type: 'string', nullable: true },
+                    fileType: { type: 'string' },
+                    fileName: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { description: 'Invalid file path' },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Material not found' },
+          '500': { description: 'Preview failed' },
+        },
+      },
+    },
+
+    // ==================== STUDY GROUP INVITE CODES ====================
+    '/api/study-groups/{groupId}/invite-code': {
+      post: {
+        tags: ['study-groups'],
+        summary: 'Get or regenerate invite code',
+        description:
+          'Returns the invite code for a private study group. Only the group owner can call this endpoint.',
+        parameters: [{ name: 'groupId', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'Invite code',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { inviteCode: { type: 'string' } } },
+              },
+            },
+          },
+          '401': { description: 'Unauthorized' },
+          '403': { description: 'Not the group owner or group is public' },
+          '404': { description: 'Group not found' },
+          '500': { description: 'Internal server error' },
+        },
+      },
+    },
+
+    '/api/study-groups/join-by-code': {
+      post: {
+        tags: ['study-groups'],
+        summary: 'Join a private group by invite code',
+        description: 'Allows a user to join a private study group using its invite code.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['inviteCode'],
+                properties: {
+                  inviteCode: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Joined successfully',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { groupId: { type: 'string' } } },
+              },
+            },
+          },
+          '400': { description: 'Already a member or inviteCode missing' },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Invalid invite code' },
+          '500': { description: 'Internal server error' },
+        },
+      },
+    },
+
+    // ==================== USER AVATAR ====================
+    '/api/user/avatar': {
+      post: {
+        tags: ['user'],
+        summary: 'Upload avatar',
+        description:
+          'Uploads a new avatar image for the authenticated user. Accepts multipart/form-data with a `file` field. Max 5 MB.',
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['file'],
+                properties: {
+                  file: { type: 'string', format: 'binary', description: 'Image file (max 5 MB)' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Avatar uploaded',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { avatarUrl: { type: 'string' } },
+                },
+              },
+            },
+          },
+          '400': { description: 'No file provided or file too large' },
+          '401': { description: 'Unauthorized' },
+          '500': { description: 'Upload failed' },
+        },
+      },
+    },
+
     // ==================== DOCS ====================
     '/api/docs': {
       get: {
@@ -2473,6 +2704,18 @@ export const swaggerSpec = {
         type: 'object',
         properties: {
           error: { type: 'string' },
+        },
+      },
+
+      Notification: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          userId: { type: 'string' },
+          type: { type: 'string' },
+          message: { type: 'string' },
+          isRead: { type: 'boolean' },
+          createdAt: { type: 'string', format: 'date-time' },
         },
       },
 
