@@ -1,6 +1,6 @@
 /**
  * AI Moderation Feature — Structured AI Testing
- * Covers: POST /api/moderation (Groq-based content moderation)
+ * Covers: POST /api/moderation (Ollama-based content moderation)
  *
  * Test Categories (per Appendix B §10.4):
  *  1. Valid input tests
@@ -28,7 +28,7 @@ function mockAuth() {
   ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'test@test.com' })
 }
 
-function mockGroqResponse(payload: object) {
+function mockOllamaResponse(payload: object) {
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: async () => ({
@@ -52,7 +52,7 @@ afterEach(() => jest.clearAllMocks())
 describe('AI Moderation — Valid Inputs', () => {
   it('TC-AI-M-01: clean academic content is approved', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 2,
       spam_score: 1,
@@ -72,7 +72,7 @@ describe('AI Moderation — Valid Inputs', () => {
 
   it('TC-AI-M-02: overtly toxic content is blocked', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: false,
       toxicity_score: 92,
       spam_score: 10,
@@ -93,7 +93,7 @@ describe('AI Moderation — Valid Inputs', () => {
 
   it('TC-AI-M-03: borderline spam content receives warn action', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: false,
       toxicity_score: 35,
       spam_score: 65,
@@ -112,7 +112,7 @@ describe('AI Moderation — Valid Inputs', () => {
 
   it('TC-AI-M-04: response includes all expected fields', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 5,
       spam_score: 3,
@@ -174,7 +174,7 @@ describe('AI Moderation — Invalid Inputs', () => {
 describe('AI Moderation — Edge Cases', () => {
   it('TC-AI-M-08: very short content (1 char) is processed without error', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 0,
       spam_score: 0,
@@ -189,9 +189,9 @@ describe('AI Moderation — Edge Cases', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1)
   })
 
-  it('TC-AI-M-09: very long content (5000 chars) is forwarded to Groq', async () => {
+  it('TC-AI-M-09: very long content (5000 chars) is forwarded to Ollama', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 5,
       spam_score: 3,
@@ -208,7 +208,7 @@ describe('AI Moderation — Edge Cases', () => {
 
   it('TC-AI-M-10: unicode and emoji content is processed correctly', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 0,
       spam_score: 0,
@@ -228,7 +228,7 @@ describe('AI Moderation — Edge Cases', () => {
 // ─── 4. Consistency Tests ─────────────────────────────────────────────────────
 
 describe('AI Moderation — Consistency', () => {
-  it('TC-AI-M-11: same content hit same Groq endpoint twice', async () => {
+  it('TC-AI-M-11: same content hit same Ollama endpoint twice', async () => {
     const payload = {
       safe: true,
       toxicity_score: 3,
@@ -238,25 +238,25 @@ describe('AI Moderation — Consistency', () => {
       reason: 'ok',
     }
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'u1', email: 'u@t.com' })
-    mockGroqResponse(payload)
+    mockOllamaResponse(payload)
 
     const msg = 'Let us study together for the midterm exam.'
     await POST(makeRequest(msg))
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'u1', email: 'u@t.com' })
-    mockGroqResponse(payload)
+    mockOllamaResponse(payload)
     await POST(makeRequest(msg))
 
     expect(mockFetch).toHaveBeenCalledTimes(2)
-    // Both calls must target the same Groq endpoint
+    // Both calls must target the same Ollama endpoint
     const url1 = (mockFetch.mock.calls[0][0] as string) || ''
     const url2 = (mockFetch.mock.calls[1][0] as string) || ''
     expect(url1).toContain('ollama.csbihub.id')
     expect(url1).toBe(url2)
   })
 
-  it('TC-AI-M-12: Groq is called with correct model for moderation', async () => {
+  it('TC-AI-M-12: Ollama is called with correct model for moderation', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 0,
       spam_score: 0,
@@ -276,7 +276,7 @@ describe('AI Moderation — Consistency', () => {
 // ─── 5. Failure Handling Tests ────────────────────────────────────────────────
 
 describe('AI Moderation — Failure Handling', () => {
-  it('TC-AI-M-13: Groq API error (500) returns 4xx/5xx with error field', async () => {
+  it('TC-AI-M-13: Ollama API error (500) returns 4xx/5xx with error field', async () => {
     mockAuth()
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -317,7 +317,7 @@ describe('AI Moderation — Failure Handling', () => {
     expect(res.status).toBeGreaterThanOrEqual(400)
   })
 
-  it('TC-AI-M-16: Groq returns empty choices array → fallback or error', async () => {
+  it('TC-AI-M-16: Ollama returns empty choices array → fallback or error', async () => {
     mockAuth()
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -330,7 +330,7 @@ describe('AI Moderation — Failure Handling', () => {
     expect([200, 400, 500]).toContain(res.status)
   })
 
-  it('TC-AI-M-16b: Groq request times out (AbortError) → returns 500', async () => {
+  it('TC-AI-M-16b: Ollama request times out (AbortError) → returns 500', async () => {
     mockAuth()
     const abortError = Object.assign(new Error('The operation was aborted'), {
       name: 'AbortError',
@@ -348,7 +348,7 @@ describe('AI Moderation — Failure Handling', () => {
 describe('AI Moderation — Abuse & Misuse Prevention', () => {
   it('TC-AI-M-17: prompt injection in content does not override system instructions', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 5,
       spam_score: 5,
@@ -362,15 +362,15 @@ describe('AI Moderation — Abuse & Misuse Prevention', () => {
 
     const res = await POST(makeRequest(injectionAttempt))
 
-    // Route must still call Groq (not short-circuit on injection keywords)
+    // Route must still call Ollama (not short-circuit on injection keywords)
     expect(mockFetch).toHaveBeenCalledTimes(1)
     expect(res.status).toBe(200)
   })
 
-  it('TC-AI-M-18: repeated identical submissions do not bypass moderation (each call hits Groq)', async () => {
+  it('TC-AI-M-18: repeated identical submissions do not bypass moderation (each call hits Ollama)', async () => {
     for (let i = 0; i < 3; i++) {
       ;(getSession as jest.Mock).mockResolvedValue({ id: 'u1', email: 'u@t.com' })
-      mockGroqResponse({
+      mockOllamaResponse({
         safe: true,
         toxicity_score: 5,
         spam_score: 5,
@@ -390,7 +390,7 @@ describe('AI Moderation — Abuse & Misuse Prevention', () => {
 
   it('TC-AI-M-19: content with only whitespace is caught by validation or processed safely', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 0,
       spam_score: 0,
@@ -401,13 +401,13 @@ describe('AI Moderation — Abuse & Misuse Prevention', () => {
 
     const res = await POST(makeRequest('     '))
 
-    // Either 400 (validation rejects empty) or 200 (Groq processes whitespace)
+    // Either 400 (validation rejects empty) or 200 (Ollama processes whitespace)
     expect([200, 400]).toContain(res.status)
   })
 
   it('TC-AI-M-20: extremely long content (50k chars) does not crash the route', async () => {
     mockAuth()
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 5,
       spam_score: 5,

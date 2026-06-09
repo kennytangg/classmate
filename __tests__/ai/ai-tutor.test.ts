@@ -88,7 +88,7 @@ describe('AI Tutor — Valid Inputs', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1)
   })
 
-  it('TC-AI-T-02: multi-turn conversation is forwarded to Groq', async () => {
+  it('TC-AI-T-02: multi-turn conversation is forwarded to Ollama', async () => {
     mockFetch.mockResolvedValueOnce(makeSSEResponse('Great follow-up!'))
 
     const messages = [
@@ -114,7 +114,7 @@ describe('AI Tutor — Valid Inputs', () => {
     expect(callBody.model).toBe('gemma4:26b')
   })
 
-  it('TC-AI-T-04: stream flag is true in Groq request', async () => {
+  it('TC-AI-T-04: stream flag is true in Ollama request', async () => {
     mockFetch.mockResolvedValueOnce(makeSSEResponse('ok'))
 
     await POST(makeChatRequest([{ role: 'user', content: 'hi' }]))
@@ -178,12 +178,12 @@ describe('AI Tutor — Edge Cases', () => {
     expect(res.status).toBe(200)
   })
 
-  it('TC-AI-T-11: empty string message content is forwarded (Groq decides response)', async () => {
+  it('TC-AI-T-11: empty string message content is forwarded (Ollama decides response)', async () => {
     mockFetch.mockResolvedValueOnce(makeSSEResponse('What would you like to know?'))
 
     const res = await POST(makeChatRequest([{ role: 'user', content: '' }]))
 
-    // Route allows empty content — Groq handles it
+    // Route allows empty content — Ollama handles it
     expect(res.status).toBe(200)
   })
 
@@ -211,7 +211,7 @@ describe('AI Tutor — Edge Cases', () => {
 // ─── 4. Consistency Tests ─────────────────────────────────────────────────────
 
 describe('AI Tutor — Consistency', () => {
-  it('TC-AI-T-14: same input hits Groq endpoint consistently (no routing divergence)', async () => {
+  it('TC-AI-T-14: same input hits Ollama endpoint consistently (no routing divergence)', async () => {
     mockFetch
       .mockResolvedValueOnce(makeSSEResponse('Response A'))
       .mockResolvedValueOnce(makeSSEResponse('Response B'))
@@ -241,15 +241,15 @@ describe('AI Tutor — Consistency', () => {
 // ─── 5. Failure Handling Tests ────────────────────────────────────────────────
 
 describe('AI Tutor — Failure Handling', () => {
-  it('TC-AI-T-16: Groq returns 500 → route returns same error status', async () => {
-    mockFetch.mockResolvedValueOnce(new Response('Groq internal error', { status: 500 }))
+  it('TC-AI-T-16: Ollama returns 500 → route returns same error status', async () => {
+    mockFetch.mockResolvedValueOnce(new Response('Ollama internal error', { status: 500 }))
 
     const res = await POST(makeChatRequest([{ role: 'user', content: 'hello' }]))
 
     expect(res.status).toBe(500)
   })
 
-  it('TC-AI-T-17: Groq returns 429 (rate limit) → route propagates 429', async () => {
+  it('TC-AI-T-17: Ollama returns 429 (rate limit) → route propagates 429', async () => {
     mockFetch.mockResolvedValueOnce(new Response('rate limited', { status: 429 }))
 
     const res = await POST(makeChatRequest([{ role: 'user', content: 'hello' }]))
@@ -267,7 +267,7 @@ describe('AI Tutor — Failure Handling', () => {
     expect(body.error).toBe('Internal server error')
   })
 
-  it('TC-AI-T-19: Groq returns 401 (invalid API key) → route propagates 401', async () => {
+  it('TC-AI-T-19: Ollama returns 401 → route propagates 401', async () => {
     mockFetch.mockResolvedValueOnce(new Response('invalid api key', { status: 401 }))
 
     const res = await POST(makeChatRequest([{ role: 'user', content: 'hello' }]))
@@ -275,7 +275,7 @@ describe('AI Tutor — Failure Handling', () => {
     expect(res.status).toBe(401)
   })
 
-  it('TC-AI-T-19b: Groq request times out (AbortError) → returns 500', async () => {
+  it('TC-AI-T-19b: Ollama request times out (AbortError) → returns 500', async () => {
     const abortError = Object.assign(new Error('The operation was aborted'), {
       name: 'AbortError',
     })
@@ -288,7 +288,7 @@ describe('AI Tutor — Failure Handling', () => {
     expect(body.error).toBeDefined()
   })
 
-  it('TC-AI-T-19c: Groq SSE stream contains malformed JSON chunk → route does not crash', async () => {
+  it('TC-AI-T-19c: Ollama SSE stream contains malformed JSON chunk → route does not crash', async () => {
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       start(controller) {
@@ -341,7 +341,7 @@ describe('AI Tutor — Abuse & Misuse Prevention', () => {
     expect([200, 400, 413, 500]).toContain(res.status)
   })
 
-  it('TC-AI-T-22: garbage / nonsensical input is forwarded to Groq without crashing', async () => {
+  it('TC-AI-T-22: garbage / nonsensical input is forwarded to Ollama without crashing', async () => {
     mockFetch.mockResolvedValueOnce(makeSSEResponse("I'm not sure what you mean."))
 
     const res = await POST(makeChatRequest([{ role: 'user', content: '!@#$%^&*()_+{}|:<>?' }]))

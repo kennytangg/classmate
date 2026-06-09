@@ -1,6 +1,6 @@
 /**
  * AI Recommendations Feature — Structured AI Testing
- * Covers: GET /api/recommendations/threads (deterministic scoring, no live Groq call)
+ * Covers: GET /api/recommendations/threads (deterministic scoring, no live Ollama call)
  *
  * The recommendations engine is deterministic (scoring algorithm, not LLM call).
  * AI testing focuses on: recommendation quality, fallback behaviour, exclusions,

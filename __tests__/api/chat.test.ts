@@ -26,8 +26,8 @@ afterEach(() => {
   jest.clearAllMocks()
 })
 
-// Helper: build a minimal Groq SSE stream response
-function makeGroqStream(content = 'Hi') {
+// Helper: build a minimal Ollama SSE stream response
+function makeOllamaStream(content = 'Hi') {
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     start(controller) {
@@ -99,7 +99,7 @@ describe('POST /api/chat', () => {
     ;(prisma.chatSession.create as jest.Mock).mockResolvedValueOnce({ id: 'new-session-id' })
     ;(prisma.chatMessage.create as jest.Mock).mockResolvedValue({ id: 'msg-id' })
     ;(prisma.chatSession.update as jest.Mock).mockResolvedValue({})
-    mockFetch.mockResolvedValueOnce(makeGroqStream())
+    mockFetch.mockResolvedValueOnce(makeOllamaStream())
 
     const req = new NextRequest('http://localhost/api/chat', {
       method: 'POST',
@@ -124,7 +124,7 @@ describe('POST /api/chat', () => {
     })
     ;(prisma.chatMessage.create as jest.Mock).mockResolvedValue({ id: 'msg-id' })
     ;(prisma.chatSession.update as jest.Mock).mockResolvedValue({})
-    mockFetch.mockResolvedValueOnce(makeGroqStream('Hello back'))
+    mockFetch.mockResolvedValueOnce(makeOllamaStream('Hello back'))
 
     const req = new NextRequest('http://localhost/api/chat', {
       method: 'POST',
@@ -140,7 +140,7 @@ describe('POST /api/chat', () => {
     expect(res.headers.get('Content-Type')).toBe('text/event-stream')
     expect(res.headers.get('X-Session-Id')).toBe('existing-session')
 
-    // User message saved first (before Groq stream)
+    // User message saved first (before Ollama stream)
     expect(prisma.chatMessage.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -153,12 +153,12 @@ describe('POST /api/chat', () => {
     )
   })
 
-  it('calls Groq API with sanitized messages', async () => {
+  it('calls Ollama API with sanitized messages', async () => {
     mockGetSession.mockResolvedValueOnce(AUTHED_USER)
     ;(prisma.chatSession.create as jest.Mock).mockResolvedValueOnce({ id: 'session-x' })
     ;(prisma.chatMessage.create as jest.Mock).mockResolvedValue({ id: 'msg-id' })
     ;(prisma.chatSession.update as jest.Mock).mockResolvedValue({})
-    mockFetch.mockResolvedValueOnce(makeGroqStream())
+    mockFetch.mockResolvedValueOnce(makeOllamaStream())
 
     const req = new NextRequest('http://localhost/api/chat', {
       method: 'POST',
@@ -205,11 +205,11 @@ describe('POST /api/chat', () => {
     expect(body.error).toBe('Content blocked by moderation')
     expect(body.moderation.action).toBe('block')
     expect(body.moderation.reason).toBe('Content contains harassment')
-    // Groq streaming should NOT be called
+    // Ollama streaming should NOT be called
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
-  it('passes full conversation history to Groq', async () => {
+  it('passes full conversation history to Ollama', async () => {
     mockGetSession.mockResolvedValueOnce(AUTHED_USER)
     ;(prisma.chatSession.findFirst as jest.Mock).mockResolvedValueOnce({
       id: 'session-1',
@@ -217,7 +217,7 @@ describe('POST /api/chat', () => {
     })
     ;(prisma.chatMessage.create as jest.Mock).mockResolvedValue({ id: 'msg-id' })
     ;(prisma.chatSession.update as jest.Mock).mockResolvedValue({})
-    mockFetch.mockResolvedValueOnce(makeGroqStream())
+    mockFetch.mockResolvedValueOnce(makeOllamaStream())
 
     const history = [
       { role: 'user', content: 'What is recursion?' },
@@ -242,11 +242,11 @@ describe('POST /api/chat', () => {
     expect(userMessages).toHaveLength(3)
   })
 
-  it('returns 500 when Groq API returns an error', async () => {
+  it('returns 500 when Ollama API returns an error', async () => {
     mockGetSession.mockResolvedValueOnce(AUTHED_USER)
     ;(prisma.chatSession.create as jest.Mock).mockResolvedValueOnce({ id: 'session-x' })
     ;(prisma.chatMessage.create as jest.Mock).mockResolvedValue({ id: 'msg-id' })
-    mockFetch.mockResolvedValueOnce(new Response('Groq error', { status: 500 }))
+    mockFetch.mockResolvedValueOnce(new Response('Ollama error', { status: 500 }))
 
     const req = new NextRequest('http://localhost/api/chat', {
       method: 'POST',

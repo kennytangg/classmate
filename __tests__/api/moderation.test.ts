@@ -7,7 +7,7 @@ jest.mock('@/lib/auth', () => ({
   getSession: jest.fn(),
 }))
 
-// Mock fetch for Groq API
+// Mock fetch for Ollama API
 global.fetch = jest.fn()
 
 describe('POST /api/moderation', () => {
@@ -154,12 +154,12 @@ describe('POST /api/moderation', () => {
     expect(data.toxicity_score).toBeLessThanOrEqual(60)
   })
 
-  it('should handle Groq API errors gracefully', async () => {
+  it('should handle Ollama API errors gracefully', async () => {
     ;(getSession as jest.Mock).mockResolvedValue({ id: 'user123', email: 'test@example.com' })
     ;(global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       status: 500,
-      text: async () => 'Groq API error',
+      text: async () => 'Ollama API error',
     })
 
     const req = new NextRequest('http://localhost:3000/api/moderation', {

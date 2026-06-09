@@ -160,7 +160,7 @@ describe('AI chat role sanitization', () => {
     ;(prisma.chatMessage.create as jest.Mock).mockResolvedValue({ id: 'msg-1' })
   })
 
-  it('normalizes unknown roles to "user" before forwarding to Groq', async () => {
+  it('normalizes unknown roles to "user" before forwarding to Ollama', async () => {
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       start(controller) {
@@ -188,7 +188,7 @@ describe('AI chat role sanitization', () => {
     const res = await chatPOST(req)
     expect(res.status).toBe(200)
 
-    // Verify the Groq payload — 'system' role from client must be normalized to 'user'
+    // Verify the Ollama payload — 'system' role from client must be normalized to 'user'
     const fetchCall = mockFetch.mock.calls[0]
     const fetchBody = JSON.parse(fetchCall[1].body as string)
     const clientMessages = fetchBody.messages.filter(

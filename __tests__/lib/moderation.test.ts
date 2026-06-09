@@ -28,7 +28,7 @@ afterEach(() => {
   process.env = ORIGINAL_ENV
 })
 
-function mockGroqResponse(payload: object) {
+function mockOllamaResponse(payload: object) {
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: async () => ({
@@ -37,7 +37,7 @@ function mockGroqResponse(payload: object) {
   })
 }
 
-function mockGroqError(status = 500) {
+function mockOllamaError(status = 500) {
   mockFetch.mockResolvedValueOnce({ ok: false, status })
 }
 
@@ -45,7 +45,7 @@ function mockGroqError(status = 500) {
 
 describe('moderateContent — clean content', () => {
   it('returns approve for safe content', async () => {
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 5,
       spam_score: 2,
@@ -64,7 +64,7 @@ describe('moderateContent — clean content', () => {
 
 describe('moderateContent — toxic content', () => {
   it('returns block for highly toxic content', async () => {
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: false,
       toxicity_score: 90,
       spam_score: 10,
@@ -84,7 +84,7 @@ describe('moderateContent — toxic content', () => {
 
 describe('moderateContent — borderline content', () => {
   it('returns warn for borderline content', async () => {
-    mockGroqResponse({
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 45,
       spam_score: 55,
@@ -102,8 +102,8 @@ describe('moderateContent — borderline content', () => {
 // ─── Failure handling — fail-closed ───────────────────────────────────────────
 
 describe('moderateContent — fail-closed on error', () => {
-  it('returns block when Groq API returns non-ok status', async () => {
-    mockGroqError(503)
+  it('returns block when Ollama API returns non-ok status', async () => {
+    mockOllamaError(503)
 
     const result = await moderateContent('Normal content')
     expect(result.action).toBe('block')
@@ -118,7 +118,7 @@ describe('moderateContent — fail-closed on error', () => {
     expect(result.safe).toBe(false)
   })
 
-  it('returns block when Groq returns no choices', async () => {
+  it('returns block when Ollama returns no choices', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ choices: [] }),
@@ -237,11 +237,11 @@ describe('moderateContent — markdown-wrapped JSON', () => {
   })
 })
 
-// ─── Groq request shape ───────────────────────────────────────────────────────
+// ─── Ollama request shape ─────────────────────────────────────────────────────
 
-describe('moderateContent — Groq API call', () => {
-  it('sends request to Groq with correct model and auth header', async () => {
-    mockGroqResponse({
+describe('moderateContent — Ollama API call', () => {
+  it('sends request to Ollama with correct model', async () => {
+    mockOllamaResponse({
       safe: true,
       toxicity_score: 0,
       spam_score: 0,
