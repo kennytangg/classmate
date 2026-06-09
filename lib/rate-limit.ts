@@ -2,7 +2,7 @@ import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-// AI endpoints — expensive per call (Groq API)
+// AI endpoints — expensive per call (BINUS Ollama)
 export const aiLimiter = new RateLimiterMemory({ points: 20, duration: 3600 })
 
 // Moderation endpoint — public-facing; higher burst allowed
@@ -19,9 +19,13 @@ export const generalLimiter = new RateLimiterMemory({ points: 100, duration: 60 
 
 /**
  * Extract the client IP from a NextRequest.
- * Note: x-forwarded-for can be spoofed if not behind a trusted proxy.
+ * Prefers Cloudflare's CF-Connecting-IP (set by our trusted proxy); falls back
+ * to x-forwarded-for / x-real-ip, which can be spoofed if requests bypass the proxy.
  */
 export function getClientIp(req: NextRequest): string | null {
+  const cfIp = req.headers.get('cf-connecting-ip')
+  if (cfIp) return cfIp.trim()
+
   const forwarded = req.headers.get('x-forwarded-for')
   if (forwarded) {
     const first = forwarded.split(',')[0]

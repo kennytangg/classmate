@@ -185,5 +185,7 @@ jobs:
         if: always()
         run: rm -f .env.production
 
-      - name: Cleanup dangling images
-        run: docker image prune -f
+      - name: Cleanup old images
+        run: |
+          docker image prune -f
+          docker images ${{ secrets.DOCKER_USERNAME }}/classmate --format "{{.Repository}}:{{.Tag}}" | grep -v latest | xargs -r docker rmi || true

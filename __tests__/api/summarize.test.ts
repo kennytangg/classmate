@@ -158,8 +158,8 @@ describe('POST /api/summarize', () => {
     const response = await POST(req)
     const data = await response.json()
 
-    expect(response.status).toBe(500)
-    expect(data.error).toBe('No response from AI')
+    expect(response.status).toBe(502)
+    expect(data.error).toBe('Summarization service unavailable')
   })
 
   it('should handle network errors', async () => {
@@ -175,6 +175,6 @@ describe('POST /api/summarize', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Network error')
+    expect(data.error).toBe('Summarization failed')
   })
 })

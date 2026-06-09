@@ -51,7 +51,7 @@ University students lack a dedicated, safe platform to collaborate academically.
 
 **Where AI is used:**
 
-1. **AI Tutor** — conversational academic assistant (BINUS Ollama `llama3.1:8b`, streaming)
+1. **AI Tutor** — conversational academic assistant (BINUS Ollama `gemma4:26b`, streaming)
 2. **AI Content Moderation** — every forum post and reply is screened by the local LLM before being saved; fail-closed (blocks on AI error)
 3. **AI Thread Recommendations** — scoring algorithm surfaces relevant threads per user
 
@@ -82,6 +82,7 @@ University students lack a dedicated, safe platform to collaborate academically.
 | Database Design                            | [docs/readme/database-design.md](docs/readme/database-design.md) |
 | AI Features & Testing                      | [docs/readme/ai-features.md](docs/readme/ai-features.md)         |
 | Security Implementation                    | [docs/readme/security.md](docs/readme/security.md)               |
+| User Stories & Requirements (USR + SRS)    | [docs/readme/requirements.md](docs/readme/requirements.md)       |
 | Testing Documentation                      | [docs/readme/testing.md](docs/readme/testing.md)                 |
 | Deployment & Setup                         | [docs/readme/deployment.md](docs/readme/deployment.md)           |
 | Contributions, AI Disclosure & Declaration | [docs/readme/contributions.md](docs/readme/contributions.md)     |

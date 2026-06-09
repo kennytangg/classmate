@@ -48,7 +48,7 @@ function matchesMagicBytes(buffer: Buffer, signatures: number[][]): boolean {
   return signatures.some((sig) => sig.every((byte, i) => buffer[i] === byte))
 }
 
-async function validateMimeFromBuffer(file: File, ext: string): Promise<void> {
+export async function validateMimeFromBuffer(file: File, ext: string): Promise<void> {
   const signatures = MAGIC_BYTES[ext]
   if (!signatures) {
     // No magic-byte rule for this extension (txt, md) — accept as-is

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit, writeLimiter } from '@/lib/rate-limit'
-import { uploadRaw } from '@/lib/storage'
+import { uploadRaw, validateMimeFromBuffer } from '@/lib/storage'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_EXTENSIONS = new Set([
@@ -62,6 +62,18 @@ export async function POST(request: Request) {
     if (!ALLOWED_EXTENSIONS.has(ext)) {
       return NextResponse.json({ error: 'File type not allowed' }, { status: 400 })
     }
+    try {
+      await validateMimeFromBuffer(file, '.' + ext)
+    } catch (validationError) {
+      return NextResponse.json(
+        {
+          error:
+            validationError instanceof Error ? validationError.message : 'File validation failed',
+        },
+        { status: 400 }
+      )
+    }
+
     const safeName = `${randomUUID()}.${ext}`
     const objectKey = `uploads/chat/${safeName}`
 

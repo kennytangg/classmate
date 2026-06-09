@@ -7,7 +7,6 @@ import { zodErrorToString } from '@/lib/errors'
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify user is authenticated
     const user = await getSession()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -22,7 +21,6 @@ export async function POST(req: NextRequest) {
     }
     const { thread } = parsed.data
 
-    // Use Ollama to summarize discussion thread
     const response = await fetch('https://ollama.csbihub.id/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -47,23 +45,24 @@ export async function POST(req: NextRequest) {
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      return NextResponse.json(
-        { error: `Ollama API error: ${errorText}` },
-        { status: response.status }
+      console.error(
+        '[POST /api/summarize] Ollama API error:',
+        response.status,
+        await response.text()
       )
+      return NextResponse.json({ error: 'Summarization service unavailable' }, { status: 502 })
     }
 
     const data = await response.json()
     const summary = data.choices[0]?.message?.content
 
     if (!summary) {
-      return NextResponse.json({ error: 'No response from AI' }, { status: 500 })
+      return NextResponse.json({ error: 'Summarization service unavailable' }, { status: 502 })
     }
 
     return NextResponse.json({ summary }, { status: 200 })
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+  } catch (error) {
+    console.error('[POST /api/summarize]', error)
+    return NextResponse.json({ error: 'Summarization failed' }, { status: 500 })
   }
 }

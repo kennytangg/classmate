@@ -113,6 +113,7 @@ These models run on the BINUS-hosted Ollama instance and are an integral part of
 - **AI Tutor context:** Each AI Tutor session maintains context within the session but does not share context across sessions. Long sessions may hit the local model's context window limit.
 - **Pagination:** Page-based navigation is implemented on forums, materials, and study groups. Very large datasets may benefit from cursor-based pagination in the future.
 - **Search:** Full-text search is basic (`contains` query); a proper search index would improve results at scale.
+- **Rate limiting:** Limits are enforced in-memory (`rate-limiter-flexible` memory store), so counters reset on container restart and are not shared across multiple app instances. This is sufficient for the current single-container deployment; a horizontally scaled deployment would need a shared store (e.g. Redis).
 
 ### Possible Future Enhancements
 

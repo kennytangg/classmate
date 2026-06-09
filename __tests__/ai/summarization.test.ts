@@ -243,7 +243,7 @@ describe('AI Summarization — Consistency', () => {
 // ─── 5. Failure Handling Tests ────────────────────────────────────────────────
 
 describe('AI Summarization — Failure Handling', () => {
-  it('TC-AI-S-16: Ollama returns 500 → route returns 500 with error', async () => {
+  it('TC-AI-S-16: Ollama returns 500 → route returns generic 502 (no leak)', async () => {
     mockAuth()
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -254,11 +254,11 @@ describe('AI Summarization — Failure Handling', () => {
     const res = await POST(makeRequest('test thread'))
     const data = await res.json()
 
-    expect(res.status).toBe(500)
-    expect(data.error).toBeDefined()
+    expect(res.status).toBe(502)
+    expect(data.error).toBe('Summarization service unavailable')
   })
 
-  it('TC-AI-S-17: Ollama returns empty content string → 500 "No response from AI"', async () => {
+  it('TC-AI-S-17: Ollama returns empty content string → 502 generic message', async () => {
     mockAuth()
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -268,11 +268,11 @@ describe('AI Summarization — Failure Handling', () => {
     const res = await POST(makeRequest('test thread'))
     const data = await res.json()
 
-    expect(res.status).toBe(500)
-    expect(data.error).toBe('No response from AI')
+    expect(res.status).toBe(502)
+    expect(data.error).toBe('Summarization service unavailable')
   })
 
-  it('TC-AI-S-18: network error (fetch throws) → 500 with error message', async () => {
+  it('TC-AI-S-18: network error (fetch throws) → 500 with generic message (no leak)', async () => {
     mockAuth()
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
@@ -280,10 +280,10 @@ describe('AI Summarization — Failure Handling', () => {
     const data = await res.json()
 
     expect(res.status).toBe(500)
-    expect(data.error).toBe('Network error')
+    expect(data.error).toBe('Summarization failed')
   })
 
-  it('TC-AI-S-19: Ollama returns 401 → 401 propagated', async () => {
+  it('TC-AI-S-19: Ollama returns 401 → upstream status not propagated (generic 502)', async () => {
     mockAuth()
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -293,10 +293,10 @@ describe('AI Summarization — Failure Handling', () => {
 
     const res = await POST(makeRequest('test thread'))
 
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(502)
   })
 
-  it('TC-AI-S-20: Ollama returns 429 (rate limited) → 429 propagated', async () => {
+  it('TC-AI-S-20: Ollama returns 429 → upstream status not propagated (generic 502)', async () => {
     mockAuth()
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -306,7 +306,7 @@ describe('AI Summarization — Failure Handling', () => {
 
     const res = await POST(makeRequest('test thread'))
 
-    expect(res.status).toBe(429)
+    expect(res.status).toBe(502)
   })
 
   it('TC-AI-S-20b: Ollama request times out (AbortError) → returns 500', async () => {
