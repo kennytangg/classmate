@@ -163,6 +163,7 @@ jobs:
         run: |
           set -a && source .env.production && set +a
           docker compose pull app
+          docker compose up -d --no-deps minio
           docker compose up -d --wait --no-deps app
 
       - name: Smoke test
