@@ -58,6 +58,7 @@ jest.mock('next/navigation', () => ({
     push: jest.fn(),
     refresh: jest.fn(),
   }),
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 // Mock next/link

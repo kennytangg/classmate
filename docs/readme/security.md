@@ -56,7 +56,6 @@ Role checks use `lib/authorize.ts` helpers (`requireModerator`, `requireAdmin`, 
 
 - `lib/sanitize.ts` strips `<script>`, `onerror`, `javascript:` and other dangerous patterns from all user content before storage.
 - React's JSX renders strings as text nodes by default — `.innerHTML` / `dangerouslySetInnerHTML` is not used for user content.
-- Content-Security-Policy (CSP) headers restrict script sources.
 
 ### Cross-Site Request Forgery (CSRF)
 

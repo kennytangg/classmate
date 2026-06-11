@@ -1,16 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { GraduationCap, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Suspense, useState } from 'react'
+import { GraduationCap, Mail, Lock, Eye, EyeOff, Loader2, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ModeToggle } from '@/components/mode-toggle'
 import { auth } from '@/lib/firebase'
 import { authClient } from '@/lib/auth-client'
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import { isValidRedirectPath } from '@/lib/utils'
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -18,6 +19,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [failedAttempts, setFailedAttempts] = useState(0)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const sessionExpired = searchParams.get('reason') === 'session_expired'
+  const redirectParam = searchParams.get('redirect')
+  const redirectTo = isValidRedirectPath(redirectParam) ? redirectParam : null
 
   const createSession = async (idToken: string) => {
     const res = await fetch('/api/auth/firebase', {
@@ -72,7 +77,7 @@ export default function LoginPage() {
       }
 
       if (data) {
-        router.push('/dashboard')
+        router.push(redirectTo ?? '/dashboard')
         router.refresh()
       }
     } catch {
@@ -93,7 +98,7 @@ export default function LoginPage() {
 
       await createSession(idToken)
 
-      router.push('/')
+      router.push(redirectTo ?? '/')
       router.refresh()
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : ''
@@ -151,6 +156,13 @@ export default function LoginPage() {
 
           <h2 className="text-foreground mb-1 text-lg font-bold">Welcome back</h2>
           <p className="text-muted-foreground mb-6 text-sm">Sign in to your account to continue</p>
+
+          {sessionExpired && !error && (
+            <div className="text-foreground bg-muted border-border mb-4 flex items-center gap-2 rounded-xl border p-3 text-sm">
+              <Info className="text-muted-foreground h-4 w-4 shrink-0" />
+              Your session has expired — please sign in again.
+            </div>
+          )}
 
           {error && (
             <div className="text-semantic-error bg-semantic-error/10 border-semantic-error/30 mb-4 rounded-xl border p-3 text-sm">
@@ -253,5 +265,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   )
 }

@@ -162,6 +162,7 @@ jobs:
       - name: Deploy app
         run: |
           set -a && source .env.production && set +a
+          docker compose down --remove-orphans
           docker compose pull app
           docker compose up -d --no-deps minio
           docker compose up -d --wait --no-deps app

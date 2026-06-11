@@ -3,7 +3,7 @@
 [← Back to README](../../README.md)
 
 > **All testing must be documented.**
-> Test suite: **58 test files / 733 tests — all passing** (`npm test` verified 2026-06-09).
+> Test suite: **58 test files / 733 tests — all passing** (`npm test` verified 2026-06-10).
 
 ---
 
@@ -121,4 +121,4 @@ npm run test:coverage
 npm run test:watch
 ```
 
-**Coverage threshold:** 80%+ across statements, branches, functions, and lines.
+733 tests across 58 suites. Coverage is concentrated on API routes, security utilities, and AI logic; page-level UI shells are exercised via component tests rather than line coverage.
