@@ -20,7 +20,6 @@ services:
     restart: unless-stopped
 
   minio:
-    profiles: ["local"]
     image: minio/minio:latest
     command: server /data --console-address :9001
     environment:

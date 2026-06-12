@@ -1,9 +1,9 @@
 export const swaggerSpec = {
   openapi: '3.0.3',
   info: {
-    title: 'ClassMate2026 API',
+    title: 'ClassMate API',
     version: '1.0.1',
-    description: 'ClassMate2026 REST API - Student Community Platform. ',
+    description: 'ClassMate REST API - Student Community Platform. ',
   },
   servers: [
     { url: 'https://e2526-wads-b4ac.csbihub.id', description: 'Production' },
@@ -197,25 +197,74 @@ export const swaggerSpec = {
         tags: ['forums'],
         summary: 'List forum posts',
         description:
-          'Returns all forum posts, optionally filtered by category. Posts are ordered by creation date descending.',
+          'Returns paginated forum posts with optional search and filters. Posts are ordered by creation date descending. Each post includes a `hasUpvoted` flag for the current user.',
         parameters: [
           {
-            name: 'category',
+            name: 'search',
             in: 'query',
             required: false,
-            description: 'Filter posts by category (e.g., math, cs, physics)',
+            description: 'Search posts by title/content',
             schema: { type: 'string' },
+          },
+          {
+            name: 'userId',
+            in: 'query',
+            required: false,
+            description: 'Filter posts by author user ID',
+            schema: { type: 'string' },
+          },
+          {
+            name: 'page',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, default: 1 },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            description: 'Page size (default 10, max 50)',
+            schema: { type: 'integer', minimum: 1, maximum: 50, default: 10 },
+          },
+          {
+            name: 'hasReplies',
+            in: 'query',
+            required: false,
+            description: 'Filter to posts with (true) or without (false) replies',
+            schema: { type: 'boolean' },
           },
         ],
         responses: {
           '200': {
-            description: 'Array of forum posts',
+            description: 'Paginated forum posts',
             content: {
               'application/json': {
                 schema: {
-                  type: 'array',
-                  items: { $ref: '#/components/schemas/ForumPost' },
+                  type: 'object',
+                  properties: {
+                    posts: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/ForumPost' },
+                    },
+                    meta: {
+                      type: 'object',
+                      properties: {
+                        total: { type: 'integer' },
+                        page: { type: 'integer' },
+                        limit: { type: 'integer' },
+                        pages: { type: 'integer' },
+                      },
+                    },
+                  },
                 },
+              },
+            },
+          },
+          '401': {
+            description: 'Unauthorized',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
               },
             },
           },
@@ -241,15 +290,13 @@ export const swaggerSpec = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['title', 'content', 'category'],
+                required: ['title', 'content'],
                 properties: {
-                  title: { type: 'string', description: 'Post title' },
-                  content: { type: 'string', description: 'Post content (plain text)' },
-                  category: { type: 'string', description: 'Category (e.g., math, cs, physics)' },
-                  tags: {
-                    type: 'array',
-                    items: { type: 'string' },
-                    description: 'Optional tags for the post',
+                  title: { type: 'string', maxLength: 100, description: 'Post title' },
+                  content: {
+                    type: 'string',
+                    maxLength: 500,
+                    description: 'Post content (plain text)',
                   },
                 },
               },
@@ -262,16 +309,12 @@ export const swaggerSpec = {
             content: {
               'application/json': {
                 schema: {
-                  oneOf: [
-                    { $ref: '#/components/schemas/ForumPost' },
-                    {
-                      type: 'object',
-                      properties: {
-                        post: { $ref: '#/components/schemas/ForumPost' },
-                        warning: { $ref: '#/components/schemas/ModerationWarning' },
-                      },
-                    },
-                  ],
+                  type: 'object',
+                  required: ['post'],
+                  properties: {
+                    post: { $ref: '#/components/schemas/ForumPost' },
+                    warning: { $ref: '#/components/schemas/ModerationWarning' },
+                  },
                 },
               },
             },
@@ -319,12 +362,17 @@ export const swaggerSpec = {
         ],
         responses: {
           '200': {
-            description: 'Array of forum replies',
+            description: 'Replies for the post',
             content: {
               'application/json': {
                 schema: {
-                  type: 'array',
-                  items: { $ref: '#/components/schemas/ForumReply' },
+                  type: 'object',
+                  properties: {
+                    replies: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/ForumReply' },
+                    },
+                  },
                 },
               },
             },
@@ -366,16 +414,12 @@ export const swaggerSpec = {
             content: {
               'application/json': {
                 schema: {
-                  oneOf: [
-                    { $ref: '#/components/schemas/ForumReply' },
-                    {
-                      type: 'object',
-                      properties: {
-                        reply: { $ref: '#/components/schemas/ForumReply' },
-                        warning: { $ref: '#/components/schemas/ModerationWarning' },
-                      },
-                    },
-                  ],
+                  type: 'object',
+                  required: ['reply'],
+                  properties: {
+                    reply: { $ref: '#/components/schemas/ForumReply' },
+                    warning: { $ref: '#/components/schemas/ModerationWarning' },
+                  },
                 },
               },
             },
@@ -420,6 +464,54 @@ export const swaggerSpec = {
           '500': { description: 'Internal server error' },
         },
       },
+      patch: {
+        tags: ['forums'],
+        summary: 'Edit forum post',
+        description: 'Updates the title and/or content of a forum post. Only the author can edit.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', maxLength: 100 },
+                  content: { type: 'string', maxLength: 500 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Post updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    post: { $ref: '#/components/schemas/ForumPost' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Unauthorized' },
+          '403': { description: 'Not the post author' },
+          '404': { description: 'Post not found' },
+          '429': { description: 'Rate limit exceeded' },
+          '500': { description: 'Internal server error' },
+        },
+      },
       delete: {
         tags: ['forums'],
         summary: 'Delete forum post',
@@ -455,6 +547,54 @@ export const swaggerSpec = {
     },
 
     '/api/forums/replies/{id}': {
+      patch: {
+        tags: ['forums'],
+        summary: 'Edit forum reply',
+        description: 'Updates the content of a forum reply. Only the author can edit.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['content'],
+                properties: {
+                  content: { type: 'string', maxLength: 300 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Reply updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reply: { $ref: '#/components/schemas/ForumReply' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Unauthorized' },
+          '403': { description: 'Not the reply author' },
+          '404': { description: 'Reply not found' },
+          '429': { description: 'Rate limit exceeded' },
+          '500': { description: 'Internal server error' },
+        },
+      },
       delete: {
         tags: ['forums'],
         summary: 'Delete forum reply',

@@ -5,7 +5,7 @@ import 'swagger-ui-react/swagger-ui.css'
 
 const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false })
 
-export default function ApiDocsPage() {
+export default function DocsPage() {
   return (
     <div
       className="swagger-wrapper"
