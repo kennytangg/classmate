@@ -82,10 +82,10 @@ Tests in `__tests__/ai/` (4 files).
 | Test Case | Input                             | Expected Output                                 | Actual Result     | Status |
 | :-------- | :-------------------------------- | :---------------------------------------------- | :---------------- | :----- |
 | AI-07     | Normal academic post              | `200 OK`, post saved                            | ✓ Saved correctly | Pass   |
-| AI-08     | Post with hate speech             | `403` content blocked                           | ✓ Blocked         | Pass   |
-| AI-09     | Post with spam/promotional text   | `403` content blocked                           | ✓ Blocked         | Pass   |
+| AI-08     | Post with hate speech             | `400` content blocked by moderation             | ✓ Blocked         | Pass   |
+| AI-09     | Post with spam/promotional text   | `400` content blocked by moderation             | ✓ Blocked         | Pass   |
 | AI-10     | Prompt injection in post body     | Content classified by meaning, not instructions | ✓ Blocked         | Pass   |
-| AI-11     | Ollama timeout (mocked)           | `503` fail-closed, post not saved               | ✓ Blocked         | Pass   |
+| AI-11     | Ollama timeout (mocked)           | `400` fail-closed (block), post not saved       | ✓ Blocked         | Pass   |
 | AI-12     | Edge case: all whitespace content | Validation catches before AI call               | ✓ 400 returned    | Pass   |
 
 ### AI Feature: Thread Summarization

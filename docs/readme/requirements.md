@@ -1,10 +1,12 @@
-# 9. User Stories & Software Requirements Specification (USR + SRS)
+# Appendix A — User Stories & Software Requirements Specification (USR + SRS)
 
 [← Back to README](../../README.md)
 
+> Supplementary design appendix for the [Final Project Report](../../README.md). This satisfies the **Architecture Design (USR + SRS)** deliverable and supports [5. System Architecture](./architecture.md).
+
 ---
 
-## 9.1 User Stories
+## A.1 User Stories
 
 ### Authentication & Accounts
 
@@ -76,7 +78,7 @@
 
 ---
 
-## 9.2 Functional Requirements
+## A.2 Functional Requirements
 
 | ID    | Requirement                                                                                                                                               |
 | :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -98,14 +100,14 @@
 
 ---
 
-## 9.3 Non-Functional Requirements
+## A.3 Non-Functional Requirements
 
 | ID     | Category        | Requirement                                                                                                                                       |
 | :----- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
 | NFR-01 | Security        | All user inputs shall be validated with Zod schemas at the API boundary and HTML-sanitized before storage.                                        |
 | NFR-02 | Security        | File uploads shall be validated by magic bytes in addition to the declared MIME type to prevent disguised executable uploads.                     |
 | NFR-03 | Security        | Session cookies shall be HttpOnly, Secure (production), and SameSite=Strict (Firebase) / Lax (Better Auth).                                       |
-| NFR-04 | Security        | All API routes shall be protected by rate limiting (5 tiers); auth endpoints limited to 5 requests per 15 minutes.                                |
+| NFR-04 | Security        | All API routes shall be protected by rate limiting (5 tiers); auth endpoints limited to 10 requests per 15 minutes.                               |
 | NFR-05 | Performance     | The AI Tutor response shall begin streaming within 3 seconds of submission under normal load.                                                     |
 | NFR-06 | Availability    | The application shall expose a `/api/health` endpoint returning `200 OK` when the service is running.                                             |
 | NFR-07 | Maintainability | The codebase shall maintain 80%+ test coverage across statements, branches, functions, and lines.                                                 |

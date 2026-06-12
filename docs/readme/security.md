@@ -65,15 +65,17 @@ Role checks use `lib/authorize.ts` helpers (`requireModerator`, `requireAdmin`, 
 
 ### Rate Limiting
 
-`lib/rate-limit.ts` implements 5 tiers using `rate-limiter-flexible`:
+`lib/rate-limit.ts` implements 5 tiers using `rate-limiter-flexible` (in-memory store):
 
-| Tier     | Endpoints                    | Limit          |
-| :------- | :--------------------------- | :------------- |
-| Strict   | `/api/auth/*`, `/api/logout` | 5 req / 15 min |
-| Standard | Most authenticated endpoints | 60 req / min   |
-| Moderate | Forums, messages             | 30 req / min   |
-| Lenient  | Read-only endpoints          | 120 req / min  |
-| Upload   | `/api/materials` (POST)      | 10 req / hour  |
+| Limiter             | Endpoints                                               | Limit           |
+| :------------------ | :------------------------------------------------------ | :-------------- |
+| `aiLimiter`         | AI Tutor chat, thread summarization                     | 20 req / hour   |
+| `moderationLimiter` | Content moderation checks                               | 60 req / min    |
+| `authLimiter`       | `/api/auth/*`, `/api/logout`                            | 10 req / 15 min |
+| `writeLimiter`      | POST/PATCH/DELETE mutations (forums, messages, uploads) | 30 req / min    |
+| `generalLimiter`    | General authenticated read endpoints                    | 100 req / min   |
+
+On limit breach the limiter returns `429 Too Many Requests` with a `Retry-After` header.
 
 ---
 

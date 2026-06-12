@@ -83,7 +83,7 @@ User submits content (forum post, reply, chat message)
   → Moderate message BEFORE DB write
   → Classify: toxicity_score, spam_score, categories
   → Decision: approve | warn | block
-  → If block → return 400 "Content violates community guidelines"
+  → If block → return 400 "Content blocked by moderation"
   → If approve/warn → proceed to save to DB
 ```
 
