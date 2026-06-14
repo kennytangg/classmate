@@ -12,63 +12,74 @@ Each student must list **their own contribution**. Contributions must match GitH
 
 **Student Name:** Kenny Tang
 
-- Features implemented:
-  - Authentication (Firebase + Better Auth dual-provider)
-  - Database design (Prisma schema, migrations, seed)
-  - User profile & discovery
-  - Connections
-  - Forums (posts, replies, upvotes)
-  - Study groups & group chat
-  - Direct messaging (chat)
-  - Study materials (upload, download, management)
-  - AI Tutor & study material summarization
-  - Scheduling & events
-  - Moderation system & admin dashboard
-  - UI / UX redesign (sidebar, responsive layout, dark/light mode)
-  - Rate limiting & security hardening
+- Features implemented (built on / refactored from the team's early prototype):
+  - Rebuilt authentication into a dual-provider system (Firebase + Better Auth) with a unified `getSession()` resolver
+  - Designed the production database layer (Prisma schema, migrations, seed)
+  - Refactored the forums into full posts / replies / upvotes with categories and views
+  - Hardened study groups & group chat, direct messaging, and study materials (upload, download, management) on top of the early UI
+  - Took the prototype AI Tutor to a production streaming implementation, and added study-material summarization
+  - Built the moderation system & admin dashboard, scheduling & events, user profiles, discovery, and connections
+  - UI / UX redesign across the app (sidebar, responsive layout, dark/light mode)
+  - Consolidated all data access behind ~50 documented REST endpoints (Swagger at `/docs`)
 
-- API endpoints built:
-  - `/api/admin/users`, `/api/admin/users/[id]/role`
-  - `/api/auth/[...all]`, `/api/auth/firebase`, `/api/logout`
-  - `/api/user/me`, `/api/user/profile`, `/api/user/stats`
-  - `/api/users/discover`
-  - `/api/connections`, `/api/connections/[id]`, `/api/connections/count`, `/api/connections/status`
-  - `/api/forums/posts`, `/api/forums/posts/[id]`, `/api/forums/posts/[id]/upvote`
-  - `/api/forums/replies`, `/api/forums/replies/[id]`, `/api/forums/replies/[id]/upvote`
-  - `/api/study-groups`, `/api/study-groups/[groupId]`, `/api/study-groups/[groupId]/join`, `/api/study-groups/[groupId]/messages`
-  - `/api/messages/conversations`, `/api/messages/conversations/[userId]`, `/api/messages/conversations/[userId]/read`, `/api/messages/contacts`
-  - `/api/materials`, `/api/materials/[id]`, `/api/materials/[id]/download`
-  - `/api/sessions`, `/api/sessions/[sessionId]/messages`, `/api/summarize`
-  - `/api/events`, `/api/events/[id]`
-  - `/api/moderation`, `/api/moderation/flag`, `/api/moderation/flagged`, `/api/moderation/resolve`, `/api/moderation/logs`
-  - `/api/recommendations/threads`
-  - `/api/docs` (Swagger UI)
+- API endpoints built: Consolidated and standardized the full REST surface (~50 endpoints across auth, users, connections, forums, study groups, messages, materials, AI sessions/summarize, events, moderation, recommendations, admin) — see [API Design](api-design.md) for the full list.
 
-- Tests written: 58 test suites, 733 tests — covering API routes (auth, forums, materials, messages, study groups, events, connections, moderation, admin), security/authorization boundaries, service layer logic, and frontend component tests
+- Tests written: 58 test suites, 733 tests — covering API routes (auth, forums, materials, messages, study groups, events, connections, moderation, admin), security/authorization boundaries, service-layer logic, AI behavior, and frontend component tests
 
-- Security work: Role-based access control (4 tiers), XSS sanitization, rate limiting on all endpoints, secure file upload handling, fixed multiple ESLint security warnings, resolved auth bypass vulnerabilities, input validation at API boundaries
+- Security work: Role-based access control (4 tiers), XSS sanitization, rate limiting across endpoints, secure file upload handling (magic-byte validation), security headers, resolved auth-bypass issues, and input validation at API boundaries
 
-- AI-related work: Built AI Tutor end-to-end (Ollama gemma4:26b / llama3.1:8b, session management, message persistence), implemented study material summarization endpoint, integrated AI content moderation helper into the moderation pipeline
+- AI-related work: Took the AI Tutor to a production streaming implementation on the BINUS Ollama models (`gemma4:26b` / `llama3.1:8b`) with session management and message persistence, added the summarization endpoint, and built the fail-closed AI content-moderation pipeline
 
 ---
 
 **Student Name:** Richard Hans
 
 - Features implemented:
+  - Initial project scaffolding (Next.js app structure, base layout)
+  - Authentication UI — sign-up / login pages
+  - Home / landing page and feature sections
+  - Dashboard and active-course view
+  - Study groups UI — listing, study room, and group flow (including study-room debugging)
+  - AI Tutor pages and tutor profiles
+  - Research papers / materials browsing UI
+  - Notifications UI
+  - Profile bar, footer, and shared layout components
+
 - API endpoints handled:
+  - Client-side data wiring for the study-group and tutor pages during early development; work was primarily frontend, with most REST endpoints later consolidated by Kenny.
+
 - Tests written:
+  - Manual UI / feature testing of the pages above during early development.
+
 - Security work:
+  - Added `.gitignore` rules to exclude `.env` files and keep secrets out of version control.
+
 - AI-related work:
+  - Built the initial AI Tutor page UI and tutor-profile presentation that the streaming tutor was later wired into.
 
 ---
 
 **Student Name:** Stefan Luciano Kencana
 
 - Features implemented:
+  - AI Tutor chat — initial backend integration and chat interface, including text and voice (`useVoice`) interaction
+  - Authentication login / logout flow and login header
+  - Early backend setup and database migrations
+
 - API endpoints handled:
+  - AI chat backend route — initial Gemini integration, migrated to an OpenAI-compatible / Groq route, later standardized on the BINUS Ollama endpoint by the team
+  - Auth login / logout routing
+
 - Tests written:
+  - Manual testing of the AI chat (text + voice) and the auth login / logout flow during development.
+
 - Security work:
+  - Added `.gitignore` entries for `.env.local` and secret files
+  - Implemented login / logout session handling
+  - Separated admin access in the early backend setup
+
 - AI-related work:
+  - Stood up the first working AI chat backend (text + voice), iterating across providers (Gemini → Groq → OpenAI-compatible) before the team standardized on the self-hosted BINUS Ollama models.
 
 ---
 
@@ -142,8 +153,8 @@ We declare that:
 
 **Signed by Group Members:**
 
-| Name                   | Signature                    |
-| :--------------------- | :--------------------------- |
-| Kenny Tang             | **\*\*\*\***\_\_**\*\*\*\*** |
-| Richard Hans           | **\*\*\*\***\_\_**\*\*\*\*** |
-| Stefan Luciano Kencana | **\*\*\*\***\_\_**\*\*\*\*** |
+| Name                   | Signature                                            |
+| :--------------------- | :--------------------------------------------------- |
+| Kenny Tang             | **\*\*\*\***\__Kenny Tang_\_**\*\*\*\***             |
+| Richard Hans           | **\*\*\*\***\__Richard Hans_\_**\*\*\*\***           |
+| Stefan Luciano Kencana | **\*\*\*\***\__Stefan Luciano Kencana_\_**\*\*\*\*** |
