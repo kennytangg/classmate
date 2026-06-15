@@ -86,9 +86,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 ? `/chat/${n.sourceId}`
                 : n.sourceType === 'group_chat' && n.sourceId
                   ? `/groups/${n.sourceId}`
-                  : n.sourceType === 'connection_request' && n.sourceId
-                    ? `/profile/${n.sourceId}`
-                    : '/notifications'
+                  : n.sourceType === 'connection_request'
+                    ? '/discover'
+                    : n.sourceType === 'event'
+                      ? '/schedule'
+                      : '/notifications'
             toast(n.message, {
               action: { label: 'View', onClick: () => router.push(href) },
             })

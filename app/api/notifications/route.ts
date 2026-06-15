@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth'
+import { generateEventNotifications } from '@/lib/notify'
 import { prisma } from '@/lib/prisma'
 import { checkRateLimit, generalLimiter } from '@/lib/rate-limit'
 
@@ -25,6 +26,12 @@ export async function GET(_req: NextRequest) {
 
     const limited = await checkRateLimit(session.id, generalLimiter)
     if (limited) return limited
+
+    try {
+      await generateEventNotifications(session.id)
+    } catch (error) {
+      console.error('[GET /api/notifications] event notification generation failed', error)
+    }
 
     const notifications = await prisma.notification.findMany({
       where: { userId: session.id },

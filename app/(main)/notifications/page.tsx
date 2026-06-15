@@ -1,27 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NotificationRow } from '@/components/features/notifications/NotificationRow'
 import { useNotifications } from '@/hooks/useNotifications'
-import type { Notification } from '@/hooks/useNotifications'
 
 const PAGE_SIZE = 20
 const NOTIF_POPUPS_KEY = 'classmate_notif_popups'
 
 export default function NotificationsPage() {
-  const router = useRouter()
-  const {
-    notifications,
-    unreadCount,
-    markRead,
-    markAllRead,
-    deleteNotification,
-    deleteAllRead,
-    refresh,
-  } = useNotifications()
+  const { notifications, unreadCount, markAllRead, deleteNotification, deleteAllRead, refresh } =
+    useNotifications()
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [popupsEnabled, setPopupsEnabled] = useState(true)
 
@@ -38,19 +28,6 @@ export default function NotificationsPage() {
     const next = !popupsEnabled
     setPopupsEnabled(next)
     localStorage.setItem(NOTIF_POPUPS_KEY, String(next))
-  }
-
-  function sourceUrl(n: Notification): string {
-    if (n.sourceType === 'chat' && n.sourceId) return `/chat/${n.sourceId}`
-    if (n.sourceType === 'group_chat' && n.sourceId) return `/groups/${n.sourceId}`
-    if (n.sourceType === 'forum_reply' && n.sourceId) return `/forums/${n.sourceId}`
-    if (n.sourceType === 'connection_request' && n.sourceId) return `/profile/${n.sourceId}`
-    return '/notifications'
-  }
-
-  async function handleClick(n: Notification) {
-    if (!n.isRead) await markRead(n.id)
-    router.push(sourceUrl(n))
   }
 
   const visible = notifications.slice(0, visibleCount)
@@ -99,7 +76,7 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div className="border-border border-t">
+      <div className="border-border border-t pt-2">
         {visible.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
             <Bell className="text-muted-foreground/30 h-10 w-10" />
@@ -107,16 +84,17 @@ export default function NotificationsPage() {
             <p className="text-muted-foreground/60 text-sm">New notifications will appear here</p>
           </div>
         ) : (
-          visible.map((n) => (
-            <NotificationRow
-              key={n.id}
-              notification={n}
-              onClick={handleClick}
-              onDelete={(n) => {
-                void deleteNotification(n.id)
-              }}
-            />
-          ))
+          <div className="space-y-1">
+            {visible.map((n) => (
+              <NotificationRow
+                key={n.id}
+                notification={n}
+                onDelete={(n) => {
+                  void deleteNotification(n.id)
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
 

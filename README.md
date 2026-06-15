@@ -21,8 +21,8 @@
 | Name                   | Student ID | Role                 | GitHub Username                                        |
 | :--------------------- | :--------- | :------------------- | :----------------------------------------------------- |
 | Kenny Tang             | 2802517733 | Full-Stack Developer | [@kennytangg](https://github.com/kennytangg)           |
-| Richard Hans           | 2802516384 | Full-Stack Developer | [@richardhans8888](https://github.com/richardhans8888) |
-| Stefan Luciano Kencana | 2802521314 | Full-Stack Developer | [@Krozlov](https://github.com/Krozlov)                 |
+| Richard Hans           | 2802516384 | Frontend Development | [@richardhans8888](https://github.com/richardhans8888) |
+| Stefan Luciano Kencana | 2802521314 | AI Development       | [@Krozlov](https://github.com/Krozlov)                 |
 
 ---
 
@@ -103,5 +103,3 @@ This README follows the official final-project report template. Sections 1, 3, a
 **Production URL:** https://e2526-wads-b4ac.csbihub.id/
 
 **API Documentation (Swagger):** https://e2526-wads-b4ac.csbihub.id/docs
-
-**Presentation Video:** COMING SOON
