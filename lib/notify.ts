@@ -27,7 +27,7 @@ function computeEventStart(date: Date, startTime: string | null): Date {
   if (!match) return date
 
   const start = new Date(date)
-  start.setHours(Number(match[1]), Number(match[2]), 0, 0)
+  start.setUTCHours(Number(match[1]), Number(match[2]), 0, 0)
   return start
 }
 
@@ -56,22 +56,34 @@ export async function generateEventNotifications(userId: string): Promise<void> 
     select: { id: true, title: true, date: true, startTime: true },
   })
 
-  for (const event of events) {
+  // Filter to events that have started within the lookback window
+  const started = events.filter((event) => {
     const start = computeEventStart(event.date, event.startTime)
-    if (start > now || start <= cutoff) continue
+    return start <= now && start > cutoff
+  })
 
-    const existing = await prisma.notification.findFirst({
-      where: { userId, sourceType: 'event', sourceId: event.id },
-      select: { id: true },
-    })
-    if (existing) continue
+  if (started.length === 0) return
 
-    await createNotification({
+  // Single query to find which events already have notifications (avoids N+1)
+  const existing = await prisma.notification.findMany({
+    where: { userId, sourceType: 'event', sourceId: { in: started.map((e) => e.id) } },
+    select: { sourceId: true },
+  })
+  const alreadyNotified = new Set(existing.map((n) => n.sourceId))
+
+  const toCreate = started.filter((e) => !alreadyNotified.has(e.id))
+  if (toCreate.length === 0) return
+
+  // skipDuplicates guards against the race where two concurrent polls both
+  // pass the in-memory check and hit the DB simultaneously.
+  await prisma.notification.createMany({
+    data: toCreate.map((event) => ({
       userId,
       type: 'event',
       message: `Your session "${event.title}" is starting now`,
       sourceType: 'event',
       sourceId: event.id,
-    })
-  }
+    })),
+    skipDuplicates: true,
+  })
 }

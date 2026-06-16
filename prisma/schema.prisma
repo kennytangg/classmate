@@ -420,6 +420,7 @@ model Notification {
   sourceId   String?
   createdAt  DateTime @default(now())
 
+  @@unique([userId, sourceType, sourceId])
   @@index([userId, isRead])
   @@index([createdAt])
 }

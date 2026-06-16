@@ -43,6 +43,7 @@ async function main() {
 
   // ── Clear existing data (in FK-safe order) ─────────────────────────────────
   console.warn('  Clearing existing data...')
+  await prisma.notification.deleteMany()
   await prisma.moderationLog.deleteMany()
   await prisma.flaggedContent.deleteMany()
   await prisma.connection.deleteMany()
@@ -1489,6 +1490,134 @@ async function main() {
     }),
   ])
 
+  // ── Notifications ──────────────────────────────────────────────────────────
+  // Mirrors real seeded activity (pending connections, unread DMs, forum replies)
+  // so each demo account shows a realistic bell badge on login.
+  // NOTE: Notification has @@unique([userId, sourceType, sourceId]); keys below are
+  // distinct per user. (event notifications are generated lazily on poll, not seeded.)
+  console.warn('  Creating notifications...')
+  const hoursAgo = (n: number) => new Date(Date.now() - n * 60 * 60 * 1000)
+  await prisma.notification.createMany({
+    data: [
+      // Evan (OWNER) — primary demo login
+      {
+        userId: evan.id,
+        type: 'connection_request',
+        message: 'Fiona Lee sent you a connection request',
+        sourceType: 'connection_request',
+        sourceId: fiona.id,
+        isRead: false,
+        createdAt: hoursAgo(2),
+      },
+      {
+        userId: evan.id,
+        type: 'forum_reply',
+        message: `Carol Williams replied to your post "${posts[6].title.slice(0, 50)}"`,
+        sourceType: 'forum_reply',
+        sourceId: posts[6].id,
+        isRead: false,
+        createdAt: hoursAgo(6),
+      },
+      // Alice (STUDENT) — demo login
+      {
+        userId: alice.id,
+        type: 'forum_reply',
+        message: `Carol Williams replied to your post "${posts[0].title.slice(0, 50)}"`,
+        sourceType: 'forum_reply',
+        sourceId: posts[0].id,
+        isRead: false,
+        createdAt: hoursAgo(1),
+      },
+      {
+        userId: alice.id,
+        type: 'connection_request',
+        message: 'Hannah Johnson sent you a connection request',
+        sourceType: 'connection_request',
+        sourceId: hannah.id,
+        isRead: true,
+        createdAt: hoursAgo(50),
+      },
+      // Carol (MODERATOR / tutor) — demo login
+      {
+        userId: carol.id,
+        type: 'chat',
+        message: 'Alice Chen sent you a message',
+        sourceType: 'chat',
+        sourceId: alice.id,
+        isRead: false,
+        createdAt: hoursAgo(3),
+      },
+      {
+        userId: carol.id,
+        type: 'forum_reply',
+        message: `Diana Martinez replied to your post "${posts[3].title.slice(0, 50)}"`,
+        sourceType: 'forum_reply',
+        sourceId: posts[3].id,
+        isRead: true,
+        createdAt: hoursAgo(20),
+      },
+      // George (MODERATOR / tutor)
+      {
+        userId: george.id,
+        type: 'connection_request',
+        message: 'Diana Martinez sent you a connection request',
+        sourceType: 'connection_request',
+        sourceId: diana.id,
+        isRead: false,
+        createdAt: hoursAgo(8),
+      },
+      {
+        userId: george.id,
+        type: 'chat',
+        message: 'Diana Martinez sent you a message',
+        sourceType: 'chat',
+        sourceId: diana.id,
+        isRead: true,
+        createdAt: hoursAgo(30),
+      },
+      // Bob (STUDENT)
+      {
+        userId: bob.id,
+        type: 'forum_reply',
+        message: `Carol Williams replied to your post "${posts[1].title.slice(0, 50)}"`,
+        sourceType: 'forum_reply',
+        sourceId: posts[1].id,
+        isRead: false,
+        createdAt: hoursAgo(4),
+      },
+      {
+        userId: bob.id,
+        type: 'chat',
+        message: 'Fiona Lee sent you a message',
+        sourceType: 'chat',
+        sourceId: fiona.id,
+        isRead: true,
+        createdAt: hoursAgo(26),
+      },
+      // Diana (STUDENT)
+      {
+        userId: diana.id,
+        type: 'forum_reply',
+        message: `Carol Williams replied to your post "${posts[5].title.slice(0, 50)}"`,
+        sourceType: 'forum_reply',
+        sourceId: posts[5].id,
+        isRead: false,
+        createdAt: hoursAgo(7),
+      },
+      // Fiona (STUDENT)
+      {
+        userId: fiona.id,
+        type: 'forum_reply',
+        message: `Carol Williams replied to your post "${posts[2].title.slice(0, 50)}"`,
+        sourceType: 'forum_reply',
+        sourceId: posts[2].id,
+        isRead: true,
+        createdAt: hoursAgo(40),
+      },
+    ],
+    skipDuplicates: true,
+  })
+
   // ── Summary ────────────────────────────────────────────────────────────────
   console.warn('\n✅  Seed complete!\n')
   console.warn('  Seeded:')
@@ -1499,13 +1628,13 @@ async function main() {
   console.warn(`    ${replies.length} forum replies`)
   console.warn(`    10 study groups + members`)
   console.warn(`    0 study materials (upload via UI after deployment)`)
-  console.warn(`    4 AI tutor chat sessions + messages`)
   console.warn(`    7 direct messages`)
   console.warn(`    14 study group messages (React/Algo/DB groups)`)
-  console.warn(`    10 events`)
+  console.warn(`    9 events`)
   console.warn(`    8 user connections (6 accepted, 2 pending)`)
-  console.warn(`    2 flagged content records`)
-  console.warn(`    10 moderation log entries`)
+  console.warn(`    6 flagged content records (5 pending, 1 resolved)`)
+  console.warn(`    5 moderation log entries`)
+  console.warn(`    11 notifications (7 unread across demo accounts)`)
   console.warn('\n  Login credentials (all accounts use password: password)')
   console.warn('    owner  → evan@classmate.dev')
   console.warn('    tutor  → carol@classmate.dev or george@classmate.dev')
