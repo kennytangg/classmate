@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { Loader2, Camera } from 'lucide-react'
+import { getAvatarColor } from '@/lib/utils/avatarColor'
 
 type ProfileData = {
   id: string
@@ -25,27 +26,6 @@ type MeData = {
   image: string | null
   avatarUrl: string | null
   role: string
-}
-
-const AVATAR_COLORS = [
-  'bg-violet-500',
-  'bg-blue-500',
-  'bg-emerald-500',
-  'bg-rose-500',
-  'bg-amber-500',
-  'bg-cyan-500',
-  'bg-fuchsia-500',
-  'bg-orange-500',
-  'bg-teal-500',
-  'bg-indigo-500',
-]
-
-function getAvatarColor(seed: string): string {
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
-  }
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length] as string
 }
 
 export default function ProfilePage() {

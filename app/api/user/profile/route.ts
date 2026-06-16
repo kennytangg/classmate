@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { checkRateLimit, generalLimiter, writeLimiter, getClientIp } from '@/lib/rate-limit'
 import { getErrorResponse, zodErrorToString } from '@/lib/errors'
 import { updateProfileSchema } from '@/lib/schemas'
+import { getSession } from '@/lib/auth'
 
 // GET /api/user/profile?userId=xxx
 export async function GET(req: NextRequest) {
@@ -44,7 +45,10 @@ export async function GET(req: NextRequest) {
 
 // PATCH /api/user/profile — update profile
 export async function PATCH(req: NextRequest) {
-  const limited = await checkRateLimit(getClientIp(req), writeLimiter)
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const limited = await checkRateLimit(session.id, writeLimiter)
   if (limited) return limited
 
   const parsed = updateProfileSchema.safeParse(await req.json())
@@ -52,6 +56,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: zodErrorToString(parsed.error) }, { status: 400 })
   }
   const { userId, displayName, bio, university, major, avatarUrl } = parsed.data
+
+  if (userId !== session.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   try {
     const profile = await prisma.userProfile.upsert({

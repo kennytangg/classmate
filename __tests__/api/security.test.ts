@@ -55,6 +55,10 @@ afterEach(() => {
 // ─── XSS Payload Handling ─────────────────────────────────────────────────────
 
 describe('XSS payload handling', () => {
+  beforeEach(() => {
+    ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1' })
+  })
+
   it('stores an XSS payload in display_name without executing it', async () => {
     const xssPayload = '<script>alert("xss")</script>'
 
@@ -136,6 +140,7 @@ describe('authentication enforcement', () => {
 
 describe('authorization enforcement', () => {
   it('returns 400 when PATCH /api/user/profile is missing userId', async () => {
+    ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1' })
     const req = new NextRequest('http://localhost/api/user/profile', {
       method: 'PATCH',
       body: JSON.stringify({

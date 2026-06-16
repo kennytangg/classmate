@@ -2,7 +2,16 @@
 import { NextRequest } from 'next/server'
 import { GET, PATCH } from '@/app/api/user/profile/route'
 
+jest.mock('@/lib/auth', () => ({ getSession: jest.fn() }))
 jest.mock('@/lib/prisma')
+jest.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: jest.fn().mockResolvedValue(null),
+  getClientIp: jest.fn().mockReturnValue(null),
+  writeLimiter: {},
+  generalLimiter: {},
+}))
+
+import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 afterEach(() => {
@@ -30,6 +39,10 @@ describe('GET /api/user/profile', () => {
 })
 
 describe('PATCH /api/user/profile', () => {
+  beforeEach(() => {
+    ;(getSession as jest.Mock).mockResolvedValue({ id: 'user-1' })
+  })
+
   it('returns 400 when userId is missing from request body', async () => {
     const req = new NextRequest('http://localhost/api/user/profile', {
       method: 'PATCH',

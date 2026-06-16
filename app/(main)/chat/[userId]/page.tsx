@@ -4,27 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, use } from 'react'
 import { Button } from '@/components/ui/button'
 import { Send, ArrowLeft, Loader2, Paperclip, X, FileText, Download, UserPlus } from 'lucide-react'
 import Link from 'next/link'
-
-const AVATAR_COLORS = [
-  'bg-violet-500',
-  'bg-blue-500',
-  'bg-emerald-500',
-  'bg-rose-500',
-  'bg-amber-500',
-  'bg-cyan-500',
-  'bg-fuchsia-500',
-  'bg-orange-500',
-  'bg-teal-500',
-  'bg-indigo-500',
-]
-
-function getAvatarColor(seed: string): string {
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
-  }
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length] ?? 'bg-violet-500'
-}
+import { getAvatarColor } from '@/lib/utils/avatarColor'
 
 const POLL_INTERVAL_MS = 5000
 const MAX_FILE_SIZE = 10 * 1024 * 1024
