@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { moderateContent } from '@/lib/moderation'
 import { aiLimiter, checkRateLimit } from '@/lib/rate-limit'
 import { chatRequestSchema } from '@/lib/schemas'
+import { resolveModelId } from '@/lib/ai-models'
 import { zodErrorToString } from '@/lib/errors'
 
 const EXT_TO_MIME: Record<string, string> = {
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
         : zodErrorToString(parsed.error)
       return NextResponse.json({ error: errorMsg }, { status: 400 })
     }
-    const { messages, sessionId: providedSessionId } = parsed.data
+    const { messages, sessionId: providedSessionId, model: modelKey } = parsed.data
 
     type ContentPart =
       | { type: 'text'; text: string }
@@ -136,7 +137,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: process.env.OLLAMA_MODEL ?? 'gemma4:26b',
+        model: modelKey ? resolveModelId(modelKey) : (process.env.OLLAMA_MODEL ?? 'gemma4:26b'),
         stream: true,
         messages: [
           {

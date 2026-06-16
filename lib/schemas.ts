@@ -125,6 +125,7 @@ const chatMessageSchema = z.object({
 export const chatRequestSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
   sessionId: z.string().optional(),
+  model: z.enum(['flash', 'thinking']).optional(),
 })
 
 // ── Sessions ───────────────────────────────────────────────────────────────

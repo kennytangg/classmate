@@ -148,7 +148,7 @@ describe('ChatInterface component', () => {
     await userEvent.type(input, 'What is a closure?')
     await userEvent.keyboard('{Enter}')
 
-    expect(sendMessage).toHaveBeenCalledWith('What is a closure?', undefined)
+    expect(sendMessage).toHaveBeenCalledWith('What is a closure?', undefined, expect.any(String))
   })
 
   it('calls sendMessage when a suggested prompt chip is clicked', async () => {
@@ -156,7 +156,11 @@ describe('ChatInterface component', () => {
     render(<ChatInterface {...defaultProps} sendMessage={sendMessage} />)
 
     await userEvent.click(screen.getByText(/big o notation/i))
-    expect(sendMessage).toHaveBeenCalledWith('Explain Big O notation with examples')
+    expect(sendMessage).toHaveBeenCalledWith(
+      'Explain Big O notation with examples',
+      undefined,
+      expect.any(String)
+    )
   })
 
   it('displays an error message when the error prop is set', () => {

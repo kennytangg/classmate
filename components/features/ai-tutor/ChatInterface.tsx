@@ -12,6 +12,8 @@ import rehypeKatex from 'rehype-katex'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { nord } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import type { Message } from '../../../hooks/useChat'
+import type { AiModelKey } from '@/lib/ai-models'
+import { AI_MODELS, DEFAULT_MODEL_KEY } from '@/lib/ai-models'
 
 // Normalise AI response quirks before passing to the markdown parser.
 function preprocessContent(content: string): string {
@@ -67,7 +69,7 @@ interface ChatInterfaceProps {
   isLoading: boolean
   isLoadingHistory?: boolean
   error: string | null
-  sendMessage: (content: string, imageUrl?: string) => void
+  sendMessage: (content: string, imageUrl?: string, modelKey?: AiModelKey) => void
   onRegenerate?: () => void
 }
 
@@ -270,6 +272,13 @@ export function ChatInterface({
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null)
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [selectedModel, setSelectedModel] = useState<AiModelKey>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('classmate_ai_model')
+      if (saved === 'flash' || saved === 'thinking') return saved
+    }
+    return DEFAULT_MODEL_KEY
+  })
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -350,7 +359,7 @@ export function ChatInterface({
     const text = input
     setInput('')
     clearPendingImage()
-    sendMessage(text, imageUrl)
+    sendMessage(text, imageUrl, selectedModel)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -399,7 +408,7 @@ export function ChatInterface({
                   {SUGGESTED_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
-                      onClick={() => sendMessage(prompt)}
+                      onClick={() => sendMessage(prompt, undefined, selectedModel)}
                       className="border-border bg-muted hover:bg-accent text-foreground rounded-full border px-4 py-2 text-xs transition-colors"
                     >
                       {prompt}
@@ -545,6 +554,24 @@ export function ChatInterface({
                 className="text-foreground placeholder-muted-foreground flex-1 bg-transparent text-sm focus:outline-none"
                 disabled={isLoading || isUploading}
               />
+              <select
+                value={selectedModel}
+                onChange={(e) => {
+                  const key = e.target.value as AiModelKey
+                  setSelectedModel(key)
+                  localStorage.setItem('classmate_ai_model', key)
+                }}
+                disabled={isLoading || isUploading}
+                className="text-muted-foreground cursor-pointer bg-transparent text-xs focus:outline-none disabled:opacity-40"
+                aria-label="Select AI model"
+                title="Select AI model"
+              >
+                {AI_MODELS.map((m) => (
+                  <option key={m.key} value={m.key}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={() => void handleSend()}
                 disabled={isLoading || isUploading || (!input.trim() && !pendingImageFile)}

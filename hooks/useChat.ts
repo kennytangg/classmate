@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo } from 'react'
+import type { AiModelKey } from '@/lib/ai-models'
+import { DEFAULT_MODEL_KEY } from '@/lib/ai-models'
 
 export interface Message {
   id: string
@@ -76,7 +78,12 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
   }, [initialSessionId, loadMessages])
 
   const sendMessageInternal = useCallback(
-    async (content: string, contextOverride?: Message[], imageUrl?: string) => {
+    async (
+      content: string,
+      contextOverride?: Message[],
+      imageUrl?: string,
+      modelKey?: AiModelKey
+    ) => {
       if (!content.trim() && !imageUrl) return
       const thisKey = activeSessionId ?? NEW_CHAT_KEY
       if (streamingSessionId === thisKey) return
@@ -132,6 +139,7 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
                 : m.content,
             })),
             sessionId: activeSessionId,
+            model: modelKey ?? DEFAULT_MODEL_KEY,
           }),
         })
 
@@ -231,7 +239,8 @@ export function useChat({ sessionId: initialSessionId }: UseChatOptions = {}) {
   )
 
   const sendMessage = useCallback(
-    (content: string, imageUrl?: string) => sendMessageInternal(content, undefined, imageUrl),
+    (content: string, imageUrl?: string, modelKey?: AiModelKey) =>
+      sendMessageInternal(content, undefined, imageUrl, modelKey),
     [sendMessageInternal]
   )
 
