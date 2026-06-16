@@ -104,7 +104,6 @@ jobs:
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       IMAGE_TAG: ${{ github.sha }}
-      DOCKER_HOST: unix:///var/run/docker.sock
 
     steps:
       - name: Checkout Repository
@@ -162,7 +161,7 @@ jobs:
       - name: Deploy app
         run: |
           set -a && source .env.production && set +a
-          docker compose down --remove-orphans
+          docker compose down
           docker compose pull app
           docker compose up -d --no-deps minio
           docker compose up -d --wait --no-deps app
@@ -189,5 +188,6 @@ jobs:
 
       - name: Cleanup old images
         run: |
-          docker image prune -f
-          docker images ${{ secrets.DOCKER_USERNAME }}/classmate --format "{{.Repository}}:{{.Tag}}" | grep -v latest | xargs -r docker rmi || true
+          docker images ${{ secrets.DOCKER_USERNAME }}/classmate --format "{{.Repository}}:{{.Tag}}" \
+            | grep -v ':latest$' | grep -v ":${{ github.sha }}$" \
+            | xargs -r docker rmi || true
