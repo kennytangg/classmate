@@ -80,40 +80,40 @@
 
 ## A.2 Functional Requirements
 
-| ID    | Requirement                                                                                                                                               |
-| :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-01 | The system shall support registration via email/password (Better Auth) and Google OAuth (Firebase).                                                       |
-| FR-02 | The system shall maintain authenticated sessions via HttpOnly cookies and validate the session on every protected API request.                            |
-| FR-03 | The system shall enforce four role levels: `STUDENT`, `MODERATOR`, `ADMIN`, `OWNER`, with access controls at the API layer.                               |
-| FR-04 | The system shall provide a forum with category-based threads, replies, upvotes, and view count tracking.                                                  |
-| FR-05 | Every forum post and reply shall be screened by an AI moderation model (Ollama `llama3.1:8b`) before being saved; a harmful result shall block the write. |
-| FR-06 | The system shall provide an AI Tutor that streams responses from Ollama `gemma4:26b`, supports image attachments, and persists sessions to the database.  |
-| FR-07 | The system shall provide AI thread summarization (Ollama `llama3.1:8b`, non-streaming) returning a 2–3 sentence summary.                                  |
-| FR-08 | The system shall provide algorithmic thread recommendations based on recency, engagement, and user history.                                               |
-| FR-09 | The system shall provide study group creation, membership management, and group chat (polling-based).                                                     |
-| FR-10 | The system shall provide direct messaging between students with unread-message tracking.                                                                  |
-| FR-11 | The system shall allow file uploads validated by magic bytes; accepted types are PDF, PNG, JPG, WebP, GIF, MP4, and plain text.                           |
-| FR-12 | The system shall provide a connection system (send, accept, reject) and student discovery with search.                                                    |
-| FR-13 | The system shall provide event/scheduling management per user.                                                                                            |
-| FR-14 | The system shall provide a moderation dashboard (flagged queue, audit log) accessible to MODERATOR+ roles.                                                |
-| FR-15 | The system shall provide an admin panel (user list, role management) accessible to ADMIN+ roles.                                                          |
+| ID    | Requirement                                                                                                                                                                                                                                                     |
+| :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR-01 | The system shall support registration via email/password (Better Auth) and Google OAuth (Firebase).                                                                                                                                                             |
+| FR-02 | The system shall maintain authenticated sessions via HttpOnly cookies and validate the session on every protected API request.                                                                                                                                  |
+| FR-03 | The system shall enforce four role levels: `STUDENT`, `MODERATOR`, `ADMIN`, `OWNER`, with access controls at the API layer.                                                                                                                                     |
+| FR-04 | The system shall provide a forum with category-based threads, replies, upvotes, and view count tracking.                                                                                                                                                        |
+| FR-05 | Every forum post and reply shall be screened by an AI moderation model (Ollama `llama3.1:8b`) before being saved; a harmful result shall block the write.                                                                                                       |
+| FR-06 | The system shall provide an AI Tutor that streams responses from Ollama `gemma4:26b`, supports image attachments, and persists sessions to the database.                                                                                                        |
+| FR-07 | The system shall provide AI thread summarization (Ollama `llama3.1:8b`, non-streaming) returning a 2–3 sentence summary.                                                                                                                                        |
+| FR-08 | The system shall provide algorithmic thread recommendations based on recency, engagement, and user history.                                                                                                                                                     |
+| FR-09 | The system shall provide study group creation, membership management, and group chat (polling-based).                                                                                                                                                           |
+| FR-10 | The system shall provide direct messaging between students with unread-message tracking.                                                                                                                                                                        |
+| FR-11 | The system shall allow file uploads restricted to an extension allowlist with magic-byte signature checks on binary types; accepted types are PDF, Office documents (DOC/DOCX, PPT/PPTX, XLS/XLSX), ZIP, plain text (TXT/MD), and images (JPG/JPEG, PNG, WebP). |
+| FR-12 | The system shall provide a connection system (send, accept, reject) and student discovery with search.                                                                                                                                                          |
+| FR-13 | The system shall provide event/scheduling management per user.                                                                                                                                                                                                  |
+| FR-14 | The system shall provide a moderation dashboard (flagged queue, audit log) accessible to MODERATOR+ roles.                                                                                                                                                      |
+| FR-15 | The system shall provide an admin panel (user list, role management) accessible to ADMIN+ roles.                                                                                                                                                                |
 
 ---
 
 ## A.3 Non-Functional Requirements
 
-| ID     | Category        | Requirement                                                                                                                                       |
-| :----- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| NFR-01 | Security        | All user inputs shall be validated with Zod schemas at the API boundary and HTML-sanitized before storage.                                        |
-| NFR-02 | Security        | File uploads shall be validated by magic bytes in addition to the declared MIME type to prevent disguised executable uploads.                     |
-| NFR-03 | Security        | Session cookies shall be HttpOnly, Secure (production), and SameSite=Strict (Firebase) / Lax (Better Auth).                                       |
-| NFR-04 | Security        | All API routes shall be protected by rate limiting (5 tiers); auth endpoints limited to 10 requests per 15 minutes.                               |
-| NFR-05 | Performance     | The AI Tutor response shall begin streaming within 3 seconds of submission under normal load.                                                     |
-| NFR-06 | Availability    | The application shall expose a `/api/health` endpoint returning `200 OK` when the service is running.                                             |
-| NFR-07 | Maintainability | The codebase shall maintain 80%+ test coverage across statements, branches, functions, and lines.                                                 |
-| NFR-08 | Reliability     | AI content moderation shall be fail-closed: if the moderation model is unavailable or returns a malformed response, the content write is blocked. |
-| NFR-09 | Scalability     | The data layer shall use indexed queries for all hot read paths (feeds, DM inbox, unread counts) to support growth without full-table scans.      |
-| NFR-10 | Compliance      | The application shall not store or log Firebase private keys, MinIO credentials, or database URLs in source code or container images.             |
+| ID     | Category        | Requirement                                                                                                                                                                                                                                                                                    |
+| :----- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR-01 | Security        | All user inputs shall be validated with Zod schemas at the API boundary and HTML-sanitized before storage.                                                                                                                                                                                     |
+| NFR-02 | Security        | File uploads shall be validated by magic bytes in addition to the declared MIME type to prevent disguised executable uploads.                                                                                                                                                                  |
+| NFR-03 | Security        | Session cookies shall be HttpOnly, Secure (production), and SameSite=Strict (Firebase) / Lax (Better Auth).                                                                                                                                                                                    |
+| NFR-04 | Security        | All API routes shall be protected by rate limiting (5 tiers); auth endpoints limited to 10 requests per 15 minutes.                                                                                                                                                                            |
+| NFR-05 | Performance     | The AI Tutor response shall begin streaming within 3 seconds of submission under normal load.                                                                                                                                                                                                  |
+| NFR-06 | Availability    | The application shall expose a `/api/health` endpoint returning `200 OK` when the service is running.                                                                                                                                                                                          |
+| NFR-07 | Maintainability | The codebase shall maintain a documented automated test suite (745 tests / 59 suites) covering API routes, security boundaries, and AI behavior, with frontend forms covered via component tests. Coverage is concentrated on risk-bearing paths rather than a fixed line-coverage percentage. |
+| NFR-08 | Reliability     | AI content moderation shall be fail-closed: if the moderation model is unavailable or returns a malformed response, the content write is blocked.                                                                                                                                              |
+| NFR-09 | Scalability     | The data layer shall use indexed queries for all hot read paths (feeds, DM inbox, unread counts) to support growth without full-table scans.                                                                                                                                                   |
+| NFR-10 | Compliance      | The application shall not store or log Firebase private keys, MinIO credentials, or database URLs in source code or container images.                                                                                                                                                          |
 
 ---
 
