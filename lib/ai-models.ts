@@ -1,6 +1,6 @@
 export type AiModelKey = 'flash' | 'thinking'
 
-export interface AiModel {
+interface AiModel {
   key: AiModelKey
   label: string
   description: string
@@ -20,8 +20,6 @@ export const AI_MODELS: AiModel[] = [
 ]
 
 export const DEFAULT_MODEL_KEY: AiModelKey = 'flash'
-
-export const AI_MODEL_KEYS = ['flash', 'thinking'] as const
 
 export function resolveModelId(key: AiModelKey): string {
   if (key === 'flash') return 'llama3.1:8b'

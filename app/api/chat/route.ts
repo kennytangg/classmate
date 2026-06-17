@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     // Moderate the user's message before any DB writes
     const lastMessage = messages[messages.length - 1]
     if (lastMessage?.role === 'user') {
-      const moderation = await moderateContent(extractText(lastMessage.content))
+      const moderation = await moderateContent(extractText(lastMessage.content), { failOpen: true })
       if (moderation.action === 'block') {
         return NextResponse.json(
           {

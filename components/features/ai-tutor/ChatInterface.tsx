@@ -293,6 +293,10 @@ export function ChatInterface({
     }
   }, [messages])
 
+  useEffect(() => {
+    if (error) toast.error(error)
+  }, [error])
+
   function attachFile(file: File) {
     if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
       toast.error('Only images are supported', {
@@ -381,12 +385,6 @@ export function ChatInterface({
 
         <div ref={chatBoxRef} className="h-full overflow-x-hidden overflow-y-auto">
           <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-6 px-6 pt-10 pb-4">
-            {error && (
-              <div className="bg-semantic-error/10 text-semantic-error rounded-xl p-3 text-center text-sm">
-                {error}
-              </div>
-            )}
-
             {isLoadingHistory && (
               <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center opacity-50">
                 <p className="text-muted-foreground text-sm">Loading conversation...</p>

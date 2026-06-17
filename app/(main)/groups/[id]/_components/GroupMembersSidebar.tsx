@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowLeft, Check, Copy, Loader2, LogOut, RefreshCw, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { getAvatarColor } from '@/lib/utils/avatarColor'
 
 interface Member {
@@ -53,10 +54,21 @@ export function GroupMembersSidebar({
     setRegenerating(true)
     try {
       const res = await fetch(`/api/study-groups/${groupId}/invite-code`, { method: 'POST' })
-      const data = (await res.json()) as { inviteCode?: string }
-      if (res.ok && data.inviteCode) setInviteCode(data.inviteCode)
+      const data = (await res.json()) as { inviteCode?: string; error?: string }
+      if (res.ok && data.inviteCode) {
+        setInviteCode(data.inviteCode)
+      } else {
+        const retryAfter = res.headers.get('Retry-After')
+        const secs = retryAfter ? parseInt(retryAfter) : 3600
+        const mins = Math.ceil(secs / 60)
+        toast.error(
+          res.status === 429
+            ? `Too many requests. Try again in ${mins} minute${mins === 1 ? '' : 's'}.`
+            : (data.error ?? 'Failed to regenerate invite code')
+        )
+      }
     } catch {
-      // silent
+      toast.error('Failed to regenerate invite code')
     } finally {
       setRegenerating(false)
     }
