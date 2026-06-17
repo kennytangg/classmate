@@ -391,6 +391,12 @@ export function ChatInterface({
               </div>
             )}
 
+            {error && (
+              <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-xl border px-4 py-3 text-sm">
+                {error}
+              </div>
+            )}
+
             {messages.length === 0 && !isLoading && !isLoadingHistory && (
               <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
