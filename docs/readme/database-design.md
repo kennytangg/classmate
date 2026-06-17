@@ -117,7 +117,7 @@
 
 #### `ChatSession` — AI tutor conversation container
 
-`title`, `subject`, `description`, `messages: ChatMessage[]`. Indexed on `userId` and `createdAt`.
+`title`, `description`, `messages: ChatMessage[]`. Indexed on `userId` and `createdAt`.
 
 ---
 
@@ -125,7 +125,7 @@
 
 | Model               | Purpose             | Key Fields                                                                |
 | :------------------ | :------------------ | :------------------------------------------------------------------------ |
-| `StudyMaterial`     | Uploaded resource   | `title`, `fileUrl`, `subject`, `fileType`, `downloads`                    |
+| `StudyMaterial`     | Uploaded resource   | `title`, `fileUrl`, `fileType`, `fileSize`, `downloads`                   |
 | `StudyGroup`        | Collaboration group | `name`, `subject`, `maxMembers`, `isPrivate`, `inviteCode`, `memberCount` |
 | `StudyGroupMember`  | Membership          | `@@unique([groupId, userId])`, `role` (`owner`/`member`), `joinedAt`      |
 | `StudyGroupMessage` | Group chat          | `groupId`, `senderId`, `content`                                          |

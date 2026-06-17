@@ -3,7 +3,7 @@
 [← Back to README](../../README.md)
 
 > **All testing must be documented.**
-> Test suite: **58 test files / 733 tests — all passing** (`npm test` verified 2026-06-10).
+> Test suite: **59 test files / 745 tests — all passing** (`npm test` verified 2026-06-17).
 
 ---
 
@@ -28,7 +28,7 @@ Tests in `__tests__/components/` (18 files).
 
 ## 10.2 Backend & API Testing
 
-Tests in `__tests__/api/` (22 files).
+Tests in `__tests__/api/` (23 files).
 
 | Test Case | Endpoint                           | Input                    | Expected Output          | Status |
 | :-------- | :--------------------------------- | :----------------------- | :----------------------- | :----- |
@@ -68,14 +68,14 @@ Tests in `__tests__/ai/` (4 files).
 
 ### AI Feature: AI Tutor
 
-| Test Case | Input                                             | Expected Output                       | Actual Result            | Status |
-| :-------- | :------------------------------------------------ | :------------------------------------ | :----------------------- | :----- |
-| AI-01     | Valid academic question                           | Relevant, coherent streaming response | ✓ Streams correctly      | Pass   |
-| AI-02     | Empty string                                      | Validation error before API call      | ✓ 400 returned           | Pass   |
-| AI-03     | Very long input (>5000 chars)                     | Rate-limited or truncated             | ✓ 429 returned           | Pass   |
-| AI-04     | Prompt injection ("ignore previous instructions") | Response stays in academic scope      | ✓ System prompt enforced | Pass   |
-| AI-05     | Ollama unavailable (mocked)                       | 503 with friendly error message       | ✓ Error message shown    | Pass   |
-| AI-06     | Non-English input                                 | Response in same language or English  | ✓ Handled gracefully     | Pass   |
+| Test Case | Input                                             | Expected Output                                                                   | Actual Result            | Status |
+| :-------- | :------------------------------------------------ | :-------------------------------------------------------------------------------- | :----------------------- | :----- |
+| AI-01     | Valid academic question                           | Relevant, coherent streaming response                                             | ✓ Streams correctly      | Pass   |
+| AI-02     | Empty string                                      | Validation error before API call                                                  | ✓ 400 returned           | Pass   |
+| AI-03     | Very long input (>5000 chars)                     | Rate-limited or truncated                                                         | ✓ 429 returned           | Pass   |
+| AI-04     | Prompt injection ("ignore previous instructions") | Response stays in academic scope                                                  | ✓ System prompt enforced | Pass   |
+| AI-05     | Ollama unavailable (mocked)                       | Non-OK upstream → error returned (upstream status / 502 / 500), surfaced as toast | ✓ Error toast shown      | Pass   |
+| AI-06     | Non-English input                                 | Response in same language or English                                              | ✓ Handled gracefully     | Pass   |
 
 ### AI Feature: AI Content Moderation
 
@@ -98,7 +98,7 @@ Tests in `__tests__/ai/` (4 files).
 
 **Failure Handling:**
 
-- **AI unavailable:** All Ollama-dependent endpoints return `503` with a human-readable message. UI shows a toast notification.
+- **AI unavailable:** Ollama-dependent endpoints surface the failure rather than masking it — chat returns the upstream status / `502` / `500`, summarization returns an error and hides the summary card. In all cases the UI shows a human-readable toast notification.
 - **Timeout:** The Ollama request is aborted on expiry and the fail-closed path triggers.
 - **Malformed response:** JSON parse errors from Ollama are caught; fallback error response returned.
 - **Prompt injection:** System prompt is prepended to every Ollama call and instructs the model to ignore user instructions that attempt to change its role or behavior.
@@ -121,4 +121,4 @@ npm run test:coverage
 npm run test:watch
 ```
 
-733 tests across 58 suites. Coverage is concentrated on API routes, security utilities, and AI logic; page-level UI shells are exercised via component tests rather than line coverage.
+745 tests across 59 suites. Coverage is concentrated on API routes, security utilities, and AI logic; page-level UI shells are exercised via component tests rather than line coverage.
